@@ -1,4 +1,5 @@
 ﻿using Evergine.Bindings.Vulkan;
+using Glfw;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -8,8 +9,8 @@ public unsafe partial class VulkanRenderer
     private VkFormat swapchainImageFormat;
     private VkExtent2D swapchainExtent;
 
-    private VkImage[] swapchainImages;
-    private VkImageView[] swapchainImageViews;
+    private VkImage[] swapchainImages = null!;
+    private VkImageView[] swapchainImageViews = null!;
     
     private void CreateSwapchain()
     {
@@ -121,5 +122,43 @@ public unsafe partial class VulkanRenderer
                 Utilities.CheckErrors(VulkanNative.vkCreateImageView(this.logicalDevice, &imageViewCreateInfo, null, imageViewPtr));
             }
         }
+    }
+
+    private void RecreateSwapchainObjects()
+    {
+        while (window.minimised)
+        {
+            Glfw3.WaitEvents();
+        }
+        
+        VulkanNative.vkDeviceWaitIdle(this.logicalDevice);
+        
+        DestroySwapchainObjects();
+        
+        CreateSwapchain();
+        CreateSwapchainImageViews();
+        CreateRenderPass();
+        CreateGraphicsPipeline();
+        CreateFrameBuffers();
+    }
+
+    private void DestroySwapchainObjects()
+    {
+        foreach (var swapchainFramebuffer in this.swapchainFrameBuffers)
+        {
+            VulkanNative.vkDestroyFramebuffer(this.logicalDevice, swapchainFramebuffer, null);
+        }
+        
+        VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
+        VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
+        
+        VulkanNative.vkDestroyRenderPass(this.logicalDevice, this.renderPass, null);
+        
+        foreach (var imageView in this.swapchainImageViews!)
+        {
+            VulkanNative.vkDestroyImageView(this.logicalDevice, imageView, null);
+        }
+        
+        VulkanNative.vkDestroySwapchainKHR(this.logicalDevice, this.swapchain, null);
     }
 }

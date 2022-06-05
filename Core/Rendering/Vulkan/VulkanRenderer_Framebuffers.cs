@@ -4,7 +4,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private VkFramebuffer[] swapchainFrameBuffers;
+    private VkFramebuffer[] swapchainFrameBuffers = null!;
     
     private void CreateFrameBuffers()
     {

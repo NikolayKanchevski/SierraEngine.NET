@@ -75,7 +75,7 @@ public unsafe class Window
     /// <summary>
     /// Checks whether the window is minimised and is not shown.
     /// </summary>
-    public bool minimised => Convert.ToBoolean(Glfw3.GetWindowAttrib(glfwWindow, WindowAttribute.Iconified));
+    public bool minimised => width == 0 || height == 0;
 
     /// <summary>
     /// Checks whether the window is maximised (uses the whole screen).
@@ -160,8 +160,14 @@ public unsafe class Window
         
         windowObject.width = newWidth;
         windowObject.height = newHeight;
+
+        if (windowObject.vulkanRenderer == null)
+        {
+            return;
+        }
         
-        windowObject.vulkanRenderer?.Update();
+        // windowObject.vulkanRenderer?.Update();
+        windowObject.vulkanRenderer.frameBufferResized = true;
     }
 
     /* -- INTERNAL METHODS -- */

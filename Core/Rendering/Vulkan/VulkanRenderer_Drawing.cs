@@ -4,12 +4,13 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private VkSemaphore[] imageAvailableSemaphores;
-    private VkSemaphore[] renderFinishedSemaphores;
-    private VkFence[] frameBeingRenderedFences;
+    private VkSemaphore[] imageAvailableSemaphores = null!;
+    private VkSemaphore[] renderFinishedSemaphores = null!;
+    private VkFence[] frameBeingRenderedFences = null!;
 
     private uint currentFrame = 0;
     private const uint MAX_CONCURRENT_FRAMES = 2;
+    public bool frameBufferResized;
 
     private void CreateSynchronisation()
     {
@@ -59,14 +60,22 @@ public unsafe partial class VulkanRenderer
         // Create a pointer to the needed fences
         VkFence* fencesPtr = stackalloc VkFence[] { frameBeingRenderedFences[currentFrame] };
         
-        // Wait for the fences to be signalled and reset them
+        // Wait for the fences to be signalled
         VulkanNative.vkWaitForFences(this.logicalDevice, 1, fencesPtr, VkBool32.True, UInt64.MaxValue);
-        VulkanNative.vkResetFences(this.logicalDevice, 1, fencesPtr);
 
         // Get the current swapchain image
         uint imageIndex;
-        VulkanNative.vkAcquireNextImageKHR(this.logicalDevice, this.swapchain, UInt64.MaxValue, imageAvailableSemaphores[currentFrame], VkFence.Null, &imageIndex);
+        VkResult imageAcquireResult = VulkanNative.vkAcquireNextImageKHR(this.logicalDevice, this.swapchain, UInt64.MaxValue, imageAvailableSemaphores[currentFrame], VkFence.Null, &imageIndex);
+        
+        if (imageAcquireResult == VkResult.VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            RecreateSwapchainObjects();
+            return;
+        }
 
+        // Reset the fences
+        VulkanNative.vkResetFences(this.logicalDevice, 1, fencesPtr);
+        
         // Reset and re-record the command buffer
         VulkanNative.vkResetCommandBuffer(this.commandBuffers[currentFrame], 0);
         this.RecordCommandBuffer(this.commandBuffers[currentFrame], imageIndex);
@@ -109,9 +118,15 @@ public unsafe partial class VulkanRenderer
         };
 
         // Present
-        Utilities.CheckErrors(VulkanNative.vkQueuePresentKHR(this.presentationQueue, &presentInfo));
+        VkResult queuePresentResult = VulkanNative.vkQueuePresentKHR(this.presentationQueue, &presentInfo);
 
-        // Increment "currentFrame" whilst making sure it doesn't get higher than "MAX_CONCURRENT_FRAMES"
+        if (queuePresentResult == VkResult.VK_ERROR_OUT_OF_DATE_KHR || queuePresentResult == VkResult.VK_SUBOPTIMAL_KHR || frameBufferResized)
+        {
+            frameBufferResized = false;
+            RecreateSwapchainObjects();
+        }
+
+        // Increment the current frame whilst capping it to "MAX_CONCURRENT_FRAMES"
         currentFrame = (currentFrame + 1) % MAX_CONCURRENT_FRAMES;
     }
 }

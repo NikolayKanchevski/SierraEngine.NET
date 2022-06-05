@@ -5,7 +5,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private VkCommandPool commandPool;
-    private VkCommandBuffer[] commandBuffers;
+    private VkCommandBuffer[] commandBuffers = null!;
     
     private void CreateCommandPool()
     {

@@ -46,6 +46,8 @@ public unsafe partial class VulkanRenderer
     {
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
 
+        DestroySwapchainObjects();
+        
         for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
             VulkanNative.vkDestroySemaphore(this.logicalDevice, this.imageAvailableSemaphores[i], null);
@@ -55,22 +57,6 @@ public unsafe partial class VulkanRenderer
 
         VulkanNative.vkDestroyCommandPool(this.logicalDevice, this.commandPool, null);
         
-        foreach (var swapchainFramebuffer in this.swapchainFrameBuffers)
-        {
-            VulkanNative.vkDestroyFramebuffer(this.logicalDevice, swapchainFramebuffer, null);
-        }
-        
-        VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
-        VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
-        
-        VulkanNative.vkDestroyRenderPass(this.logicalDevice, this.renderPass, null);
-        
-        foreach (var imageView in this.swapchainImageViews!)
-        {
-            VulkanNative.vkDestroyImageView(this.logicalDevice, imageView, null);
-        }
-        
-        VulkanNative.vkDestroySwapchainKHR(this.logicalDevice, this.swapchain, null);
         VulkanNative.vkDestroyDevice(this.logicalDevice, null);
 
         DestroyDebugMessenger();
