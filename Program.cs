@@ -1,0 +1,59 @@
+using SierraEngine.Core.Rendering.Vulkan;
+using SierraEngine.Engine;
+using Glfw;
+using StbImageSharp;
+using Window = SierraEngine.Core.Rendering.Window;
+
+namespace SierraEngine;
+
+public static class Program
+{
+    private static IntPtr glfwWindow;
+    private static Window? window;
+    public static string ROOT_FOLDER_PATH = "";
+    
+    public static void Main()
+    {
+        // if (OperatingSystem.IsWindows())
+        // {
+        //     // TODO: Set path!
+        //     ROOT_FOLDER_PATH = "";
+        // }
+        // else if (OperatingSystem.IsMacOS())
+        // {
+        //     ROOT_FOLDER_PATH = "/Users/nikolay/RiderProjects/SierraEngine.NET/";
+        // }
+        
+        window = new Window(800, 600, "Hello, Vulkan!", true);
+        glfwWindow = window.GetCoreWindow();
+
+        // if (OperatingSystem.IsWindows())
+        // {
+        //     using var stream = System.IO.File.OpenRead("C:/Users/Niki/RiderProjects/SierraEngine/Other/terminal_icon.png");
+        //     ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+        //     window.SetIcon(image.Width, image.Height, image.Data);
+        // }
+            
+        VulkanRenderer vulkanRenderer = new VulkanRenderer(ref window);
+        window.SetRenderer(ref vulkanRenderer);
+
+        while (!window.closed)
+        {
+            UpdateClasses();
+            
+            window.SetTitle($"FPS: { Time.FPS }"); 
+            
+            window.Update();
+        }
+        
+        window.Destroy();
+        
+        Glfw3.Terminate();
+    }
+
+    private static void UpdateClasses()
+    {
+        Time.Update();
+        Input.Update();
+    }
+}

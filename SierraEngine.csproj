@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Evergine.Bindings.Vulkan" Version="2022.5.1.4" />
+        <PackageReference Include="glfw-sharp" Version="0.2.14" />
+        <PackageReference Include="SharpVk.Glfw" Version="0.4.3-dev2" />
+        <PackageReference Include="StbImageSharp" Version="2.27.8" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Core\Rendering\Shading\Compilers" />
+        <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />
+        <Folder Include="Other" />
+    </ItemGroup>
+
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <ItemGroup>
+            <FILES Include="Core/Rendering/Shading/Shaders/Compiled/*.*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(FILES)" DestinationFolder="$(OutDir)/Shaders" />
+    </Target>
+
+</Project>
