@@ -166,7 +166,7 @@ public unsafe class Window
             return;
         }
         
-        // windowObject.vulkanRenderer?.Update();
+        windowObject.vulkanRenderer.Update();
         windowObject.vulkanRenderer.frameBufferResized = true;
     }
 
