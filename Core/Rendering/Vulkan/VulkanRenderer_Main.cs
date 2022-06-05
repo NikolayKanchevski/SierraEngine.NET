@@ -28,7 +28,7 @@ public unsafe partial class VulkanRenderer
             CreateGraphicsPipeline();
             CreateFrameBuffers();
             CreateCommandPool();
-            CreateCommandBuffer();
+            CreateCommandBuffers();
             CreateSynchronisation();
         }
         catch (Exception exception)
@@ -45,11 +45,14 @@ public unsafe partial class VulkanRenderer
     public void CleanUp()
     {
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
-        
-        VulkanNative.vkDestroySemaphore(this.logicalDevice, this.imageAvailableSemaphore, null);
-        VulkanNative.vkDestroySemaphore(this.logicalDevice, this.renderFinishedSemaphore, null);
-        VulkanNative.vkDestroyFence(this.logicalDevice, this.frameBeingRenderedFence, null);
-        
+
+        for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
+        {
+            VulkanNative.vkDestroySemaphore(this.logicalDevice, this.imageAvailableSemaphores[i], null);
+            VulkanNative.vkDestroySemaphore(this.logicalDevice, this.renderFinishedSemaphores[i], null);
+            VulkanNative.vkDestroyFence(this.logicalDevice, this.frameBeingRenderedFences[i], null);
+        }
+
         VulkanNative.vkDestroyCommandPool(this.logicalDevice, this.commandPool, null);
         
         foreach (var swapchainFramebuffer in this.swapchainFrameBuffers)

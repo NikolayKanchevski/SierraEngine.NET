@@ -5,7 +5,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private VkCommandPool commandPool;
-    private VkCommandBuffer commandBuffer;
+    private VkCommandBuffer[] commandBuffers;
     
     private void CreateCommandPool()
     {
@@ -27,21 +27,28 @@ public unsafe partial class VulkanRenderer
         }
     }
 
-    private void CreateCommandBuffer()
+    private void CreateCommandBuffers()
     {
-        // Set up allocation info
-        VkCommandBufferAllocateInfo commandBufferAllocateInfo = new VkCommandBufferAllocateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            commandPool = commandPool,
-            level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            commandBufferCount = 1
-        };
+        // Resize the command buffers array
+        commandBuffers = new VkCommandBuffer[MAX_CONCURRENT_FRAMES];
 
-        // Allocate the buffer
-        fixed (VkCommandBuffer* commandBufferPtr = &commandBuffer)
+        // Allocate a command buffer for each frame
+        for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            Utilities.CheckErrors(VulkanNative.vkAllocateCommandBuffers(this.logicalDevice, &commandBufferAllocateInfo, commandBufferPtr));
+            // Set up allocation info
+            VkCommandBufferAllocateInfo commandBufferAllocateInfo = new VkCommandBufferAllocateInfo()
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                commandPool = commandPool,
+                level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+                commandBufferCount = 1
+            };
+
+            // Allocate the buffer
+            fixed (VkCommandBuffer* commandBufferPtr = &commandBuffers[i])
+            {
+                Utilities.CheckErrors(VulkanNative.vkAllocateCommandBuffers(this.logicalDevice, &commandBufferAllocateInfo, commandBufferPtr));
+            }
         }
     }
 

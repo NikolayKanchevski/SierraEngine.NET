@@ -4,12 +4,20 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private VkSemaphore imageAvailableSemaphore;
-    private VkSemaphore renderFinishedSemaphore;
-    private VkFence frameBeingRenderedFence;
+    private VkSemaphore[] imageAvailableSemaphores;
+    private VkSemaphore[] renderFinishedSemaphores;
+    private VkFence[] frameBeingRenderedFences;
+
+    private uint currentFrame = 0;
+    private const uint MAX_CONCURRENT_FRAMES = 2;
 
     private void CreateSynchronisation()
     {
+        // Resize the semaphores and fences arrays
+        imageAvailableSemaphores = new VkSemaphore[MAX_CONCURRENT_FRAMES];
+        renderFinishedSemaphores = new VkSemaphore[MAX_CONCURRENT_FRAMES];
+        frameBeingRenderedFences = new VkFence[MAX_CONCURRENT_FRAMES];
+        
         // Define the semaphores creation info (universal for all semaphores)
         VkSemaphoreCreateInfo semaphoreCreateInfo = new VkSemaphoreCreateInfo()
         {
@@ -23,29 +31,33 @@ public unsafe partial class VulkanRenderer
             flags = VkFenceCreateFlags.VK_FENCE_CREATE_SIGNALED_BIT
         };
 
-        // Create "imageAvailable" semaphore
-        fixed (VkSemaphore* imageAvailableSemaphorePtr = &imageAvailableSemaphore)
+        // Create semaphores and fences 
+        for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, imageAvailableSemaphorePtr));
-        }
+            // Create "imageAvailable" semaphore
+            fixed (VkSemaphore* imageAvailableSemaphorePtr = &imageAvailableSemaphores[i])
+            {
+                Utilities.CheckErrors(VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, imageAvailableSemaphorePtr));
+            }
         
-        // Create "renderFinished" semaphore
-        fixed (VkSemaphore* renderFinishedSemaphorePtr = &renderFinishedSemaphore)
-        {
-            Utilities.CheckErrors(VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, renderFinishedSemaphorePtr));
-        }
+            // Create "renderFinished" semaphore
+            fixed (VkSemaphore* renderFinishedSemaphorePtr = &renderFinishedSemaphores[i])
+            {
+                Utilities.CheckErrors(VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, renderFinishedSemaphorePtr));
+            }
         
-        // Create "frameBeingRenderedFence" fence
-        fixed (VkFence* frameBeingRenderedFencePtr = &frameBeingRenderedFence)
-        {
-            Utilities.CheckErrors(VulkanNative.vkCreateFence(this.logicalDevice, &fenceCreateInfo, null, frameBeingRenderedFencePtr));
+            // Create "frameBeingRenderedFence" fence
+            fixed (VkFence* frameBeingRenderedFencePtr = &frameBeingRenderedFences[i])
+            {
+                Utilities.CheckErrors(VulkanNative.vkCreateFence(this.logicalDevice, &fenceCreateInfo, null, frameBeingRenderedFencePtr));
+            }
         }
     }
     
     private void Draw()
     {
         // Create a pointer to the needed fences
-        VkFence* fencesPtr = stackalloc VkFence[] { frameBeingRenderedFence };
+        VkFence* fencesPtr = stackalloc VkFence[] { frameBeingRenderedFences[currentFrame] };
         
         // Wait for the fences to be signalled and reset them
         VulkanNative.vkWaitForFences(this.logicalDevice, 1, fencesPtr, VkBool32.True, UInt64.MaxValue);
@@ -53,17 +65,17 @@ public unsafe partial class VulkanRenderer
 
         // Get the current swapchain image
         uint imageIndex;
-        VulkanNative.vkAcquireNextImageKHR(this.logicalDevice, this.swapchain, UInt64.MaxValue, imageAvailableSemaphore, VkFence.Null, &imageIndex);
+        VulkanNative.vkAcquireNextImageKHR(this.logicalDevice, this.swapchain, UInt64.MaxValue, imageAvailableSemaphores[currentFrame], VkFence.Null, &imageIndex);
 
         // Reset and re-record the command buffer
-        VulkanNative.vkResetCommandBuffer(this.commandBuffer, 0);
-        this.RecordCommandBuffer(this.commandBuffer, imageIndex);
+        VulkanNative.vkResetCommandBuffer(this.commandBuffers[currentFrame], 0);
+        this.RecordCommandBuffer(this.commandBuffers[currentFrame], imageIndex);
 
         // Define pointers to the needed references 
-        VkSemaphore* waitSemaphores = stackalloc VkSemaphore[] { imageAvailableSemaphore };
+        VkSemaphore* waitSemaphores = stackalloc VkSemaphore[] { imageAvailableSemaphores[currentFrame] };
         VkPipelineStageFlags* waitStages = stackalloc VkPipelineStageFlags[] { VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        VkSemaphore* signalSemaphores = stackalloc VkSemaphore[] { renderFinishedSemaphore };
-        VkCommandBuffer* commandBufferPtr = stackalloc VkCommandBuffer[] { commandBuffer };
+        VkSemaphore* signalSemaphores = stackalloc VkSemaphore[] { renderFinishedSemaphores[currentFrame] };
+        VkCommandBuffer* commandBufferPtr = stackalloc VkCommandBuffer[] { commandBuffers[currentFrame] };
 
         // Set up the submitting info
         VkSubmitInfo submitInfo = new VkSubmitInfo()
@@ -79,7 +91,7 @@ public unsafe partial class VulkanRenderer
         };
 
         // Submit the queue
-        Utilities.CheckErrors(VulkanNative.vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameBeingRenderedFence));
+        Utilities.CheckErrors(VulkanNative.vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameBeingRenderedFences[currentFrame]));
 
         // Define a pointer to the swapchain
         VkSwapchainKHR* swapchains = stackalloc VkSwapchainKHR[] { this.swapchain };
@@ -98,5 +110,8 @@ public unsafe partial class VulkanRenderer
 
         // Present
         Utilities.CheckErrors(VulkanNative.vkQueuePresentKHR(this.presentationQueue, &presentInfo));
+
+        // Increment "currentFrame" whilst making sure it doesn't get higher than "MAX_CONCURRENT_FRAMES"
+        currentFrame = (currentFrame + 1) % MAX_CONCURRENT_FRAMES;
     }
 }
