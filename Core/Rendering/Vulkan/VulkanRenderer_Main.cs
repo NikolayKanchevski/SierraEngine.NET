@@ -1,3 +1,4 @@
+using System.Numerics;
 using Evergine.Bindings.Vulkan;
 using Exception = System.Exception;
 
@@ -6,6 +7,25 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private readonly Window window;
+
+    private Vertex[] vertices = new Vertex[]
+    {
+        new Vertex()
+        {
+            position = new Vector3(0.0f, -0.5f, 0.0f), 
+            color = new Vector3(1.0f, 0.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(0.5f, 0.5f, 0.0f),
+            color = new Vector3(0.0f, 1.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-0.5f, 0.5f, 0.0f),
+            color = new Vector3(0.0f, 0.0f, 1.0f)
+        }
+    };
     
     public VulkanRenderer(ref Window window)
     {

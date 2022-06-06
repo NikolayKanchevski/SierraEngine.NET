@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -38,6 +39,25 @@ public unsafe partial class VulkanRenderer
         // Put each stage info in an array
         VkPipelineShaderStageCreateInfo* shaderStages = stackalloc VkPipelineShaderStageCreateInfo[] { vertShaderStageInfo, fragShaderStageInfo };
 
+        VkVertexInputBindingDescription bindingDescription = new VkVertexInputBindingDescription()
+        {
+            binding = 0,
+            stride = (uint) sizeof(Vertex),
+            inputRate = VkVertexInputRate.VK_VERTEX_INPUT_RATE_VERTEX
+        };
+
+        VkVertexInputAttributeDescription[] attributeDescriptions = new VkVertexInputAttributeDescription[2];
+
+        // attributeDescriptions[0].binding = 0;
+        // attributeDescriptions[0].location = 0;
+        // attributeDescriptions[0].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
+        // attributeDescriptions[0].offset = Marshal.OffsetOf(typeof(Vertex), "position");
+        //
+        // attributeDescriptions[1].binding = 0;
+        // attributeDescriptions[1].location = 1;
+        // attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        // attributeDescriptions[1].offset = offsetof(Vertex, color);
+        
         // Set up how vertex data sent
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
         {

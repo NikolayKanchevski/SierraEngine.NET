@@ -1,8 +1,15 @@
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using Evergine.Bindings.Vulkan;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
+
+public struct Vertex
+{
+    public Vector3 position;
+    public Vector3 color;
+}
 
 public static unsafe class Utilities
 {
