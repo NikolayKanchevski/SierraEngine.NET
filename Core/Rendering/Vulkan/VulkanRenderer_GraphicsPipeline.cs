@@ -46,17 +46,17 @@ public unsafe partial class VulkanRenderer
             inputRate = VkVertexInputRate.VK_VERTEX_INPUT_RATE_VERTEX
         };
 
-        VkVertexInputAttributeDescription[] attributeDescriptions = new VkVertexInputAttributeDescription[2];
+        VkVertexInputAttributeDescription* attributeDescriptions = stackalloc VkVertexInputAttributeDescription[2];
 
-        // attributeDescriptions[0].binding = 0;
-        // attributeDescriptions[0].location = 0;
-        // attributeDescriptions[0].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
-        // attributeDescriptions[0].offset = Marshal.OffsetOf(typeof(Vertex), "position");
-        //
-        // attributeDescriptions[1].binding = 0;
-        // attributeDescriptions[1].location = 1;
-        // attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        // attributeDescriptions[1].offset = offsetof(Vertex, color);
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = (uint) Marshal.OffsetOf(typeof(Vertex), "position");
+        
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = (uint) Marshal.OffsetOf(typeof(Vertex), "color");
         
         // Set up how vertex data sent
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
