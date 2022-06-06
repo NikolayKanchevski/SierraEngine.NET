@@ -39,6 +39,7 @@ public unsafe partial class VulkanRenderer
         // Put each stage info in an array
         VkPipelineShaderStageCreateInfo* shaderStages = stackalloc VkPipelineShaderStageCreateInfo[] { vertShaderStageInfo, fragShaderStageInfo };
 
+        // Set up binding description
         VkVertexInputBindingDescription bindingDescription = new VkVertexInputBindingDescription()
         {
             binding = 0,
@@ -46,13 +47,16 @@ public unsafe partial class VulkanRenderer
             inputRate = VkVertexInputRate.VK_VERTEX_INPUT_RATE_VERTEX
         };
 
+        // Define the attributes to be sent to the shader
         VkVertexInputAttributeDescription* attributeDescriptions = stackalloc VkVertexInputAttributeDescription[2];
 
+        // Set up for the "position" property
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
         attributeDescriptions[0].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset = (uint) Marshal.OffsetOf(typeof(Vertex), "position");
         
+        // Set up for the "color" property
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
@@ -62,10 +66,10 @@ public unsafe partial class VulkanRenderer
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            pVertexAttributeDescriptions = null,
-            vertexAttributeDescriptionCount = 0,
-            pVertexBindingDescriptions = null,
-            vertexBindingDescriptionCount = 0
+            vertexBindingDescriptionCount = 1,
+            vertexAttributeDescriptionCount = 2,
+            pVertexBindingDescriptions = &bindingDescription,
+            pVertexAttributeDescriptions = attributeDescriptions
         };
 
         // Set up assembly info

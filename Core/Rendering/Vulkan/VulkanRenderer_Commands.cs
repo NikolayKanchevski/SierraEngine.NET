@@ -93,6 +93,13 @@ public unsafe partial class VulkanRenderer
         // Bind the pipeline
         VulkanNative.vkCmdBindPipeline(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipeline);
         
+        // Define a pointer to the vertex buffer
+        VkBuffer* vertexBuffers = stackalloc VkBuffer[] { this.vertexBuffer };
+        ulong* offsets = stackalloc ulong[] { 0 };
+        
+        // Bind the vertex buffer
+        VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
+        
         // Draw 
         VulkanNative.vkCmdDraw(givenCommandBuffer, 3, 1, 0, 0);
         

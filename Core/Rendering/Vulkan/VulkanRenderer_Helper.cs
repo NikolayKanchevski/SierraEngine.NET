@@ -317,4 +317,20 @@ public unsafe partial class VulkanRenderer
 
         return shaderModule;
     }
+
+    private uint FindMemoryType(uint typeFilter, in VkMemoryPropertyFlags givenMemoryPropertyFlags)
+    {
+        VkPhysicalDeviceMemoryProperties memoryProperties;
+        VulkanNative.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+        
+        for (uint i = 0; i < memoryProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << (int) i)) != 0 &&
+                (memoryProperties.GetMemoryType(i).propertyFlags & givenMemoryPropertyFlags) == givenMemoryPropertyFlags) 
+            {
+                return i;
+            }
+        }
+
+        return 0;
+    }
 }

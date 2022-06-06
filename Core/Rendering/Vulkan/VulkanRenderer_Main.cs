@@ -8,7 +8,7 @@ public unsafe partial class VulkanRenderer
 {
     private readonly Window window;
 
-    private Vertex[] vertices = new Vertex[]
+    private readonly Vertex[] vertices = new Vertex[]
     {
         new Vertex()
         {
@@ -18,12 +18,12 @@ public unsafe partial class VulkanRenderer
         new Vertex()
         {
             position = new Vector3(0.5f, 0.5f, 0.0f),
-            color = new Vector3(0.0f, 1.0f, 0.0f)
+            color = new Vector3(1.0f, 1.0f, 0.0f)
         },
         new Vertex()
         {
             position = new Vector3(-0.5f, 0.5f, 0.0f),
-            color = new Vector3(0.0f, 0.0f, 1.0f)
+            color = new Vector3(1.0f, 0.0f, 1.0f)
         }
     };
     
@@ -48,6 +48,7 @@ public unsafe partial class VulkanRenderer
             CreateGraphicsPipeline();
             CreateFrameBuffers();
             CreateCommandPool();
+            CreateVertexBuffers();
             CreateCommandBuffers();
             CreateSynchronisation();
         }
@@ -67,6 +68,9 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
 
         DestroySwapchainObjects();
+        
+        VulkanNative.vkDestroyBuffer(this.logicalDevice, this.vertexBuffer, null);
+        VulkanNative.vkFreeMemory(this.logicalDevice, this.vertexBufferMemory, null);
         
         for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
