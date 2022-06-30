@@ -100,8 +100,11 @@ public unsafe partial class VulkanRenderer
         // Bind the vertex buffer
         VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
         
-        // Draw 
-        VulkanNative.vkCmdDraw(givenCommandBuffer, 3, 1, 0, 0);
+        // Bind the index buffer
+        VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, this.indexBuffer, 0, VkIndexType.VK_INDEX_TYPE_UINT16);
+        
+        // Draw using the index buffer to prevent vertex re-usage
+        VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, (uint) this.indices.Length, 1, 0, 0, 0);
         
         // End the render pass
         VulkanNative.vkCmdEndRenderPass(givenCommandBuffer);

@@ -12,19 +12,29 @@ public unsafe partial class VulkanRenderer
     {
         new Vertex()
         {
-            position = new Vector3(0.0f, -0.5f, 0.0f), 
+            position = new Vector3(-0.5f, -0.5f, 0.0f), 
             color = new Vector3(1.0f, 0.0f, 0.0f)
         },
         new Vertex()
         {
-            position = new Vector3(0.5f, 0.5f, 0.0f),
+            position = new Vector3(0.5f, -0.5f, 0.0f),
             color = new Vector3(1.0f, 1.0f, 0.0f)
         },
         new Vertex()
         {
-            position = new Vector3(-0.5f, 0.5f, 0.0f),
+            position = new Vector3(0.5f, 0.5f, 0.0f),
             color = new Vector3(1.0f, 0.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-0.5f, 0.5f, 0.0f),
+            color = new Vector3(0.0f, 1.0f, 1.0f)
         }
+    };
+
+    private readonly UInt16[] indices = new UInt16[]
+    {
+        0, 1, 2, 2, 3, 0
     };
     
     public VulkanRenderer(ref Window window)
@@ -49,6 +59,7 @@ public unsafe partial class VulkanRenderer
             CreateFrameBuffers();
             CreateCommandPool();
             CreateVertexBuffers();
+            CreateIndexBuffers();
             CreateCommandBuffers();
             CreateSynchronisation();
         }
@@ -68,6 +79,9 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
 
         DestroySwapchainObjects();
+        
+        VulkanNative.vkDestroyBuffer(this.logicalDevice, this.indexBuffer, null);
+        VulkanNative.vkFreeMemory(this.logicalDevice, this.indexBufferMemory, null);
         
         VulkanNative.vkDestroyBuffer(this.logicalDevice, this.vertexBuffer, null);
         VulkanNative.vkFreeMemory(this.logicalDevice, this.vertexBufferMemory, null);
