@@ -94,9 +94,9 @@ public unsafe class Window
     /// </summary>
     public void Update()
     {
-        if (requireFocus && !focused) return;
-        
         Glfw3.PollEvents();
+        
+        if (requireFocus && !focused) return;
         
         if (minimised) return;
         
