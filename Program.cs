@@ -1,6 +1,7 @@
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine;
 using Glfw;
+using GlmSharp;
 using StbImageSharp;
 using Window = SierraEngine.Core.Rendering.Window;
 
@@ -9,8 +10,8 @@ namespace SierraEngine;
 public static class Program
 {
     private static IntPtr glfwWindow;
-    private static Window? window;
-    public static string ROOT_FOLDER_PATH = "";
+    private static Window window = null!;
+    // public static string ROOT_FOLDER_PATH = "";
     
     public static void Main()
     {
@@ -40,6 +41,8 @@ public static class Program
         while (!window.closed)
         {
             UpdateClasses();
+
+            ProgramLoop();
             
             window.SetTitle($"FPS: { Time.FPS }"); 
             
@@ -49,6 +52,14 @@ public static class Program
         window.Destroy();
         
         Glfw3.Terminate();
+    }
+
+    private static void ProgramLoop()
+    {
+        window.vulkanRenderer!.mvp.model = mat4.Rotate(glm.Radians((float) Time.upTime * 20 % 60), new vec3(0.0f, 0.0f, 1.0f));
+        window.vulkanRenderer!.mvp.view = mat4.LookAt(new vec3(2.0f, 2.0f, 2.0f), vec3.Zero, new vec3(0.0f, 0.0f, 1.0f));
+        window.vulkanRenderer!.mvp.projection = mat4.Perspective(glm.Radians(45.0f), (float) window.width / window.height, 0.1f, 10.0f);
+        window.vulkanRenderer!.mvp.projection[1, 1] *= -1;
     }
 
     private static void UpdateClasses()

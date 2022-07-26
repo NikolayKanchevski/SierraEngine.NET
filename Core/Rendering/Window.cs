@@ -12,9 +12,9 @@ public unsafe class Window
     public int width { get; private set; }
     public int height { get; private set; }
     public string title { get; private set; }
+    public VulkanRenderer? vulkanRenderer { get; private set; }
     
     private IntPtr glfwWindow;
-    private VulkanRenderer? vulkanRenderer = null;
     
     private readonly bool resizable;
     private readonly bool requireFocus;
@@ -155,8 +155,7 @@ public unsafe class Window
     
     private static void WindowResizeCallback(IntPtr resizedGlfwWindow, int newWidth, int newHeight)
     {
-        Window windowObject;
-        GetGlfwWindowParentClass(resizedGlfwWindow, out windowObject);
+        GetGlfwWindowParentClass(resizedGlfwWindow, out var windowObject);
         
         windowObject.width = newWidth;
         windowObject.height = newHeight;
@@ -167,7 +166,7 @@ public unsafe class Window
         }
         
         windowObject.vulkanRenderer.frameBufferResized = true;
-        windowObject.vulkanRenderer.Update();
+        // windowObject.vulkanRenderer.Update();
     }
 
     /* -- INTERNAL METHODS -- */

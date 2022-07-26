@@ -12,6 +12,8 @@ public unsafe partial class VulkanRenderer
 {
     #region VARIABLES
 
+        public MVP mvp = new MVP();
+
         private readonly Window window;
 
         private readonly Vertex[] vertices = new Vertex[]
@@ -43,7 +45,6 @@ public unsafe partial class VulkanRenderer
             0, 1, 2, 2, 3, 0
         };
 
-    private MVP mvp = new MVP();
     private readonly ulong mvpSize = (ulong) Marshal.SizeOf(typeof(MVP));
 
     #endregion
@@ -135,8 +136,8 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroySurfaceKHR(this.instance, this.surface, null);
         VulkanNative.vkDestroyInstance(this.instance, null);
     }
-    
-    private struct MVP
+
+    public struct MVP
     {
         public mat4 model;
         public mat4 view;
