@@ -63,7 +63,10 @@ public unsafe partial class VulkanRenderer
         // Create the render pass
         fixed (VkRenderPass* renderPassPtr = &renderPass)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateRenderPass(this.logicalDevice, &renderPassCreateInfo, null, renderPassPtr));
+            if (VulkanNative.vkCreateRenderPass(this.logicalDevice, &renderPassCreateInfo, null, renderPassPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create render pass");
+            }
         }
     } 
 }

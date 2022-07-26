@@ -38,19 +38,19 @@ public unsafe partial class VulkanRenderer
             // Create "imageAvailable" semaphore
             fixed (VkSemaphore* imageAvailableSemaphorePtr = &imageAvailableSemaphores[i])
             {
-                Utilities.CheckErrors(VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, imageAvailableSemaphorePtr));
+                VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, imageAvailableSemaphorePtr);
             }
         
             // Create "renderFinished" semaphore
             fixed (VkSemaphore* renderFinishedSemaphorePtr = &renderFinishedSemaphores[i])
             {
-                Utilities.CheckErrors(VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, renderFinishedSemaphorePtr));
+                VulkanNative.vkCreateSemaphore(this.logicalDevice, &semaphoreCreateInfo, null, renderFinishedSemaphorePtr);
             }
         
             // Create "frameBeingRenderedFence" fence
             fixed (VkFence* frameBeingRenderedFencePtr = &frameBeingRenderedFences[i])
             {
-                Utilities.CheckErrors(VulkanNative.vkCreateFence(this.logicalDevice, &fenceCreateInfo, null, frameBeingRenderedFencePtr));
+                VulkanNative.vkCreateFence(this.logicalDevice, &fenceCreateInfo, null, frameBeingRenderedFencePtr);
             }
         }
     }
@@ -102,7 +102,10 @@ public unsafe partial class VulkanRenderer
         };
 
         // Submit the queue
-        Utilities.CheckErrors(VulkanNative.vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameBeingRenderedFences[currentFrame]));
+        if (VulkanNative.vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameBeingRenderedFences[currentFrame]) != VkResult.VK_SUCCESS)
+        {
+            VulkanDebugger.ThrowError("Failed to submit graphics queue");
+        };
 
         // Define a pointer to the swapchain
         VkSwapchainKHR* swapchains = stackalloc VkSwapchainKHR[] { this.swapchain };

@@ -19,7 +19,7 @@ public unsafe partial class VulkanRenderer
 
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            CreateBuffer(
+            VulkanUtilities.CreateBuffer(
                 mvpSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
                 VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 out uniformBuffers[i], out uniformBuffersMemory[i]

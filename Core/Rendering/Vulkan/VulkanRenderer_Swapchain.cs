@@ -72,7 +72,10 @@ public unsafe partial class VulkanRenderer
         // Create the swapchain
         fixed (VkSwapchainKHR* swapchainPtr = &swapchain)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateSwapchainKHR(this.logicalDevice, &swapchainCreateInfo, null, swapchainPtr));
+            if (VulkanNative.vkCreateSwapchainKHR(this.logicalDevice, &swapchainCreateInfo, null, swapchainPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create swapchain");
+            }
         }
 
         // Get swapchain images
@@ -119,7 +122,10 @@ public unsafe partial class VulkanRenderer
             // Put the image view in the array
             fixed (VkImageView* imageViewPtr = &swapchainImageViews[i])
             {
-                Utilities.CheckErrors(VulkanNative.vkCreateImageView(this.logicalDevice, &imageViewCreateInfo, null, imageViewPtr));
+                if (VulkanNative.vkCreateImageView(this.logicalDevice, &imageViewCreateInfo, null, imageViewPtr) != VkResult.VK_SUCCESS)
+                {
+                    VulkanDebugger.ThrowError($"Failed to create image view for swapchain image number { i }");
+                }
             }
         }
     }

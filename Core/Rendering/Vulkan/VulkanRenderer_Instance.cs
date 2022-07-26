@@ -31,10 +31,10 @@ public unsafe partial class VulkanRenderer
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
             pApplicationName = "Sierra Engine".ToPointer(),
-            applicationVersion = Utilities.Version(1, 0, 0),
+            applicationVersion = VulkanUtilities.Version(1, 0, 0),
             pEngineName = "No Engine".ToPointer(),
-            engineVersion = Utilities.Version(1, 0, 0),
-            apiVersion = Utilities.Version(1, 2, 0),
+            engineVersion = VulkanUtilities.Version(1, 0, 0),
+            apiVersion = VulkanUtilities.Version(1, 2, 0),
         };
         
         // Get conditional extensions
@@ -87,7 +87,10 @@ public unsafe partial class VulkanRenderer
         // Create instance
         fixed (VkInstance* instancePtr = &instance)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateInstance(&instanceCreateInfo, null, instancePtr));
+            if (VulkanNative.vkCreateInstance(&instanceCreateInfo, null, instancePtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create instance");
+            }
         }
 
         // Deallocate useless memory

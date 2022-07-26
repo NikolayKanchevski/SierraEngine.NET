@@ -68,8 +68,14 @@ public unsafe partial class VulkanRenderer
         // Create logical device
         fixed (VkDevice* logicalDevicePtr = &logicalDevice)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateDevice(this.physicalDevice, &logicalDeviceCreateInfo, null, logicalDevicePtr));
+            if (VulkanNative.vkCreateDevice(this.physicalDevice, &logicalDeviceCreateInfo, null, logicalDevicePtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create logical device");
+            }
         }
+        
+        // Assign the EngineCore's logical device
+        EngineCore.logicalDevice = logicalDevice;
         
         // Retrieve graphics queue
         fixed (VkQueue* graphicsQueuePtr = &graphicsQueue)

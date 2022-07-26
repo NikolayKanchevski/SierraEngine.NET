@@ -40,7 +40,10 @@ public unsafe partial class VulkanRenderer
             // Create the framebuffer
             fixed (VkFramebuffer* framebufferPtr = &swapchainFrameBuffers[i])
             {
-                Utilities.CheckErrors(VulkanNative.vkCreateFramebuffer(this.logicalDevice, &framebufferCreateInfo, null, framebufferPtr));
+                if (VulkanNative.vkCreateFramebuffer(this.logicalDevice, &framebufferCreateInfo, null, framebufferPtr) != VkResult.VK_SUCCESS)
+                {
+                    VulkanDebugger.ThrowError("Failed to create the framebuffer");
+                }
             }
         }
     }

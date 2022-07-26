@@ -188,7 +188,10 @@ public unsafe partial class VulkanRenderer
         // Create the pipeline layout
         fixed (VkPipelineLayout* pipelineLayoutPtr = &graphicsPipelineLayout)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreatePipelineLayout(this.logicalDevice, &pipelineLayoutCreateInfo, null, pipelineLayoutPtr));
+            if (VulkanNative.vkCreatePipelineLayout(this.logicalDevice, &pipelineLayoutCreateInfo, null, pipelineLayoutPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create pipeline layout");
+            }
         }
 
         // Set up graphics pipeline creation info using all the modules created before
@@ -215,7 +218,10 @@ public unsafe partial class VulkanRenderer
         // Create the graphics pipeline
         fixed (VkPipeline* graphicsPipelinePtr = &graphicsPipeline)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateGraphicsPipelines(this.logicalDevice, VkPipelineCache.Null, 1, &graphicsPipelineCreateInfo, null, graphicsPipelinePtr));
+            if (VulkanNative.vkCreateGraphicsPipelines(this.logicalDevice, VkPipelineCache.Null, 1, &graphicsPipelineCreateInfo, null, graphicsPipelinePtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create graphics pipeline");
+            }
         }
 
         // Destroy the made shader modules

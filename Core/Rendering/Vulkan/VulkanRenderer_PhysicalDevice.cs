@@ -14,7 +14,10 @@ public unsafe partial class VulkanRenderer
     {
         // Retrieve how many GPUs are found on the system
         uint physicalDeviceCount = 0;
-        Utilities.CheckErrors(VulkanNative.vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, null));
+        if (VulkanNative.vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, null) != VkResult.VK_SUCCESS)
+        {
+            VulkanDebugger.ThrowError("Failed to retrieve available GPUs (physical devices)");
+        }
 
         // If none throw error
         if (physicalDeviceCount == 0)
@@ -24,7 +27,7 @@ public unsafe partial class VulkanRenderer
 
         // Put all found GPUs in an array
         VkPhysicalDevice* physicalDevices = stackalloc VkPhysicalDevice[(int)physicalDeviceCount];
-        Utilities.CheckErrors(VulkanNative.vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices));
+        VulkanNative.vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices);
 
         // Loop trough each to see if it supports the program
         bool suitablePhysicalDeviceFound = false;
@@ -40,7 +43,7 @@ public unsafe partial class VulkanRenderer
                 VkPhysicalDeviceProperties physicalDeviceProperties = new VkPhysicalDeviceProperties();
                 VulkanNative.vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
                 
-                VulkanDebugger.DisplayInfo($"Supported GPU found: { Utilities.GetString(physicalDeviceProperties.deviceName) }");
+                VulkanDebugger.DisplayInfo($"Supported GPU found: { VulkanUtilities.GetString(physicalDeviceProperties.deviceName) }");
                 
                 break;
             }
@@ -55,6 +58,9 @@ public unsafe partial class VulkanRenderer
         {
             // Add mandatory conditional device extensions
             if (DeviceExtensionSupported(in this.physicalDevice, "VK_KHR_portability_subset")) requiredDeviceExtensions.Add("VK_KHR_portability_subset");
+
+            // Assign the EngineCore's physical device
+            EngineCore.physicalDevice = this.physicalDevice;
         }
     }
 }

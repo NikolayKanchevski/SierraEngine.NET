@@ -12,30 +12,58 @@ public unsafe partial class VulkanRenderer
 {
     #region VARIABLES
 
-        public MVP mvp = new MVP();
+        public MVP mvp;
+
+        private readonly ulong mvpSize = (ulong) Marshal.SizeOf(typeof(MVP));
+
+        private readonly List<Mesh> meshes = new List<Mesh>();
 
         private readonly Window window;
-
+        
         private readonly Vertex[] vertices = new Vertex[]
         {
             new Vertex()
             {
-                position = new Vector3(-0.5f, -0.5f, 0.0f), 
+                position = new Vector3(-0.1f, -0.4f, 0.0f),
                 color = new Vector3(1.0f, 0.0f, 0.0f)
             },
             new Vertex()
             {
-                position = new Vector3(0.5f, -0.5f, 0.0f),
+                position = new Vector3(-0.1f, 0.4f, 0.0f),
                 color = new Vector3(1.0f, 1.0f, 0.0f)
             },
             new Vertex()
             {
-                position = new Vector3(0.5f, 0.5f, 0.0f),
-                color = new Vector3(1.0f, 0.0f, 1.0f)
+                position = new Vector3(-0.9f, 0.4f, 0.0f),
+                color = new Vector3(1.0f, 1.0f, 1.0f)
             },
             new Vertex()
             {
-                position = new Vector3(-0.5f, 0.5f, 0.0f),
+                position = new Vector3(-0.9f, -0.4f, 0.0f),
+                color = new Vector3(0.0f, 1.0f, 1.0f)
+            }
+        };
+
+        private readonly  Vertex[] vertices2 = new Vertex[]
+        {
+            new Vertex()
+            {
+                position = new Vector3(0.9f, -0.4f, 0.0f),
+                color = new Vector3(1.0f, 0.0f, 0.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(0.9f, 0.4f, 0.0f),
+                color = new Vector3(1.0f, 1.0f, 0.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(0.1f, 0.4f, 0.0f),
+                color = new Vector3(1.0f, 1.0f, 1.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(0.1f, -0.4f, 0.0f),
                 color = new Vector3(0.0f, 1.0f, 1.0f)
             }
         };
@@ -45,18 +73,26 @@ public unsafe partial class VulkanRenderer
             0, 1, 2, 2, 3, 0
         };
 
-    private readonly ulong mvpSize = (ulong) Marshal.SizeOf(typeof(MVP));
-
     #endregion
     
     public VulkanRenderer(ref Window window)
     {
         this.window = window;
+        EngineCore.glfwWindow = this.window.GetCoreWindow();
+        
         Init();
     }
+    
+    #if DEBUG
+    private bool a = true;
+    #else
+    private bool a = false;
+    #endif
 
     private void Init()
     {
+        Console.WriteLine(a);
+        
         try
         {
             CreateInstance();
@@ -76,15 +112,18 @@ public unsafe partial class VulkanRenderer
             CreateFrameBuffers();
             CreateCommandPool();
             
-            CreateVertexBuffers();
-            CreateIndexBuffers();
+            Mesh mesh = new Mesh(this.physicalDevice, this.logicalDevice, this.graphicsQueue, this.commandPool, this.vertices, this.indices);
+            meshes.Add(mesh);
+            
+            Mesh mesh2 = new Mesh(this.physicalDevice, this.logicalDevice, this.graphicsQueue, this.commandPool, this.vertices2, this.indices);
+            meshes.Add(mesh2);
+            
+            CreateCommandBuffers();
             CreateUniformBuffers();
             
             CreateDescriptorPool();
             CreateDescriptorSets();
-            
-            CreateCommandBuffers();
-            
+
             CreateSynchronisation();
         }
         catch (Exception exception)
@@ -113,12 +152,11 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.descriptorPool, null);
         
         VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.descriptorSetLayout, null);
-        
-        VulkanNative.vkDestroyBuffer(this.logicalDevice, this.indexBuffer, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, this.indexBufferMemory, null);
-        
-        VulkanNative.vkDestroyBuffer(this.logicalDevice, this.vertexBuffer, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, this.vertexBufferMemory, null);
+
+        foreach (Mesh mesh in meshes)
+        {
+            mesh.DestroyBuffers();
+        }
         
         for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {

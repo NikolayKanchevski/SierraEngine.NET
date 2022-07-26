@@ -23,8 +23,14 @@ public unsafe partial class VulkanRenderer
         // Create the command pool
         fixed (VkCommandPool* commandPoolPtr = &commandPool)
         {
-            Utilities.CheckErrors(VulkanNative.vkCreateCommandPool(this.logicalDevice, &commandPoolCreateInfo, null, commandPoolPtr));
+            if (VulkanNative.vkCreateCommandPool(this.logicalDevice, &commandPoolCreateInfo, null, commandPoolPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create the command pool");
+            }
         }
+        
+        // Assign the EngineCore's command pool
+        EngineCore.commandPool = commandPool;
     }
 
     private void CreateCommandBuffers()
@@ -47,7 +53,10 @@ public unsafe partial class VulkanRenderer
             // Allocate the buffer
             fixed (VkCommandBuffer* commandBufferPtr = &commandBuffers[i])
             {
-                Utilities.CheckErrors(VulkanNative.vkAllocateCommandBuffers(this.logicalDevice, &commandBufferAllocateInfo, commandBufferPtr));
+                if (VulkanNative.vkAllocateCommandBuffers(this.logicalDevice, &commandBufferAllocateInfo, commandBufferPtr) != VkResult.VK_SUCCESS)
+                {
+                    VulkanDebugger.ThrowError($"Failed to allocate command buffer [{ i }]");
+                }
             }
         }
     }
@@ -63,7 +72,10 @@ public unsafe partial class VulkanRenderer
         };
         
         // Begin the buffer
-        Utilities.CheckErrors(VulkanNative.vkBeginCommandBuffer(givenCommandBuffer, &bufferBeginInfo));
+        if (VulkanNative.vkBeginCommandBuffer(givenCommandBuffer, &bufferBeginInfo) != VkResult.VK_SUCCESS)
+        {
+            VulkanDebugger.ThrowError($"Failed to begin command buffer [{ imageIndex }]");
+        }
 
         // Set up render pass begin info
         VkRenderPassBeginInfo renderPassBeginInfo = new VkRenderPassBeginInfo()
@@ -93,28 +105,37 @@ public unsafe partial class VulkanRenderer
         // Bind the pipeline
         VulkanNative.vkCmdBindPipeline(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipeline);
         
-        // Define a pointer to the vertex buffer
-        VkBuffer* vertexBuffers = stackalloc VkBuffer[] { this.vertexBuffer };
         ulong* offsets = stackalloc ulong[] { 0 };
         
-        // Bind the vertex buffer
-        VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
-        
-        // Bind the index buffer
-        VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, this.indexBuffer, 0, VkIndexType.VK_INDEX_TYPE_UINT16);
-
-        fixed (VkDescriptorSet* descriptorSetPtr = &descriptorSets[currentFrame])
+        foreach (Mesh mesh in meshes)
         {
-            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 1, descriptorSetPtr, 0, null);
-        }
+            // Define a pointer to the vertex buffer
+            #pragma warning disable CA2014
+            VkBuffer* vertexBuffers = stackalloc VkBuffer[] { mesh.GetVertexBuffer() };
         
-        // Draw using the index buffer to prevent vertex re-usage
-        VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, (uint) this.indices.Length, 1, 0, 0, 0);
+            // Bind the vertex buffer
+            VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
+        
+            // Bind the index buffer
+            VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, mesh.GetIndexBuffer(), 0, VkIndexType.VK_INDEX_TYPE_UINT16);
+
+            fixed (VkDescriptorSet* descriptorSetPtr = &descriptorSets[currentFrame])
+            {
+                VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 1, descriptorSetPtr, 0, null);
+            }
+        
+            // Draw using the index buffer to prevent vertex re-usage
+            VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, (uint) this.indices.Length, 1, 0, 0, 0);
+
+        }
         
         // End the render pass
         VulkanNative.vkCmdEndRenderPass(givenCommandBuffer);
         
         // End the command buffer and check for errors during command execution
-        Utilities.CheckErrors(VulkanNative.vkEndCommandBuffer(givenCommandBuffer));
+        if (VulkanNative.vkEndCommandBuffer(givenCommandBuffer) != VkResult.VK_SUCCESS)
+        {
+            VulkanDebugger.ThrowError("Failed to end command buffer");
+        }
     }
 }
