@@ -82,17 +82,9 @@ public unsafe partial class VulkanRenderer
         
         Init();
     }
-    
-    #if DEBUG
-    private bool a = true;
-    #else
-    private bool a = false;
-    #endif
 
     private void Init()
     {
-        Console.WriteLine(a);
-        
         try
         {
             CreateInstance();
