@@ -1,20 +1,24 @@
-using System.Collections;
 using Glfw;
 
 namespace SierraEngine.Engine;
 
-public unsafe class Input
+public static class Input
 {
-    private static int[] keyboardKeys = new int[348];
+    private static readonly int[] keyboardKeys = new int[348];
     private static int[] mouseButtons = new int[7];
     
     public static void KeyboardKeyCallback(IntPtr glfwWindow, Key keyCode, int scancode, InputAction action, Modifier mods)
     {
-        keyboardKeys[(int) keyCode] = (int)action + 1;
+        int intCode = (int) keyCode;
+        int intAction = (int) action;
+        
+        if (intCode >= keyboardKeys.Length || intCode < 0) return;
+        
+        keyboardKeys[intCode] = intAction + 1;
         if (action == InputAction.Release)
         {
             Wait(4, () => 
-                keyboardKeys[(int) keyCode] = 0
+                keyboardKeys[intCode] = 0
             );
         }
     }

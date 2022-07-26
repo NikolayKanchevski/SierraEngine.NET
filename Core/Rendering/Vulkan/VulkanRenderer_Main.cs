@@ -1,7 +1,9 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using Glfw;
 using GlmSharp;
+using SierraEngine.Engine;
 using Exception = System.Exception;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -93,6 +95,9 @@ public unsafe partial class VulkanRenderer
     public void Update()
     {
         Draw();
+        
+        if (Input.GetKeyPressed(Key.A)) Console.WriteLine(Input.GetKeyPressed(Key.A));
+        // else Console.WriteLine("False");
     }
 
     public void CleanUp()

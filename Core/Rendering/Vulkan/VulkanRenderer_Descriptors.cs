@@ -16,8 +16,7 @@ public unsafe partial class VulkanRenderer
             binding = 0,
             descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             descriptorCount = 1,
-            stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT,
-            pImmutableSamplers = null
+            stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT
         };
 
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
@@ -102,7 +101,7 @@ public unsafe partial class VulkanRenderer
                 descriptorCount = 1,                    // Amount to update
                 pBufferInfo = &mvpBufferInfo            // Information on buffer data to bind
             };
-            
+
             VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, &mvpWriteDescriptorSet, 0, null);
         }
     }
