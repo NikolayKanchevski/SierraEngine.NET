@@ -95,9 +95,6 @@ public unsafe partial class VulkanRenderer
     public void Update()
     {
         Draw();
-        
-        if (Input.GetKeyPressed(Key.A)) Console.WriteLine(Input.GetKeyPressed(Key.A));
-        // else Console.WriteLine("False");
     }
 
     public void CleanUp()
