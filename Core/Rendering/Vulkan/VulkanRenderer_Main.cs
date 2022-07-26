@@ -1,41 +1,50 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using GlmSharp;
 using Exception = System.Exception;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private readonly Window window;
+    #region VARIABLES
 
-    private readonly Vertex[] vertices = new Vertex[]
-    {
-        new Vertex()
-        {
-            position = new Vector3(-0.5f, -0.5f, 0.0f), 
-            color = new Vector3(1.0f, 0.0f, 0.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(0.5f, -0.5f, 0.0f),
-            color = new Vector3(1.0f, 1.0f, 0.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(0.5f, 0.5f, 0.0f),
-            color = new Vector3(1.0f, 0.0f, 1.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(-0.5f, 0.5f, 0.0f),
-            color = new Vector3(0.0f, 1.0f, 1.0f)
-        }
-    };
+        private readonly Window window;
 
-    private readonly UInt16[] indices = new UInt16[]
-    {
-        0, 1, 2, 2, 3, 0
-    };
+        private readonly Vertex[] vertices = new Vertex[]
+        {
+            new Vertex()
+            {
+                position = new Vector3(-0.5f, -0.5f, 0.0f), 
+                color = new Vector3(1.0f, 0.0f, 0.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(0.5f, -0.5f, 0.0f),
+                color = new Vector3(1.0f, 1.0f, 0.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(0.5f, 0.5f, 0.0f),
+                color = new Vector3(1.0f, 0.0f, 1.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(-0.5f, 0.5f, 0.0f),
+                color = new Vector3(0.0f, 1.0f, 1.0f)
+            }
+        };
+
+        private readonly UInt16[] indices = new UInt16[]
+        {
+            0, 1, 2, 2, 3, 0
+        };
+
+    private MVP mvp = new MVP();
+    private readonly ulong mvpSize = (ulong) Marshal.SizeOf(typeof(MVP));
+
+    #endregion
     
     public VulkanRenderer(ref Window window)
     {
@@ -50,17 +59,29 @@ public unsafe partial class VulkanRenderer
             CreateInstance();
             CreateDebugMessenger();
             CreateWindowSurface();
+            
             GetPhysicalDevice();
             CreateLogicalDevice();
+            
             CreateSwapchain();
             CreateSwapchainImageViews();
+            
             CreateRenderPass();
+            CreateDescriptorSetLayout();
             CreateGraphicsPipeline();
+            
             CreateFrameBuffers();
             CreateCommandPool();
+            
             CreateVertexBuffers();
             CreateIndexBuffers();
+            CreateUniformBuffers();
+            
+            CreateDescriptorPool();
+            CreateDescriptorSets();
+            
             CreateCommandBuffers();
+            
             CreateSynchronisation();
         }
         catch (Exception exception)
@@ -79,6 +100,16 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
 
         DestroySwapchainObjects();
+
+        for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
+        {
+            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.uniformBuffers[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
+        }
+        
+        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.descriptorPool, null);
+        
+        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.descriptorSetLayout, null);
         
         VulkanNative.vkDestroyBuffer(this.logicalDevice, this.indexBuffer, null);
         VulkanNative.vkFreeMemory(this.logicalDevice, this.indexBufferMemory, null);
@@ -101,5 +132,12 @@ public unsafe partial class VulkanRenderer
         
         VulkanNative.vkDestroySurfaceKHR(this.instance, this.surface, null);
         VulkanNative.vkDestroyInstance(this.instance, null);
+    }
+    
+    private struct MVP
+    {
+        public mat4 model;
+        public mat4 view;
+        public mat4 projection;
     }
 }

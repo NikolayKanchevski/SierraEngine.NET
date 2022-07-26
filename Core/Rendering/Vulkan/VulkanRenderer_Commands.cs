@@ -102,6 +102,11 @@ public unsafe partial class VulkanRenderer
         
         // Bind the index buffer
         VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, this.indexBuffer, 0, VkIndexType.VK_INDEX_TYPE_UINT16);
+
+        fixed (VkDescriptorSet* descriptorSetPtr = &descriptorSets[currentFrame])
+        {
+            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 1, descriptorSetPtr, 0, null);
+        }
         
         // Draw using the index buffer to prevent vertex re-usage
         VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, (uint) this.indices.Length, 1, 0, 0, 0);

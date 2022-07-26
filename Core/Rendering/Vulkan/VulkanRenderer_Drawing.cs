@@ -9,7 +9,7 @@ public unsafe partial class VulkanRenderer
     private VkFence[] frameBeingRenderedFences = null!;
 
     private uint currentFrame = 0;
-    private const uint MAX_CONCURRENT_FRAMES = 2;
+    private const uint MAX_CONCURRENT_FRAMES = 3;
     public bool frameBufferResized;
 
     private void CreateSynchronisation()
@@ -75,6 +75,8 @@ public unsafe partial class VulkanRenderer
 
         // Reset the fences
         VulkanNative.vkResetFences(this.logicalDevice, 1, fencesPtr);
+
+        UpdateUniformBuffer(imageIndex);
         
         // Reset and re-record the command buffer
         VulkanNative.vkResetCommandBuffer(this.commandBuffers[currentFrame], 0);

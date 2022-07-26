@@ -110,7 +110,7 @@ public unsafe partial class VulkanRenderer
             rasterizerDiscardEnable = VkBool32.False,
             lineWidth = 1.0f,
             cullMode = VkCullModeFlags.VK_CULL_MODE_BACK_BIT,
-            frontFace = VkFrontFace.VK_FRONT_FACE_CLOCKWISE,
+            frontFace = VkFrontFace.VK_FRONT_FACE_COUNTER_CLOCKWISE,
             depthBiasEnable = VkBool32.False
         };
 
@@ -173,12 +173,14 @@ public unsafe partial class VulkanRenderer
             pDynamicStates = dynamicStates
         };
 
+        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.descriptorSetLayout };
+
         // Set pipeline layout creation info
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            setLayoutCount = 0,
-            pSetLayouts = null,
+            setLayoutCount = 1,
+            pSetLayouts = descriptorSetLayoutsPtr,
             pushConstantRangeCount = 0,
             pPushConstantRanges = null
         };
