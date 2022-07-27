@@ -109,6 +109,7 @@ public unsafe class Window
     public void Destroy()
     {
         Glfw3.DestroyWindow(glfwWindow);
+        
         vulkanRenderer?.CleanUp();
         
         selfPointerHandle.Free();
@@ -166,7 +167,7 @@ public unsafe class Window
         }
         
         windowObject.vulkanRenderer.frameBufferResized = true;
-        // windowObject.vulkanRenderer.Update();
+        windowObject.vulkanRenderer.Update();
     }
 
     /* -- INTERNAL METHODS -- */

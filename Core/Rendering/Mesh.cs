@@ -6,11 +6,8 @@ namespace SierraEngine.Core.Rendering;
 
 public unsafe class Mesh
 {
-    public int verticesCount;
-    public int indexCount;
-
-    private VkPhysicalDevice physicalDevice;
-    private VkDevice logicalDevice;
+    public uint verticesCount;
+    public readonly uint indexCount;
 
     private VkBuffer vertexBuffer;
     private VkDeviceMemory vertexBufferMemory;
@@ -18,16 +15,13 @@ public unsafe class Mesh
     private VkBuffer indexBuffer;
     private VkDeviceMemory indexBufferMemory;
 
-    public Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newLogicalDevice, VkQueue transferQueue, VkCommandPool transferCommandPool, 
-                in Vertex[] vertices, in UInt16[] indices)
+    public Mesh(VkCommandPool transferCommandPool, in Vertex[] vertices, in UInt16[] indices)
     {
-        this.verticesCount = vertices.Length;
-        this.indexCount = indices.Length;
-        this.physicalDevice = newPhysicalDevice;
-        this.logicalDevice = newLogicalDevice;
+        this.verticesCount = (uint) vertices.Length;
+        this.indexCount = (uint) indices.Length;
         
-        CreateVertexBuffer(transferQueue, transferCommandPool, in vertices);
-        CreateIndexBuffer(transferQueue, transferCommandPool, in indices);
+        CreateVertexBuffer(EngineCore.graphicsQueue, transferCommandPool, in vertices);
+        CreateIndexBuffer(EngineCore.graphicsQueue, transferCommandPool, in indices);
     }
 
     public VkBuffer GetVertexBuffer()
@@ -42,10 +36,10 @@ public unsafe class Mesh
 
     public void DestroyBuffers()
     {
-        VulkanNative.vkDestroyBuffer(logicalDevice, vertexBuffer, null);
-        VulkanNative.vkFreeMemory(logicalDevice, vertexBufferMemory, null);
-        VulkanNative.vkDestroyBuffer(logicalDevice, indexBuffer, null);
-        VulkanNative.vkFreeMemory(logicalDevice, indexBufferMemory, null);
+        VulkanNative.vkDestroyBuffer(EngineCore.logicalDevice, vertexBuffer, null);
+        VulkanNative.vkFreeMemory(EngineCore.logicalDevice, vertexBufferMemory, null);
+        VulkanNative.vkDestroyBuffer(EngineCore.logicalDevice, indexBuffer, null);
+        VulkanNative.vkFreeMemory(EngineCore.logicalDevice, indexBufferMemory, null);
     }
 
     private void CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, in Vertex[] vertices)
@@ -67,7 +61,7 @@ public unsafe class Mesh
         void* data;
         
         // Assign the data to the vertex buffer memory
-        VulkanNative.vkMapMemory(this.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        VulkanNative.vkMapMemory(EngineCore.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
 
         // Fill the data pointer with the vertices array's information
         fixed (Vertex* verticesPtr = vertices)
@@ -76,7 +70,7 @@ public unsafe class Mesh
         }
         
         // Unmap the memory
-        VulkanNative.vkUnmapMemory(this.logicalDevice, stagingBufferMemory);
+        VulkanNative.vkUnmapMemory(EngineCore.logicalDevice, stagingBufferMemory);
         
         // Create the vertex buffer
         VulkanUtilities.CreateBuffer(
@@ -88,8 +82,8 @@ public unsafe class Mesh
         VulkanUtilities.CopyBuffer(transferQueue, stagingBuffer, vertexBuffer, bufferSize);
         
         // Destroy the staging buffer and free its memory
-        VulkanNative.vkDestroyBuffer(this.logicalDevice, stagingBuffer, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, stagingBufferMemory, null);
+        VulkanNative.vkDestroyBuffer(EngineCore.logicalDevice, stagingBuffer, null);
+        VulkanNative.vkFreeMemory(EngineCore.logicalDevice, stagingBufferMemory, null);
     }
 
     private void CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, in UInt16[] indices)
@@ -111,7 +105,7 @@ public unsafe class Mesh
         void* data;
         
         // Assign the data to the index buffer memory
-        VulkanNative.vkMapMemory(this.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        VulkanNative.vkMapMemory(EngineCore.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
 
         // Fill the data pointer with the indices array's information
         fixed (UInt16* indicesPtr = indices)
@@ -120,7 +114,7 @@ public unsafe class Mesh
         }
         
         // Unmap the memory
-        VulkanNative.vkUnmapMemory(this.logicalDevice, stagingBufferMemory);
+        VulkanNative.vkUnmapMemory(EngineCore.logicalDevice, stagingBufferMemory);
         
         // Create the index buffer
         VulkanUtilities.CreateBuffer(
@@ -132,7 +126,7 @@ public unsafe class Mesh
         VulkanUtilities.CopyBuffer(transferQueue, stagingBuffer, indexBuffer, bufferSize);
         
         // Destroy the staging buffer and free its memory
-        VulkanNative.vkDestroyBuffer(this.logicalDevice, stagingBuffer, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, stagingBufferMemory, null);
+        VulkanNative.vkDestroyBuffer(EngineCore.logicalDevice, stagingBuffer, null);
+        VulkanNative.vkFreeMemory(EngineCore.logicalDevice, stagingBufferMemory, null);
     }
 }

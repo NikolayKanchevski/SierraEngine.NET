@@ -8,4 +8,5 @@ public static class EngineCore
     public static VkPhysicalDevice physicalDevice;
     public static VkDevice logicalDevice;
     public static VkCommandPool commandPool;
+    public static VkQueue graphicsQueue;
 }

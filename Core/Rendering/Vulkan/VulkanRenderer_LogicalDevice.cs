@@ -82,6 +82,9 @@ public unsafe partial class VulkanRenderer
         {
             VulkanNative.vkGetDeviceQueue(logicalDevice, queueFamilyIndices.graphicsFamily.Value, 0, graphicsQueuePtr);
         }
+        
+        // Assign the EngineCore's graphicsQueue
+        EngineCore.graphicsQueue = graphicsQueue;
 
         // Retrieve presentation queue
         fixed(VkQueue* presentQueuePtr = &presentationQueue)

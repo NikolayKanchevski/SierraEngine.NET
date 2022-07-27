@@ -125,7 +125,7 @@ public unsafe partial class VulkanRenderer
             }
         
             // Draw using the index buffer to prevent vertex re-usage
-            VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, (uint) this.indices.Length, 1, 0, 0, 0);
+            VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);
 
         }
         

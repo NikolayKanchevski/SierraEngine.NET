@@ -5,6 +5,7 @@ using Glfw;
 using GlmSharp;
 using SierraEngine.Engine;
 using Exception = System.Exception;
+using System.Threading;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -12,9 +13,9 @@ public unsafe partial class VulkanRenderer
 {
     #region VARIABLES
 
-        public MVP mvp;
+        public VP vp;
 
-        private readonly ulong mvpSize = (ulong) Marshal.SizeOf(typeof(MVP));
+        private readonly ulong vpSize = (ulong) Marshal.SizeOf(typeof(VP));
 
         private readonly List<Mesh> meshes = new List<Mesh>();
 
@@ -104,10 +105,10 @@ public unsafe partial class VulkanRenderer
             CreateFrameBuffers();
             CreateCommandPool();
             
-            Mesh mesh = new Mesh(this.physicalDevice, this.logicalDevice, this.graphicsQueue, this.commandPool, this.vertices, this.indices);
+            Mesh mesh = new Mesh(this.commandPool, this.vertices, this.indices);
             meshes.Add(mesh);
             
-            Mesh mesh2 = new Mesh(this.physicalDevice, this.logicalDevice, this.graphicsQueue, this.commandPool, this.vertices2, this.indices);
+            Mesh mesh2 = new Mesh(this.commandPool, this.vertices2, this.indices);
             meshes.Add(mesh2);
             
             CreateCommandBuffers();
@@ -167,7 +168,7 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroyInstance(this.instance, null);
     }
 
-    public struct MVP
+    public struct VP
     {
         public mat4 model;
         public mat4 view;
