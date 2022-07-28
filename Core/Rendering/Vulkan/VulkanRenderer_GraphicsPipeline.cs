@@ -80,26 +80,13 @@ public unsafe partial class VulkanRenderer
             primitiveRestartEnable = VkBool32.False
         };
 
-        VkViewport viewport = new VkViewport()
-        {
-            x = 0,
-            y = 0,
-            width = this.swapchainExtent.width,
-            height = this.swapchainExtent.height,
-            minDepth = 0.0f,
-            maxDepth = 1.0f
-        };
-        
-        VkRect2D scissor = VkRect2D.Zero;
-        scissor.extent = swapchainExtent;
-
         VkPipelineViewportStateCreateInfo viewportStateCreateInfo = new VkPipelineViewportStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
             viewportCount = 1,
-            pViewports = &viewport,
+            pViewports = null,
             scissorCount = 1,
-            pScissors = &scissor
+            pScissors = null
         };
 
         // Set up rasterization
@@ -207,7 +194,7 @@ public unsafe partial class VulkanRenderer
             pMultisampleState = &multisampleStateCreateInfo,
             pDepthStencilState = null,
             pColorBlendState = &blendingStateCreateInfo,
-            pDynamicState = null,
+            pDynamicState = &dynamicStateCreateInfo,
             layout = graphicsPipelineLayout,
             renderPass = this.renderPass,
             subpass = 0,

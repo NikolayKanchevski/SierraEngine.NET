@@ -105,6 +105,25 @@ public unsafe partial class VulkanRenderer
         // Bind the pipeline
         VulkanNative.vkCmdBindPipeline(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipeline);
         
+        VkViewport viewport = new VkViewport()
+        {
+            x = 0,
+            y = 0,
+            width = this.swapchainExtent.width,
+            height = this.swapchainExtent.height,
+            minDepth = 0.0f,
+            maxDepth = 1.0f
+        };
+
+        VkRect2D scissor = new VkRect2D()
+        {
+            offset = VkOffset2D.Zero,
+            extent = this.swapchainExtent
+        };
+        
+        VulkanNative.vkCmdSetViewport(givenCommandBuffer, 0, 1, &viewport);
+        VulkanNative.vkCmdSetScissor(givenCommandBuffer, 0, 1, &scissor);
+        
         ulong* offsets = stackalloc ulong[] { 0 };
         
         foreach (Mesh mesh in meshes)

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Core;
 using SierraEngine.Engine;
 
 namespace SierraEngine.Core.Rendering;
@@ -96,9 +95,9 @@ public unsafe class Window
     {
         Glfw3.PollEvents();
         
-        if (requireFocus && !focused) return;
-        
-        if (minimised) return;
+        // if (requireFocus && !focused) return;
+        //
+        // if (minimised) return;
         
         vulkanRenderer?.Update();
     }
@@ -167,6 +166,7 @@ public unsafe class Window
         }
         
         windowObject.vulkanRenderer.frameBufferResized = true;
+        windowObject.vulkanRenderer.Update();
         windowObject.vulkanRenderer.Update();
     }
 

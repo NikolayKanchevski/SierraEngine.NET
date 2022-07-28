@@ -135,6 +135,9 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
 
         DestroySwapchainObjects();
+        
+        VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
+        VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
 
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {

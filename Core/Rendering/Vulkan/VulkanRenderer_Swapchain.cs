@@ -130,7 +130,7 @@ public unsafe partial class VulkanRenderer
         }
     }
 
-    private void RecreateSwapchainObjects()
+    public void RecreateSwapchainObjects()
     {
         while (window.minimised)
         {
@@ -144,7 +144,6 @@ public unsafe partial class VulkanRenderer
         CreateSwapchain();
         CreateSwapchainImageViews();
         CreateRenderPass();
-        CreateGraphicsPipeline();
         CreateFrameBuffers();
     }
 
@@ -154,9 +153,6 @@ public unsafe partial class VulkanRenderer
         {
             VulkanNative.vkDestroyFramebuffer(this.logicalDevice, swapchainFramebuffer, null);
         }
-        
-        VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
-        VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
         
         VulkanNative.vkDestroyRenderPass(this.logicalDevice, this.renderPass, null);
         
