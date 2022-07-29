@@ -10,5 +10,5 @@ layout(location = 0) out vec4 outColor;
 void main() {
 //    outColor = vec4(fromVert_Color, 1.0);
 //    outColor = vec4(fromVert_TextureCoordinates, 0.0, 1.0);
-    outColor = texture(textureSampler, fromVert_TextureCoordinates);
+        outColor = texture(textureSampler, fromVert_TextureCoordinates);
 }

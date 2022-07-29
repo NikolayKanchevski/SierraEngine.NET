@@ -15,6 +15,7 @@ layout(location = 1) out vec2 toFrag_TextureCoordinates;
 
 void main() {
     gl_Position =  mvp.projection * mvp.view * mvp.model * vec4(fromCode_Position, 1.0);
+    
     toFrag_Color = fromCode_Color;
     toFrag_TextureCoordinates = fromCode_TextureCoordinates;
 }

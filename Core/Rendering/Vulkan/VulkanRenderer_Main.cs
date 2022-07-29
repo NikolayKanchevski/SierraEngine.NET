@@ -77,23 +77,43 @@ public unsafe partial class VulkanRenderer
         {
             new Vertex()
             {
-                position = new Vector3(0.9f, -0.4f, 0.0f),
-                color = new Vector3(1.0f, 0.0f, 0.0f)
+                position = new Vector3(-1.0f, -1.0f, -1.0f),
+                color = new Vector3(1.0f, 0.0f, 0.0f),
             },
             new Vertex()
             {
-                position = new Vector3(0.9f, 0.4f, 0.0f),
-                color = new Vector3(1.0f, 1.0f, 0.0f)
+                position = new Vector3(1.0f, -1.0f, -1.0f),
+                color = new Vector3(1.0f, 1.0f, 0.0f),
             },
             new Vertex()
             {
-                position = new Vector3(0.1f, 0.4f, 0.0f),
-                color = new Vector3(1.0f, 1.0f, 1.0f)
+                position = new Vector3(1.0f, 1.0f, -1.0f),
+                color = new Vector3(1.0f, 1.0f, 1.0f),
             },
             new Vertex()
             {
-                position = new Vector3(0.1f, -0.4f, 0.0f),
-                color = new Vector3(0.0f, 1.0f, 1.0f)
+                position = new Vector3(-1.0f, 1.0f, -1.0f),
+                color = new Vector3(0.0f, 1.0f, 1.0f),
+            },
+            new Vertex()
+            {
+                position = new Vector3(-1.0f, -1.0f, 1.0f),
+                color = new Vector3(1.0f, 0.0f, 0.0f),
+            },
+            new Vertex()
+            {
+                position = new Vector3(1.0f, -1.0f, 1.0f),
+                color = new Vector3(1.0f, 1.0f, 0.0f),
+            },
+            new Vertex()
+            {
+                position = new Vector3(1.0f, 1.0f, 1.0f),
+                color = new Vector3(1.0f, 1.0f, 1.0f),
+            },
+            new Vertex()
+            {
+                position = new Vector3(-1.0f, 1.0f, 1.0f),
+                color = new Vector3(0.0f, 1.0f, 1.0f),
             }
         };
 
@@ -119,6 +139,11 @@ public unsafe partial class VulkanRenderer
 
     private void Init()
     {
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices2[i].position.X -= 5;
+        }
+        
         try
         {
             CreateInstance();
@@ -144,8 +169,8 @@ public unsafe partial class VulkanRenderer
             Mesh mesh = new Mesh(this.commandPool, this.vertices, this.indices);
             meshes.Add(mesh);
             
-            // Mesh mesh2 = new Mesh(this.commandPool, this.vertices2, this.indices);
-            // meshes.Add(mesh2);
+            Mesh mesh2 = new Mesh(this.commandPool, this.vertices2, this.indices);
+            meshes.Add(mesh2);
             
             CreateCommandBuffers();
             CreateUniformBuffers();
