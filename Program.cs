@@ -56,8 +56,13 @@ public static class Program
 
     private static void ProgramLoop()
     {
+        const float RADIUS = 8.0f;
+        float camX = (float) Math.Sin(Time.upTime) * RADIUS;
+        float camZ = (float) Math.Cos(Time.upTime) * RADIUS;
+        
         window.vulkanRenderer!.vp.model = mat4.Rotate(glm.Radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
-        window.vulkanRenderer!.vp.view = mat4.LookAt(new vec3(0.0f, 0.0f, 5.0f), vec3.Zero, new vec3(0.0f, 1.0f, 0.0f));
+        window.vulkanRenderer!.vp.model = mat4.Rotate((float) Math.Cos(Time.upTime), new vec3(0.0f, 0.0f, 1.0f));
+        window.vulkanRenderer!.vp.view = mat4.LookAt(new vec3(camX, 0.0f, camZ), vec3.Zero, new vec3(0.0f, 1.0f, 0.0f));
         window.vulkanRenderer!.vp.projection = mat4.Perspective(glm.Radians(45.0f), (float) window.width / window.height, 0.1f, 10.0f);
         window.vulkanRenderer!.vp.projection[1, 1] *= -1;
     }

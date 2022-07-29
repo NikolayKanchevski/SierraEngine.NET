@@ -40,6 +40,11 @@ public unsafe partial class VulkanRenderer
         {
             requiredPhysicalDeviceFeatures.fillModeNonSolid = VkBool32.True;
         }
+
+        if (physicalDeviceFeatures.samplerAnisotropy)
+        {
+            requiredPhysicalDeviceFeatures.samplerAnisotropy = VkBool32.True;
+        }
         
         // Convert to pointers and put every device extension into an array  
         IntPtr* deviceExtensionsArray = stackalloc IntPtr[requiredDeviceExtensions.Count];
@@ -75,7 +80,7 @@ public unsafe partial class VulkanRenderer
         }
         
         // Assign the EngineCore's logical device
-        EngineCore.logicalDevice = logicalDevice;
+        VulkanCore.logicalDevice = logicalDevice;
         
         // Retrieve graphics queue
         fixed (VkQueue* graphicsQueuePtr = &graphicsQueue)
@@ -84,7 +89,7 @@ public unsafe partial class VulkanRenderer
         }
         
         // Assign the EngineCore's graphicsQueue
-        EngineCore.graphicsQueue = graphicsQueue;
+        VulkanCore.graphicsQueue = graphicsQueue;
 
         // Retrieve presentation queue
         fixed(VkQueue* presentQueuePtr = &presentationQueue)

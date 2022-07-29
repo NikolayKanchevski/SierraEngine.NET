@@ -110,9 +110,9 @@ public unsafe partial class VulkanRenderer
     private bool PhysicalDeviceSuitable(in VkPhysicalDevice givenPhysicalDevice)
     {
         // Get the features of the given GPU
-        VkPhysicalDeviceFeatures physicalDeviceFeatures = new VkPhysicalDeviceFeatures();
-        VulkanNative.vkGetPhysicalDeviceFeatures(givenPhysicalDevice, &physicalDeviceFeatures);
-
+        VkPhysicalDeviceFeatures deviceFeatures = new VkPhysicalDeviceFeatures();
+        VulkanNative.vkGetPhysicalDeviceFeatures(givenPhysicalDevice, &deviceFeatures);
+        
         // Get the queue indices for it and check if they are valid
         QueueFamilyIndices familyIndices = FindQueueFamilies(in givenPhysicalDevice);
         bool indicesValid = familyIndices.IsValid();
@@ -121,7 +121,7 @@ public unsafe partial class VulkanRenderer
         bool extensionsSupported = DeviceExtensionsSupported(in givenPhysicalDevice, requiredDeviceExtensions.ToArray());
         
         // Check for required features
-        bool featuresSupported = !(this.renderingMode != RenderingMode.Fill && !physicalDeviceFeatures.fillModeNonSolid);
+        bool featuresSupported = !(this.renderingMode != RenderingMode.Fill && !deviceFeatures.fillModeNonSolid);
 
         // Check if the swapchain type is supported
         SwapchainSupportDetails swapchainSupportDetails = GetSwapchainSupportDetails(in givenPhysicalDevice);

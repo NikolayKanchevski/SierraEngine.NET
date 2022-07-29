@@ -5,6 +5,9 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private VkPhysicalDevice physicalDevice;
+    private VkPhysicalDeviceProperties physicalDeviceProperties;
+    private VkPhysicalDeviceFeatures physicalDeviceFeatures;
+    
     private readonly List<string> requiredDeviceExtensions = new List<string>()
     {
         "VK_KHR_swapchain"
@@ -40,10 +43,17 @@ public unsafe partial class VulkanRenderer
                 this.physicalDevice = currentPhysicalDevice;
                 suitablePhysicalDeviceFound = true;
 
-                VkPhysicalDeviceProperties physicalDeviceProperties = new VkPhysicalDeviceProperties();
-                VulkanNative.vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+                // Retrieve the GPU's properties
+                VkPhysicalDeviceProperties deviceProperties;
+                VulkanNative.vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+                this.physicalDeviceProperties = deviceProperties;
+
+                // Retrieve the GPU's features
+                VkPhysicalDeviceFeatures deviceFeatures;
+                VulkanNative.vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+                this.physicalDeviceFeatures = deviceFeatures;
                 
-                VulkanDebugger.DisplayInfo($"Supported GPU found: { VulkanUtilities.GetString(physicalDeviceProperties.deviceName) }");
+                VulkanDebugger.DisplayInfo($"Supported GPU found: { VulkanUtilities.GetString(deviceProperties.deviceName) }");
                 
                 break;
             }
@@ -60,7 +70,7 @@ public unsafe partial class VulkanRenderer
             if (DeviceExtensionSupported(in this.physicalDevice, "VK_KHR_portability_subset")) requiredDeviceExtensions.Add("VK_KHR_portability_subset");
 
             // Assign the EngineCore's physical device
-            EngineCore.physicalDevice = this.physicalDevice;
+            VulkanCore.physicalDevice = this.physicalDevice;
         }
     }
 }

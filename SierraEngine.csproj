@@ -19,6 +19,7 @@
     <ItemGroup>
         <Folder Include="Core\Rendering\Shading\Compilers" />
         <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />
+        <Folder Include="Core\Rendering\Textures" />
         <Folder Include="Other" />
     </ItemGroup>
 
@@ -27,6 +28,13 @@
             <FILES Include="Core/Rendering/Shading/Shaders/Compiled/*.*" />
         </ItemGroup>
         <Copy SourceFiles="@(FILES)" DestinationFolder="$(OutDir)/Shaders" />
+    </Target>
+
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <ItemGroup>
+            <FILES Include="Core/Rendering/Textures/*.*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(FILES)" DestinationFolder="$(OutDir)/Textures" />
     </Target>
 
 </Project>

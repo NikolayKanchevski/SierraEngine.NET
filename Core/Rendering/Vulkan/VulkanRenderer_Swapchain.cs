@@ -87,6 +87,9 @@ public unsafe partial class VulkanRenderer
         {
             VulkanNative.vkGetSwapchainImagesKHR(this.logicalDevice, this.swapchain, &imageCount, currentSwapchainImagePtr);
         }
+        
+        // Assign the EngineCore's swapchain extent
+        VulkanCore.swapchainExtent = swapchainExtent;
     }
 
     private void CreateSwapchainImageViews()
@@ -97,40 +100,11 @@ public unsafe partial class VulkanRenderer
         // Loop trough each image view
         for (int i = 0; i < swapchainImageViews.Length; i++)
         {
-            // Assign its creation info
-            VkImageViewCreateInfo imageViewCreateInfo = new VkImageViewCreateInfo()
-            {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                image = swapchainImages[i],
-                viewType = VkImageViewType.VK_IMAGE_VIEW_TYPE_2D,
-                format = swapchainImageFormat
-            };
-
-            // Set colors to be automatically assigned and not swapped
-            imageViewCreateInfo.components.r = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.components.g = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.components.b = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.components.a = VkComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY;
-
-            // Set how the image view can be read / used
-            imageViewCreateInfo.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT;
-            imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-            imageViewCreateInfo.subresourceRange.levelCount = 1;
-            imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-            imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-            // Put the image view in the array
-            fixed (VkImageView* imageViewPtr = &swapchainImageViews[i])
-            {
-                if (VulkanNative.vkCreateImageView(this.logicalDevice, &imageViewCreateInfo, null, imageViewPtr) != VkResult.VK_SUCCESS)
-                {
-                    VulkanDebugger.ThrowError($"Failed to create image view for swapchain image number { i }");
-                }
-            }
+            VulkanUtilities.CreateImageView(swapchainImages[i], swapchainImageFormat, out swapchainImageViews[i]);
         }
     }
 
-    public void RecreateSwapchainObjects()
+    private void RecreateSwapchainObjects()
     {
         while (window.minimised)
         {

@@ -6,6 +6,8 @@ public unsafe partial class VulkanRenderer
 {
     private VkCommandPool commandPool;
     private VkCommandBuffer[] commandBuffers = null!;
+
+    private readonly VkClearColorValue backgroundColor = new VkClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
     
     private void CreateCommandPool()
     {
@@ -30,7 +32,7 @@ public unsafe partial class VulkanRenderer
         }
         
         // Assign the EngineCore's command pool
-        EngineCore.commandPool = commandPool;
+        VulkanCore.commandPool = commandPool;
     }
 
     private void CreateCommandBuffers()
@@ -92,7 +94,7 @@ public unsafe partial class VulkanRenderer
         // Define clear value (background color)
         VkClearValue clearColor = new VkClearValue
         {
-            color = new VkClearColorValue(0.2f, 0.2f, 0.2f, 1f),
+            color = backgroundColor
         };
 
         // Reference the clear value to the render pass begin info

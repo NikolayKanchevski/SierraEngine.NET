@@ -96,7 +96,7 @@ public unsafe partial class VulkanRenderer
             depthClampEnable = VkBool32.False,
             rasterizerDiscardEnable = VkBool32.False,
             lineWidth = 1.0f,
-            cullMode = VkCullModeFlags.VK_CULL_MODE_BACK_BIT,
+            cullMode = VkCullModeFlags.VK_CULL_MODE_FRONT_BIT,
             frontFace = VkFrontFace.VK_FRONT_FACE_COUNTER_CLOCKWISE,
             depthBiasEnable = VkBool32.False
         };

@@ -25,22 +25,42 @@ public unsafe partial class VulkanRenderer
         {
             new Vertex()
             {
-                position = new Vector3(-0.1f, -0.4f, 0.0f),
+                position = new Vector3(-1.0f, -1.0f, -1.0f),
                 color = new Vector3(1.0f, 0.0f, 0.0f)
             },
             new Vertex()
             {
-                position = new Vector3(-0.1f, 0.4f, 0.0f),
+                position = new Vector3(1.0f, -1.0f, -1.0f),
                 color = new Vector3(1.0f, 1.0f, 0.0f)
             },
             new Vertex()
             {
-                position = new Vector3(-0.9f, 0.4f, 0.0f),
+                position = new Vector3(1.0f, 1.0f, -1.0f),
                 color = new Vector3(1.0f, 1.0f, 1.0f)
             },
             new Vertex()
             {
-                position = new Vector3(-0.9f, -0.4f, 0.0f),
+                position = new Vector3(-1.0f, 1.0f, -1.0f),
+                color = new Vector3(0.0f, 1.0f, 1.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(-1.0f, -1.0f, 1.0f),
+                color = new Vector3(1.0f, 0.0f, 0.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(1.0f, -1.0f, 1.0f),
+                color = new Vector3(1.0f, 1.0f, 0.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(1.0f, 1.0f, 1.0f),
+                color = new Vector3(1.0f, 1.0f, 1.0f)
+            },
+            new Vertex()
+            {
+                position = new Vector3(-1.0f, 1.0f, 1.0f),
                 color = new Vector3(0.0f, 1.0f, 1.0f)
             }
         };
@@ -71,7 +91,12 @@ public unsafe partial class VulkanRenderer
 
         private readonly UInt16[] indices = new UInt16[]
         {
-            0, 1, 2, 2, 3, 0
+            0, 1, 3, 3, 1, 2,
+            1, 5, 2, 2, 5, 6,
+            5, 4, 6, 6, 4, 7,
+            4, 0, 7, 7, 0, 3,
+            3, 2, 7, 7, 2, 6,
+            4, 5, 0, 0, 5, 1
         };
 
     #endregion
@@ -79,7 +104,7 @@ public unsafe partial class VulkanRenderer
     public VulkanRenderer(ref Window window)
     {
         this.window = window;
-        EngineCore.glfwWindow = this.window.GetCoreWindow();
+        VulkanCore.glfwWindow = this.window.GetCoreWindow();
         
         Init();
     }
@@ -105,11 +130,14 @@ public unsafe partial class VulkanRenderer
             CreateFrameBuffers();
             CreateCommandPool();
             
+            CreateTexture("texture.jpg");
+            CreateTextureSampler();
+            
             Mesh mesh = new Mesh(this.commandPool, this.vertices, this.indices);
             meshes.Add(mesh);
             
-            Mesh mesh2 = new Mesh(this.commandPool, this.vertices2, this.indices);
-            meshes.Add(mesh2);
+            // Mesh mesh2 = new Mesh(this.commandPool, this.vertices2, this.indices);
+            // meshes.Add(mesh2);
             
             CreateCommandBuffers();
             CreateUniformBuffers();
@@ -135,6 +163,12 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
 
         DestroySwapchainObjects();
+        
+        VulkanNative.vkDestroySampler(this.logicalDevice, this.textureSampler, null);
+        
+        VulkanNative.vkDestroyImage(this.logicalDevice, this.textureImage, null);
+        VulkanNative.vkDestroyImageView(this.logicalDevice, this.textureImageView, null);
+        VulkanNative.vkFreeMemory(this.logicalDevice, this.textureImageMemory, null);
         
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
         VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
