@@ -48,7 +48,7 @@ public unsafe partial class VulkanRenderer
         };
 
         // Define the attributes to be sent to the shader
-        VkVertexInputAttributeDescription* attributeDescriptions = stackalloc VkVertexInputAttributeDescription[2];
+        VkVertexInputAttributeDescription* attributeDescriptions = stackalloc VkVertexInputAttributeDescription[3];
 
         // Set up for the "position" property
         attributeDescriptions[0].binding = 0;
@@ -62,12 +62,18 @@ public unsafe partial class VulkanRenderer
         attributeDescriptions[1].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = (uint) Marshal.OffsetOf(typeof(Vertex), "color");
         
+        // Set up for the "textureCoordinates" property
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = VkFormat.VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset = (uint) Marshal.OffsetOf(typeof(Vertex), "textureCoordinates");
+        
         // Set up how vertex data sent
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             vertexBindingDescriptionCount = 1,
-            vertexAttributeDescriptionCount = 2,
+            vertexAttributeDescriptionCount = 3,
             pVertexBindingDescriptions = &bindingDescription,
             pVertexAttributeDescriptions = attributeDescriptions
         };

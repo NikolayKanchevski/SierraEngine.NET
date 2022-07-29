@@ -20,12 +20,24 @@ public unsafe partial class VulkanRenderer
             stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT
         };
 
+        // Set up sampler binding info
+        VkDescriptorSetLayoutBinding textureSamplerBinding = new VkDescriptorSetLayoutBinding()
+        {
+            binding = 1,
+            descriptorCount = 1,
+            descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            pImmutableSamplers = null,
+            stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
+        };
+
+        VkDescriptorSetLayoutBinding* layoutBindings = stackalloc VkDescriptorSetLayoutBinding[] { vpBinding, textureSamplerBinding };
+        
         // Set up layout creation info
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            bindingCount = 1,
-            pBindings = &vpBinding
+            bindingCount = 2,
+            pBindings = layoutBindings
         };
 
         // Create the descriptor set layout
@@ -40,20 +52,29 @@ public unsafe partial class VulkanRenderer
     
     private void CreateDescriptorPool()
     {
-        // Set up pool size info
-        VkDescriptorPoolSize poolSize = new VkDescriptorPoolSize()
+        // Set up uniform buffer's pool size info
+        VkDescriptorPoolSize uniformPoolSize = new VkDescriptorPoolSize()
         {
             type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             descriptorCount = MAX_CONCURRENT_FRAMES
         };
 
+        // Set up the texture sampler's pool size info
+        VkDescriptorPoolSize textureSamplerPoolSize = new VkDescriptorPoolSize()
+        {
+            type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            descriptorCount = MAX_CONCURRENT_FRAMES
+        };
+
+        VkDescriptorPoolSize* descriptorPoolSizes = stackalloc VkDescriptorPoolSize[] { uniformPoolSize, textureSamplerPoolSize };
+        
         // Set up pool creation info
         VkDescriptorPoolCreateInfo poolCreateInfo = new VkDescriptorPoolCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             maxSets = MAX_CONCURRENT_FRAMES,
-            poolSizeCount = 1,
-            pPoolSizes = &poolSize
+            poolSizeCount = 2,
+            pPoolSizes = descriptorPoolSizes
         };
 
         // Create the descriptor pool
@@ -112,11 +133,34 @@ public unsafe partial class VulkanRenderer
                 dstArrayElement = 0,                    // Index in array to update
                 descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 descriptorCount = 1,                    // Amount to update
-                pBufferInfo = &vpBufferInfo            // Information on buffer data to bind
+                pBufferInfo = &vpBufferInfo             // Information on buffer data to bind
             };
 
+            // Set up texture sampler image info
+            VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
+            {
+                imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                imageView = this.textureImageView,
+                sampler = this.textureSampler
+            };
+            
+            // Create the write descriptor set for texture sampler
+            VkWriteDescriptorSet textureSamplerWriteDescriptorSet = new VkWriteDescriptorSet()
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                dstSet = descriptorSets[i],
+                dstBinding = 1,
+                dstArrayElement = 0,
+                descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                descriptorCount = 1,
+                pImageInfo = &textureSamplerImageInfo
+            };
+
+            #pragma warning disable CA2014
+            VkWriteDescriptorSet* writeDescriptorSetsPtr = stackalloc VkWriteDescriptorSet[] { vpWriteDescriptorSet, textureSamplerWriteDescriptorSet };
+
             // Update the VP write set
-            VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, &vpWriteDescriptorSet, 0, null);
+            VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 2, writeDescriptorSetsPtr, 0, null);
         }
     }
 }

@@ -7,6 +7,7 @@ public struct Vertex
 {
     public Vector3 position;
     public Vector3 color;
+    public Vector2 textureCoordinates;
 }
 
 public static unsafe class VulkanUtilities
