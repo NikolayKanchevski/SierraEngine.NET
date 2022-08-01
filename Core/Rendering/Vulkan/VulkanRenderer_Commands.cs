@@ -107,6 +107,7 @@ public unsafe partial class VulkanRenderer
         // Bind the pipeline
         VulkanNative.vkCmdBindPipeline(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipeline);
         
+        // Set up the viewport
         VkViewport viewport = new VkViewport()
         {
             x = 0,
@@ -116,7 +117,8 @@ public unsafe partial class VulkanRenderer
             minDepth = 0.0f,
             maxDepth = 1.0f
         };
-
+        
+        // Set up the scissor
         VkRect2D scissor = new VkRect2D()
         {
             offset = VkOffset2D.Zero,
@@ -128,26 +130,23 @@ public unsafe partial class VulkanRenderer
         
         ulong* offsets = stackalloc ulong[] { 0 };
         
+        #pragma warning disable CA2014
         foreach (Mesh mesh in meshes)
         {
             // Define a pointer to the vertex buffer
-            #pragma warning disable CA2014
             VkBuffer* vertexBuffers = stackalloc VkBuffer[] { mesh.GetVertexBuffer() };
-        
+            
             // Bind the vertex buffer
             VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
-        
+            
             // Bind the index buffer
             VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, mesh.GetIndexBuffer(), 0, VkIndexType.VK_INDEX_TYPE_UINT16);
-
-            fixed (VkDescriptorSet* descriptorSetPtr = &descriptorSets[currentFrame])
-            {
-                VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 1, descriptorSetPtr, 0, null);
-            }
-        
+            
+            VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { uniformDescriptorSets[currentFrame], samplerDescriptorSets[mesh.textureID] };
+            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 2, descriptorSetsPtr, 0, null);
+            
             // Draw using the index buffer to prevent vertex re-usage
             VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);
-
         }
         
         // End the render pass

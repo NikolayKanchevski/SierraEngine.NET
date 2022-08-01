@@ -68,7 +68,7 @@ public unsafe partial class VulkanRenderer
         attributeDescriptions[2].format = VkFormat.VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[2].offset = (uint) Marshal.OffsetOf(typeof(Vertex), "textureCoordinates");
         
-        // Set up how vertex data sent
+        // Set up how vertex data is sent
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -86,6 +86,7 @@ public unsafe partial class VulkanRenderer
             primitiveRestartEnable = VkBool32.False
         };
 
+        // Set up viewport info
         VkPipelineViewportStateCreateInfo viewportStateCreateInfo = new VkPipelineViewportStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -166,13 +167,13 @@ public unsafe partial class VulkanRenderer
             pDynamicStates = dynamicStates
         };
 
-        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.descriptorSetLayout };
+        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.samplerDescriptorSetLayout };
 
         // Set pipeline layout creation info
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            setLayoutCount = 1,
+            setLayoutCount = 2,
             pSetLayouts = descriptorSetLayoutsPtr,
             pushConstantRangeCount = 0,
             pPushConstantRanges = null

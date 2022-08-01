@@ -10,9 +10,12 @@ public unsafe partial class VulkanRenderer
     private VkFence[] frameBeingRenderedFences = null!;
 
     private uint currentFrame = 0;
-    private const uint MAX_CONCURRENT_FRAMES = 3;
     public bool frameBufferResized;
 
+    private const uint MAX_CONCURRENT_FRAMES = 3;
+    // TODO: Set a texture system so that there is not a limit to their amount and is performant
+    private const uint MAX_TEXTURES = 100;
+        
     private void CreateSynchronisation()
     {
         // Resize the semaphores and fences arrays

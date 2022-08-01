@@ -79,41 +79,49 @@ public unsafe partial class VulkanRenderer
             {
                 position = new Vector3(-1.0f, -1.0f, -1.0f),
                 color = new Vector3(1.0f, 0.0f, 0.0f),
+                textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, -1.0f),
                 color = new Vector3(1.0f, 1.0f, 0.0f),
+                textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, -1.0f),
                 color = new Vector3(1.0f, 1.0f, 1.0f),
+                textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, -1.0f),
                 color = new Vector3(0.0f, 1.0f, 1.0f),
+                textureCoordinates = new Vector2(0.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, 1.0f),
                 color = new Vector3(1.0f, 0.0f, 0.0f),
+                textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, 1.0f),
                 color = new Vector3(1.0f, 1.0f, 0.0f),
+                textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, 1.0f),
                 color = new Vector3(1.0f, 1.0f, 1.0f),
+                textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, 1.0f),
                 color = new Vector3(0.0f, 1.0f, 1.0f),
+                textureCoordinates = new Vector2(0.0f, 1.0f)
             }
         };
 
@@ -143,47 +151,39 @@ public unsafe partial class VulkanRenderer
         {
             vertices2[i].position.X -= 5;
         }
+    
+        CreateInstance();
+        CreateDebugMessenger();
+        CreateWindowSurface();
         
-        try
-        {
-            CreateInstance();
-            CreateDebugMessenger();
-            CreateWindowSurface();
-            
-            GetPhysicalDevice();
-            CreateLogicalDevice();
-            
-            CreateSwapchain();
-            CreateSwapchainImageViews();
-            
-            CreateRenderPass();
-            CreateDescriptorSetLayout();
-            CreateGraphicsPipeline();
-            
-            CreateFrameBuffers();
-            CreateCommandPool();
-            
-            CreateTexture("texture.jpg");
-            CreateTextureSampler();
-            
-            Mesh mesh = new Mesh(this.commandPool, this.vertices, this.indices);
-            meshes.Add(mesh);
-            
-            Mesh mesh2 = new Mesh(this.commandPool, this.vertices2, this.indices);
-            meshes.Add(mesh2);
-            
-            CreateCommandBuffers();
-            CreateUniformBuffers();
-            
-            CreateDescriptorPool();
-            CreateDescriptorSets();
+        GetPhysicalDevice();
+        CreateLogicalDevice();
+        
+        CreateSwapchain();
+        CreateSwapchainImageViews();
+        
+        CreateRenderPass();
+        CreateDescriptorSetLayout();
+        CreateGraphicsPipeline();
+        
+        CreateFrameBuffers();
+        CreateCommandPool();
+        
+        CreateTextureSampler();
+        
+        CreateCommandBuffers();
+        CreateUniformBuffers();
+        
+        CreateDescriptorPool();
+        CreateUniformDescriptorSets();
 
-            CreateSynchronisation();
-        }
-        catch (Exception exception)
-        {
-            throw new Exception($"Error: {exception.Message}!");
-        }
+        CreateSynchronisation();
+        
+        Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("texture1.jpg"));
+        meshes.Add(mesh1);
+        
+        Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("texture2.jpg"));
+        meshes.Add(mesh2);
     }
 
     public void Update()
@@ -198,10 +198,16 @@ public unsafe partial class VulkanRenderer
         DestroySwapchainObjects();
         
         VulkanNative.vkDestroySampler(this.logicalDevice, this.textureSampler, null);
+
+        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.samplerDescriptorPool, null);
+        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.samplerDescriptorSetLayout, null);
         
-        VulkanNative.vkDestroyImage(this.logicalDevice, this.textureImage, null);
-        VulkanNative.vkDestroyImageView(this.logicalDevice, this.textureImageView, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, this.textureImageMemory, null);
+        for (int i = 0; i < this.samplerDescriptorSets.Count; i++)
+        {
+            VulkanNative.vkDestroyImage(this.logicalDevice, this.textureImages[i], null);
+            VulkanNative.vkDestroyImageView(this.logicalDevice, this.textureImageViews[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.textureImageMemories[i], null);
+        }
         
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
         VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
@@ -212,9 +218,8 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
         }
         
-        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.descriptorPool, null);
-        
-        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.descriptorSetLayout, null);
+        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.uniformDescriptorPool, null);
+        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.uniformDescriptorSetLayout, null);
 
         foreach (Mesh mesh in meshes)
         {

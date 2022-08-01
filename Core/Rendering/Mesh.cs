@@ -6,22 +6,24 @@ namespace SierraEngine.Core.Rendering;
 
 public unsafe class Mesh
 {
-    public readonly uint verticesCount;
-    public readonly uint indexCount;
-
+    public uint verticesCount { get; private set; }
+    public uint indexCount { get; private set; }
+    public int textureID { get; private set; } = -1;
+    
     private VkBuffer vertexBuffer;
     private VkDeviceMemory vertexBufferMemory;
 
     private VkBuffer indexBuffer;
     private VkDeviceMemory indexBufferMemory;
 
-    public Mesh(VkCommandPool transferCommandPool, in Vertex[] vertices, in UInt16[] indices)
+    public Mesh(in Vertex[] givenVertices, in UInt16[] givenIndices, int newTextureID)
     {
-        this.verticesCount = (uint) vertices.Length;
-        this.indexCount = (uint) indices.Length;
-        
-        CreateVertexBuffer(transferCommandPool, in vertices);
-        CreateIndexBuffer(transferCommandPool, in indices);
+        this.verticesCount = (uint) givenVertices.Length;
+        this.indexCount = (uint) givenIndices.Length;
+        this.textureID = newTextureID;
+
+        CreateVertexBuffer(in givenVertices);
+        CreateIndexBuffer(in givenIndices);
     }
 
     public VkBuffer GetVertexBuffer()
@@ -41,8 +43,7 @@ public unsafe class Mesh
         VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, indexBuffer, null);
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, indexBufferMemory, null);
     }
-
-    private void CreateVertexBuffer(VkCommandPool transferCommandPool, in Vertex[] vertices)
+    private void CreateVertexBuffer(in Vertex[] vertices)
     {
         // Calculate the buffer size
         ulong bufferSize = (ulong) (Marshal.SizeOf(vertices[0]) * vertices.Length);
@@ -86,7 +87,7 @@ public unsafe class Mesh
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
     }
 
-    private void CreateIndexBuffer(VkCommandPool transferCommandPool, in UInt16[] indices)
+    private void CreateIndexBuffer(in UInt16[] indices)
     {
         // Calculate the buffer size
         ulong bufferSize = (ulong) (Marshal.SizeOf(indices[0]) * indices.Length);

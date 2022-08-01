@@ -4,10 +4,14 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private VkDescriptorSetLayout descriptorSetLayout;
+    private VkDescriptorSetLayout uniformDescriptorSetLayout;
+    private VkDescriptorPool uniformDescriptorPool;
     
-    private VkDescriptorPool descriptorPool;
-    private VkDescriptorSet[] descriptorSets = null!;
+    private VkDescriptorPool samplerDescriptorPool;
+    private VkDescriptorSetLayout samplerDescriptorSetLayout;
+    
+    private VkDescriptorSet[] uniformDescriptorSets = null!;
+    private List<VkDescriptorSet> samplerDescriptorSets = new List<VkDescriptorSet>();
     
     private void CreateDescriptorSetLayout()
     {
@@ -19,33 +23,48 @@ public unsafe partial class VulkanRenderer
             descriptorCount = 1,
             stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT
         };
+        
+        // Set up uniform layout creation info
+        VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            bindingCount = 1,
+            pBindings = &vpBinding
+        };
+
+        // Create the uniform descriptor set layout
+        fixed (VkDescriptorSetLayout* descriptorSetLayoutPtr = &uniformDescriptorSetLayout)
+        {
+            if (VulkanNative.vkCreateDescriptorSetLayout(this.logicalDevice, &uniformDescriptorSetLayoutCreateInfo, null, descriptorSetLayoutPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create uniform descriptor set layout");
+            }
+        }
 
         // Set up sampler binding info
         VkDescriptorSetLayoutBinding textureSamplerBinding = new VkDescriptorSetLayoutBinding()
         {
-            binding = 1,
+            binding = 0,
             descriptorCount = 1,
             descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             pImmutableSamplers = null,
             stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
         };
-
-        VkDescriptorSetLayoutBinding* layoutBindings = stackalloc VkDescriptorSetLayoutBinding[] { vpBinding, textureSamplerBinding };
         
-        // Set up layout creation info
-        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
+        // Set up sampler layout creation info
+        VkDescriptorSetLayoutCreateInfo textureSamplerDescriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            bindingCount = 2,
-            pBindings = layoutBindings
+            bindingCount = 1,
+            pBindings = &textureSamplerBinding
         };
 
-        // Create the descriptor set layout
-        fixed (VkDescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
+        // Create the texture sampler descriptor set layout
+        fixed (VkDescriptorSetLayout* samplerDescriptorSetLayoutPtr = &samplerDescriptorSetLayout)
         {
-            if (VulkanNative.vkCreateDescriptorSetLayout(this.logicalDevice, &descriptorSetLayoutCreateInfo, null, descriptorSetLayoutPtr) != VkResult.VK_SUCCESS)
+            if (VulkanNative.vkCreateDescriptorSetLayout(this.logicalDevice, &textureSamplerDescriptorSetLayoutCreateInfo, null, samplerDescriptorSetLayoutPtr) != VkResult.VK_SUCCESS)
             {
-                VulkanDebugger.ThrowError("Failed to create descriptor set layout");
+                VulkanDebugger.ThrowError("Failed to create sampler descriptor set layout");
             }
         }
     }
@@ -58,58 +77,74 @@ public unsafe partial class VulkanRenderer
             type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             descriptorCount = MAX_CONCURRENT_FRAMES
         };
+        
+        // Set up descriptor pool creation info
+        VkDescriptorPoolCreateInfo uniformDescriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            maxSets = MAX_CONCURRENT_FRAMES,
+            poolSizeCount = 1,
+            pPoolSizes = &uniformPoolSize
+        };
+
+        // Create the uniform descriptor pool
+        fixed (VkDescriptorPool* descriptorPoolPtr = &uniformDescriptorPool)
+        {
+            if (VulkanNative.vkCreateDescriptorPool(this.logicalDevice, &uniformDescriptorPoolCreateInfo, null, descriptorPoolPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to create uniform descriptor pool");
+            }
+        }
 
         // Set up the texture sampler's pool size info
         VkDescriptorPoolSize textureSamplerPoolSize = new VkDescriptorPoolSize()
         {
             type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            descriptorCount = MAX_CONCURRENT_FRAMES
+            descriptorCount = MAX_TEXTURES
         };
 
-        VkDescriptorPoolSize* descriptorPoolSizes = stackalloc VkDescriptorPoolSize[] { uniformPoolSize, textureSamplerPoolSize };
-        
-        // Set up pool creation info
-        VkDescriptorPoolCreateInfo poolCreateInfo = new VkDescriptorPoolCreateInfo()
+        // Set up the texture sampler's descriptor pool creation info
+        VkDescriptorPoolCreateInfo samplerDescriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            maxSets = MAX_CONCURRENT_FRAMES,
-            poolSizeCount = 2,
-            pPoolSizes = descriptorPoolSizes
+            maxSets = MAX_TEXTURES,
+            poolSizeCount = 1,
+            pPoolSizes = &textureSamplerPoolSize
         };
 
-        // Create the descriptor pool
-        fixed (VkDescriptorPool* descriptorPoolPtr = &descriptorPool)
+        // Create the sampler descriptor pool
+        fixed (VkDescriptorPool* samplerDescriptorPoolPtr = &samplerDescriptorPool)
         {
-            if (VulkanNative.vkCreateDescriptorPool(this.logicalDevice, &poolCreateInfo, null, descriptorPoolPtr) != VkResult.VK_SUCCESS)
+            if (VulkanNative.vkCreateDescriptorPool(this.logicalDevice, &samplerDescriptorPoolCreateInfo, null, samplerDescriptorPoolPtr) != VkResult.VK_SUCCESS)
             {
-                VulkanDebugger.ThrowError("Failed to create descriptor pool");
+                VulkanDebugger.ThrowError("Failed to create sampler descriptor pool");
             }
         }
     }
 
-    private void CreateDescriptorSets()
+    private void CreateUniformDescriptorSets()
     {
-        // Resize the descriptorSets array
-        descriptorSets = new VkDescriptorSet[MAX_CONCURRENT_FRAMES];
+        // Resize the uniformDescriptorSets array
+        uniformDescriptorSets = new VkDescriptorSet[MAX_CONCURRENT_FRAMES];
         
-        // Allocate a descriptor set layout for each descriptor set
-        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.descriptorSetLayout, this.descriptorSetLayout, this.descriptorSetLayout };
+        // Allocate a descriptor set layout for each uniform descriptor set
+        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.uniformDescriptorSetLayout, this.uniformDescriptorSetLayout };
 
-        // Define descriptor set allocation info
+        // Define uniform descriptor set allocation info
         VkDescriptorSetAllocateInfo setAllocateInfo = new VkDescriptorSetAllocateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            descriptorPool = descriptorPool,
+            descriptorPool = uniformDescriptorPool,
             descriptorSetCount = MAX_CONCURRENT_FRAMES,
             pSetLayouts = descriptorSetLayoutsPtr
         };
 
-        // Create all descriptor sets
-        fixed (VkDescriptorSet* descriptorSetsPtr = descriptorSets)
+        // Create all uniform descriptor sets
+        fixed (VkDescriptorSet* descriptorSetsPtr = uniformDescriptorSets)
         {
             if (VulkanNative.vkAllocateDescriptorSets(this.logicalDevice, &setAllocateInfo, descriptorSetsPtr) != VkResult.VK_SUCCESS)
             {
-                VulkanDebugger.ThrowError("Failed to allocate descriptor sets");
+                VulkanDebugger.ThrowError("Failed to allocate uniform descriptor sets");
             }
         }
 
@@ -128,7 +163,7 @@ public unsafe partial class VulkanRenderer
             VkWriteDescriptorSet vpWriteDescriptorSet = new VkWriteDescriptorSet()
             {
                 sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                dstSet = descriptorSets[i],             // Descriptor set to update
+                dstSet = uniformDescriptorSets[i],             // Descriptor set to update
                 dstBinding = 0,                         // Binding to update
                 dstArrayElement = 0,                    // Index in array to update
                 descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -136,31 +171,61 @@ public unsafe partial class VulkanRenderer
                 pBufferInfo = &vpBufferInfo             // Information on buffer data to bind
             };
 
-            // Set up texture sampler image info
-            VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
-            {
-                imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                imageView = this.textureImageView,
-                sampler = this.textureSampler
-            };
-            
-            // Create the write descriptor set for texture sampler
-            VkWriteDescriptorSet textureSamplerWriteDescriptorSet = new VkWriteDescriptorSet()
-            {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                dstSet = descriptorSets[i],
-                dstBinding = 1,
-                dstArrayElement = 0,
-                descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                descriptorCount = 1,
-                pImageInfo = &textureSamplerImageInfo
-            };
-
-            #pragma warning disable CA2014
-            VkWriteDescriptorSet* writeDescriptorSetsPtr = stackalloc VkWriteDescriptorSet[] { vpWriteDescriptorSet, textureSamplerWriteDescriptorSet };
-
             // Update the VP write set
-            VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 2, writeDescriptorSetsPtr, 0, null);
+            VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, &vpWriteDescriptorSet, 0, null);
         }
+    }
+
+    private int CreateTextureDescriptorSet(in VkImageView textureImageView)
+    {
+        // Create empty descriptor set
+        VkDescriptorSet textureDescriptorSet;
+
+        // Put the sampler layout in a pointer array
+        VkDescriptorSetLayout* samplerDescriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { samplerDescriptorSetLayout };
+
+        // Set up descriptor allocation info
+        VkDescriptorSetAllocateInfo textureDescriptorSetAllocateInfo = new VkDescriptorSetAllocateInfo()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            descriptorPool = samplerDescriptorPool,
+            descriptorSetCount = 1,
+            pSetLayouts = samplerDescriptorSetLayoutsPtr
+        };
+
+        // Create texture descriptor sets
+        if (VulkanNative.vkAllocateDescriptorSets(this.logicalDevice, &textureDescriptorSetAllocateInfo, &textureDescriptorSet) != VkResult.VK_SUCCESS)
+        {
+            VulkanDebugger.ThrowError("Failed to allocate texture descriptor set");
+        }
+        
+        // Set up texture sampler image info
+        VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
+        {
+            imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            imageView = textureImageView,
+            sampler = this.textureSampler
+        };
+            
+        // Create the write descriptor set for texture sampler
+        VkWriteDescriptorSet textureSamplerWriteDescriptorSet = new VkWriteDescriptorSet()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            dstSet = textureDescriptorSet,
+            dstBinding = 0,
+            dstArrayElement = 0,
+            descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            descriptorCount = 1,
+            pImageInfo = &textureSamplerImageInfo
+        };
+
+        // Update the texture write set
+        VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, &textureSamplerWriteDescriptorSet, 0, null);
+
+        // Add the newly created descriptor set to the list
+        samplerDescriptorSets.Add(textureDescriptorSet);
+
+        // Return the ID of the newly created descriptor set
+        return samplerDescriptorSets.Count - 1;
     }
 }

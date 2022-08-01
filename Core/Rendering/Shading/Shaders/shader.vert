@@ -4,7 +4,7 @@ layout(location = 0) in vec3 fromCode_Position;
 layout(location = 1) in vec3 fromCode_Color;
 layout(location = 2) in vec2 fromCode_TextureCoordinates;
 
-layout(binding = 0) uniform MVP {
+layout(set = 0, binding = 0) uniform MVP {
     mat4 model;
     mat4 view;
     mat4 projection;

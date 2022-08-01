@@ -169,7 +169,7 @@ public static unsafe class VulkanUtilities
         }
     }
 
-    public static void CopyBufferToImage(in VkBuffer sourceBuffer, in VkImage image, in uint width, in uint height)
+    public static void CopyImageToBuffer(in VkBuffer sourceBuffer, in VkImage image, in uint width, in uint height)
     {
         VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -232,11 +232,11 @@ public static unsafe class VulkanUtilities
         // If transitioning from new image to image ready to receive data...
         if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
-            imageMemoryBarrier.srcAccessMask = 0;								// Memory access stage transition must after...
-            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;		// Memory access stage transition must before...
+            imageMemoryBarrier.srcAccessMask = 0;
+            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
 
-            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;  // The stage the transition must occur after
+            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;     // The stage the transition must occur before
         }
         
         // If transitioning from transfer destination to shader readable...

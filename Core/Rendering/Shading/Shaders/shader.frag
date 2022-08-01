@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 fromVert_Color;
 layout(location = 1) in vec2 fromVert_TextureCoordinates;
 
-layout(binding = 1) uniform sampler2D textureSampler;
+layout(set = 1, binding = 0) uniform sampler2D textureSampler;
 
 layout(location = 0) out vec4 outColor;
 

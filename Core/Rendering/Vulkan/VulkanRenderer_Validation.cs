@@ -34,17 +34,17 @@ public unsafe partial class VulkanRenderer
 
         if (messageSeverity == VkDebugUtilsMessageSeverityFlagsEXT.VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
         {
-            VulkanDebugger.ThrowError($"Validation Info: {VulkanUtilities.GetString(pCallbackData.pMessage)}");
+            VulkanDebugger.DisplayInfo($"Validation Info: {VulkanUtilities.GetString(pCallbackData.pMessage)}");
             return VkBool32.True;
         }
         if (messageSeverity == VkDebugUtilsMessageSeverityFlagsEXT.VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         {
-            VulkanDebugger.ThrowError($"Validation Warning: {VulkanUtilities.GetString(pCallbackData.pMessage)}");
+            VulkanDebugger.ThrowWarning($"Validation Warning: {VulkanUtilities.GetString(pCallbackData.pMessage)}");
             return VkBool32.True;
         }
         else
         {
-            VulkanDebugger.ThrowError($"Validation ERROR: {VulkanUtilities.GetString(pCallbackData.pMessage)}");
+            VulkanDebugger.ThrowError($"Validation Error: {VulkanUtilities.GetString(pCallbackData.pMessage)}");
             return VkBool32.False;
         }
     }
