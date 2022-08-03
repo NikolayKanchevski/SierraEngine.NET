@@ -91,7 +91,7 @@ public static unsafe class VulkanUtilities
         EndSingleTimeCommands(commandBuffer);
     }
 
-    public static void CreateImage(in int width, in int height, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
+    public static void CreateImage(in uint width, in uint height, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
     {
         VkImageCreateInfo imageCreateInfo = new VkImageCreateInfo()
         {
@@ -99,8 +99,8 @@ public static unsafe class VulkanUtilities
             imageType = VkImageType.VK_IMAGE_TYPE_2D,
             extent = new VkExtent3D()
             {
-                width = (uint) width,
-                height = (uint) height,
+                width = width,
+                height = height,
                 depth = 1
             },
             mipLevels = 1,
@@ -142,7 +142,7 @@ public static unsafe class VulkanUtilities
         VulkanNative.vkBindImageMemory(VulkanCore.logicalDevice, image, imageMemory, 0);
     }
 
-    public static void CreateImageView(in VkImage image, VkFormat imageFormat, out VkImageView imageView)
+    public static void CreateImageView(in VkImage image, VkFormat imageFormat, VkImageAspectFlags aspectFlags, out VkImageView imageView)
     {
         VkImageViewCreateInfo imageViewCreateInfo = new VkImageViewCreateInfo()
         {
@@ -152,7 +152,7 @@ public static unsafe class VulkanUtilities
             format = imageFormat,
             subresourceRange = new VkImageSubresourceRange()
             {
-                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                aspectMask = aspectFlags,
                 baseMipLevel = 0,
                 levelCount = 1,
                 baseArrayLayer = 0,
@@ -222,9 +222,22 @@ public static unsafe class VulkanUtilities
                 levelCount = 1,							                    // Number of mip levels to alter starting from baseMipLevel
                 baseArrayLayer = 0,						                    // First layer to start alterations on
                 layerCount = 1,							                    // Number of layers to alter starting from baseArrayLayer
-                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT	// Aspect of image being altered   
             }
         };
+        
+        if (newLayout == VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
+        {
+            imageMemoryBarrier.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT;
+
+            if (format == VkFormat.VK_FORMAT_D32_SFLOAT_S8_UINT || format == VkFormat.VK_FORMAT_D24_UNORM_S8_UINT) 
+            {
+                imageMemoryBarrier.subresourceRange.aspectMask |= VkImageAspectFlags.VK_IMAGE_ASPECT_STENCIL_BIT;
+            }
+        } 
+        else 
+        {
+            imageMemoryBarrier.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT;
+        }
         
         VkPipelineStageFlags srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_NONE;
         VkPipelineStageFlags dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_NONE;
@@ -247,6 +260,16 @@ public static unsafe class VulkanUtilities
 
             srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        
+        // If transitioning from an undefined layout to one optimal for depth stencil...
+        else if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
+        {
+            imageMemoryBarrier.srcAccessMask = 0;
+            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VkAccessFlags.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         }
         else
         {

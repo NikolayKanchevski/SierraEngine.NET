@@ -28,12 +28,40 @@ public unsafe partial class VulkanRenderer
             layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
         };
 
+        // Retrieve the best depth buffer image format
+        this.depthImageFormat = this.GetBestDepthBufferFormat(
+            new VkFormat[] { VkFormat.VK_FORMAT_D32_SFLOAT_S8_UINT, VkFormat.VK_FORMAT_D32_SFLOAT, VkFormat.VK_FORMAT_D24_UNORM_S8_UINT },
+            VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
+            VkFormatFeatureFlags.VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+        );
+
+        // Set up depth attachment
+        VkAttachmentDescription depthAttachment = new VkAttachmentDescription()
+        {
+            format = depthImageFormat,
+            samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
+            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        };
+
+        // Set up depth attachment reference
+        VkAttachmentReference depthAttachmentReference = new VkAttachmentReference()
+        {
+            attachment = 1,
+            layout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        };
+
         // Set up the subpass properties
         VkSubpassDescription subpassDescription = new VkSubpassDescription()
         {
             pipelineBindPoint = VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS,
             colorAttachmentCount = 1,
-            pColorAttachments = &colorAttachmentReference
+            pColorAttachments = &colorAttachmentReference,
+            pDepthStencilAttachment = &depthAttachmentReference
         };
         
         // Create a subpass dependency
@@ -41,18 +69,20 @@ public unsafe partial class VulkanRenderer
         {
             srcSubpass = ~0U,
             dstSubpass = 0,
-            srcStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            srcStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VkPipelineStageFlags.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             srcAccessMask = 0,
-            dstStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            dstAccessMask = VkAccessFlags.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            dstStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VkPipelineStageFlags.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            dstAccessMask = VkAccessFlags.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VkAccessFlags.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
         };
+
+        VkAttachmentDescription* attachmentReferencesPtr = stackalloc VkAttachmentDescription[] { colorAttachment, depthAttachment };
         
         // Set up the render pass creation info 
         VkRenderPassCreateInfo renderPassCreateInfo = new VkRenderPassCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-            attachmentCount = 1,
-            pAttachments = &colorAttachment,
+            attachmentCount = 2,
+            pAttachments = attachmentReferencesPtr,
             subpassCount = 1,
             pSubpasses = &subpassDescription,
             dependencyCount = 1,

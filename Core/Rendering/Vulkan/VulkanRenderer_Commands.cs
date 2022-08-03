@@ -91,15 +91,17 @@ public unsafe partial class VulkanRenderer
         renderPassBeginInfo.renderArea.offset = VkOffset2D.Zero;
         renderPassBeginInfo.renderArea.extent = swapchainExtent;
 
-        // Define clear value (background color)
-        VkClearValue clearColor = new VkClearValue
+        VkClearValue* clearValues = stackalloc VkClearValue[2];
+        clearValues[0].color = backgroundColor;
+        clearValues[1].depthStencil = new VkClearDepthStencilValue()
         {
-            color = backgroundColor
+            depth = 1.0f,
+            stencil = 0
         };
-
+        
         // Reference the clear value to the render pass begin info
-        renderPassBeginInfo.clearValueCount = 1;
-        renderPassBeginInfo.pClearValues = &clearColor;
+        renderPassBeginInfo.clearValueCount = 2;
+        renderPassBeginInfo.pClearValues = clearValues;
         
         // Begin the render pass
         VulkanNative.vkCmdBeginRenderPass(givenCommandBuffer, &renderPassBeginInfo, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);

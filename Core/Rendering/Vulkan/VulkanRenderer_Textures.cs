@@ -67,7 +67,7 @@ public unsafe partial class VulkanRenderer
 
         // Create the vulkan image
         VulkanUtilities.CreateImage(
-            imageWidth, imageHeight,
+            (uint) imageWidth, (uint) imageHeight,
             textureImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
             VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -104,7 +104,7 @@ public unsafe partial class VulkanRenderer
     {
         // Create the image view using the proper image format
         VkImageView textureImageView;
-        VulkanUtilities.CreateImageView(textureImages.Last(), textureImageFormat, out textureImageView);
+        VulkanUtilities.CreateImageView(textureImages.Last(), textureImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, out textureImageView);
         
         // Add the image view to the list
         textureImageViews.Add(textureImageView);

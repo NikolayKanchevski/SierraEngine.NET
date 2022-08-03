@@ -15,27 +15,20 @@ public unsafe partial class VulkanRenderer
         for (int i = 0; i < swapchainImageViews.Length; i++)
         {
             // Define the attachments for the framebuffer
-            VkImageView[] attachments = new VkImageView[]
-            {
-                swapchainImageViews[i]
-            };
+            #pragma warning disable CA2014
+            VkImageView* attachments = stackalloc VkImageView[] { swapchainImageViews[i], depthImageView };
 
             // Set up the framebuffer creation info
             VkFramebufferCreateInfo framebufferCreateInfo = new VkFramebufferCreateInfo()
             {
                 sType = VkStructureType.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                 renderPass = this.renderPass,
-                attachmentCount = 1,
+                attachmentCount = 2,
+                pAttachments = attachments,
                 width = swapchainExtent.width,
                 height = swapchainExtent.height,
                 layers = 1
             };
-
-            // Reference the attachments array to it
-            fixed (VkImageView* attachmentPtr = attachments)
-            {
-                framebufferCreateInfo.pAttachments = attachmentPtr;
-            }
 
             // Create the framebuffer
             fixed (VkFramebuffer* framebufferPtr = &swapchainFrameBuffers[i])

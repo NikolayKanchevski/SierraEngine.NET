@@ -63,8 +63,24 @@ public static class Program
         window.vulkanRenderer!.vp.model = mat4.Rotate(glm.Radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
         window.vulkanRenderer!.vp.model = mat4.Rotate((float) Math.Cos(Time.upTime), new vec3(0.0f, 0.0f, 1.0f));
         window.vulkanRenderer!.vp.view = mat4.LookAt(new vec3(camX, 0.0f, camZ), vec3.Zero, new vec3(0.0f, 1.0f, 0.0f));
-        window.vulkanRenderer!.vp.projection = mat4.Perspective(glm.Radians(45.0f), (float) window.width / window.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.vp.projection = Perspective(glm.Radians(45.0f), (float) window.width / window.height, 0.1f, 100.0f);
         window.vulkanRenderer!.vp.projection[1, 1] *= -1;
+    }
+    
+    private static mat4 Perspective(float fovy, float aspect, float zNear, float zFar)
+    {
+        double num = Math.Tan(fovy / 2.0);
+        return mat4.Zero with
+        {
+            m00 = (float) (1.0 / (aspect * num)),
+            m11 = (float) (1.0 / num),
+            m22 = zFar / (zNear - zFar),
+            m23 = -1f,
+            m32 = -(zFar * zNear) / (zFar - zNear)
+            
+            // m22 = (float) (-((double) zFar + (double) zNear) / ((double) zFar - (double) zNear)),
+            // m32 = (float) (-(2.0 * (double) zFar * (double) zNear) / ((double) zFar - (double) zNear))
+        };
     }
 
     private static void UpdateClasses()

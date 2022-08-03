@@ -1,11 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using Glfw;
 using GlmSharp;
-using SierraEngine.Engine;
-using Exception = System.Exception;
-using System.Threading;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -166,8 +162,9 @@ public unsafe partial class VulkanRenderer
         CreateDescriptorSetLayout();
         CreateGraphicsPipeline();
         
-        CreateFrameBuffers();
         CreateCommandPool();
+        CreateDepthBufferImage();
+        CreateFrameBuffers();
         
         CreateTextureSampler();
         
@@ -217,6 +214,10 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkDestroyBuffer(this.logicalDevice, this.uniformBuffers[i], null);
             VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
         }
+        
+        VulkanNative.vkDestroyImage(this.logicalDevice, this.depthImage, null);
+        VulkanNative.vkDestroyImageView(this.logicalDevice, this.depthImageView, null);
+        VulkanNative.vkFreeMemory(this.logicalDevice, this.depthImageMemory, null);
         
         VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.uniformDescriptorPool, null);
         VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.uniformDescriptorSetLayout, null);

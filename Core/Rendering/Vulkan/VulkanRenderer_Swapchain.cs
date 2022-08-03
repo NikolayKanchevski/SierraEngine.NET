@@ -100,7 +100,7 @@ public unsafe partial class VulkanRenderer
         // Loop trough each image view
         for (int i = 0; i < swapchainImageViews.Length; i++)
         {
-            VulkanUtilities.CreateImageView(swapchainImages[i], swapchainImageFormat, out swapchainImageViews[i]);
+            VulkanUtilities.CreateImageView(swapchainImages[i], swapchainImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, out swapchainImageViews[i]);
         }
     }
 

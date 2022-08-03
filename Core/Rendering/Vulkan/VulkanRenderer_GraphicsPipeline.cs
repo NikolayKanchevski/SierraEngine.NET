@@ -167,6 +167,18 @@ public unsafe partial class VulkanRenderer
             pDynamicStates = dynamicStates
         };
 
+        VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo = new VkPipelineDepthStencilStateCreateInfo()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            depthTestEnable = VkBool32.True,
+            depthWriteEnable = VkBool32.True,
+            depthCompareOp = VkCompareOp.VK_COMPARE_OP_LESS,
+            depthBoundsTestEnable = VkBool32.False,
+            minDepthBounds = 0.0f,
+            maxDepthBounds = 1.0f,
+            stencilTestEnable = VkBool32.False
+        };
+
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.samplerDescriptorSetLayout };
 
         // Set pipeline layout creation info
@@ -199,7 +211,7 @@ public unsafe partial class VulkanRenderer
             pViewportState = &viewportStateCreateInfo,
             pRasterizationState = &rasterizationStateCreateInfo,
             pMultisampleState = &multisampleStateCreateInfo,
-            pDepthStencilState = null,
+            pDepthStencilState = &depthStencilStateCreateInfo,
             pColorBlendState = &blendingStateCreateInfo,
             pDynamicState = &dynamicStateCreateInfo,
             layout = graphicsPipelineLayout,
