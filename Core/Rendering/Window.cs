@@ -170,7 +170,6 @@ public class Window
         
         windowObject.vulkanRenderer.frameBufferResized = true;
         windowObject.vulkanRenderer.Update();
-        windowObject.vulkanRenderer.Update();
     }
 
     /* -- INTERNAL METHODS -- */

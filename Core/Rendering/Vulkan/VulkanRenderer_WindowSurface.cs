@@ -3,7 +3,7 @@ using Glfw;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
-public unsafe partial class VulkanRenderer
+public partial class VulkanRenderer
 {
     private VkSurfaceKHR surface;
 

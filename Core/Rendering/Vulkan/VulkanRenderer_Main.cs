@@ -216,10 +216,6 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
         }
         
-        VulkanNative.vkDestroyImage(this.logicalDevice, this.depthImage, null);
-        VulkanNative.vkDestroyImageView(this.logicalDevice, this.depthImageView, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, this.depthImageMemory, null);
-        
         VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.uniformDescriptorPool, null);
         VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.uniformDescriptorSetLayout, null);
 

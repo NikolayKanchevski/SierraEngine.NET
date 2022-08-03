@@ -118,6 +118,7 @@ public unsafe partial class VulkanRenderer
         CreateSwapchain();
         CreateSwapchainImageViews();
         CreateRenderPass();
+        CreateDepthBufferImage();
         CreateFrameBuffers();
     }
 
@@ -127,6 +128,10 @@ public unsafe partial class VulkanRenderer
         {
             VulkanNative.vkDestroyFramebuffer(this.logicalDevice, swapchainFramebuffer, null);
         }
+        
+        VulkanNative.vkDestroyImage(this.logicalDevice, this.depthImage, null);
+        VulkanNative.vkDestroyImageView(this.logicalDevice, this.depthImageView, null);
+        VulkanNative.vkFreeMemory(this.logicalDevice, this.depthImageMemory, null);
         
         VulkanNative.vkDestroyRenderPass(this.logicalDevice, this.renderPass, null);
         

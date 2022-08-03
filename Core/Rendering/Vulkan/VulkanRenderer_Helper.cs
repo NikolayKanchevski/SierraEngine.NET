@@ -1,6 +1,5 @@
 using Evergine.Bindings.Vulkan;
 using Glfw;
-using SharpVk;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 

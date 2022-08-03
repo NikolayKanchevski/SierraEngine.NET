@@ -16,7 +16,7 @@ public class Application
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
-    private float yaw = 90.0f, pitch = 0.0f, fov = 45.0f;
+    private float yaw = -90.0f, pitch = 0.0f, fov = 45.0f;
 
     private Vector2 lastCursorPosition;
     
@@ -32,12 +32,11 @@ public class Application
 
         Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double cursorX, out double cursorY);
         Cursor.SetCursorPosition(new Vector2((float) cursorX, (float) cursorY));
+        
         lastCursorPosition = Cursor.cursorPosition;
         Cursor.HideCursor();
 
-        camera.transform.position = new Vector3(0.0f, 0.0f, -10.0f);
-        window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(camera.position, new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f));
-
+        camera.transform.position = new Vector3(0.0f, 0.0f, 10.0f);
 
         while (!window.closed)
         {
@@ -57,11 +56,8 @@ public class Application
     {
         HandleCameraMovement();
         
-        // window.vulkanRenderer!.vp.model = Matrix4x4.Rotate(glm.Radians(90.0f), new Vector3(0.0f, 0.0f, 1.0f));
-        // window.vulkanRenderer!.vp.model = Matrix4x4.CreateRotationZ((float) Math.Cos(Time.upTime) * 4, new Vector3(0.0f, 0.0f, 1.0f));
         window.vulkanRenderer!.vp.model = Matrix4x4.CreateTranslation(0, 0, 0);
-        // window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(new Vector3(0.0f, 0.0f, 10.0f), Vector3.Zero, new Vector3(0.0f, 1.0f, 0.0f));
-        window.vulkanRenderer!.vp.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(45.0f), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.vp.model = Matrix4x4.CreateRotationZ(Radians((float) Math.Cos(Time.upTime) * 100), new Vector3(0.0f, 0.0f, 1.0f));
         window.vulkanRenderer!.vp.projection.M11 *= -1;
             
         window.SetTitle($"FPS: { Time.FPS }");
@@ -69,7 +65,65 @@ public class Application
     
     private void HandleCameraMovement()
     {
+        if (Input.GetKeyHeld(Key.Minus)) 
+        {
+            fov += CAMERA_ZOOM_SPEED * fov / 7 * Time.deltaTime;
+        }
+        if (Input.GetKeyHeld(Key.Equal)) 
+        {
+            fov -= CAMERA_ZOOM_SPEED * fov / 7 * Time.deltaTime;
+        }
+        else if (Input.GetKeyHeld(Key.Space)) 
+        {
+            fov = 45.0f;
+        }
         
+        fov = Mathematics.Clamp(fov, 90.0f, 5.0f);
+
+        if (Input.GetKeyHeld(Key.W))
+        {
+            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
+        }
+        if (Input.GetKeyHeld(Key.S))
+        {            
+            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
+        }
+        
+        if (Input.GetKeyHeld(Key.A))
+        {
+            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
+        }
+        if (Input.GetKeyHeld(Key.D))
+        {
+            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
+        }
+        
+        if (Input.GetKeyHeld(Key.Q))
+        {
+            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+        }
+        if (Input.GetKeyHeld(Key.E))
+        {
+            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+        }
+
+        float xCursorOffset = (lastCursorPosition.X - Cursor.cursorPosition.X) * CAMERA_LOOK_SPEED;
+        float yCursorOffset = (lastCursorPosition.Y - Cursor.cursorPosition.Y) * CAMERA_LOOK_SPEED;
+        lastCursorPosition = Cursor.cursorPosition;
+
+        yaw += xCursorOffset;
+        pitch += yCursorOffset;
+
+        pitch = Mathematics.Clamp(pitch, 89.0f, -89.0f);
+
+        Vector3 newCameraFrontDirection;
+        newCameraFrontDirection.X = (float) (Math.Cos(Radians(yaw)) * Math.Cos(Radians(pitch)));
+        newCameraFrontDirection.Y = (float) (Math.Sin(Radians(pitch)));
+        newCameraFrontDirection.Z = (float) (Math.Sin(Radians(yaw)) * Math.Cos(Radians(pitch)));
+        camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
+        
+        window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        window.vulkanRenderer!.vp.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
     }
 
     private float Radians(in float degrees)
@@ -80,6 +134,5 @@ public class Application
     private void UpdateClasses()
     {
         Time.Update();
-        // Input.Update();
     }
 }
