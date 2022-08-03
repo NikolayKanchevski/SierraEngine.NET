@@ -2,11 +2,12 @@
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine;
+using Cursor = Glfw.Cursor;
 
 namespace SierraEngine.Core.Rendering;
 
 /// <summary>A class to create windows on the screen. Wraps around a "core" GLFW window and extends its abilities.</summary>
-public unsafe class Window
+public class Window
 {
     public int width { get; private set; }
     public int height { get; private set; }
@@ -19,9 +20,11 @@ public unsafe class Window
     private readonly bool requireFocus;
     
     private GCHandle selfPointerHandle;
-
+    
+    
     private readonly WindowSizeDelegate resizeCallbackDelegate = WindowResizeCallback;
     private readonly KeyDelegate keyCallbackDelegate = Input.KeyboardKeyCallback;
+    private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Cursor.CursorPositionCallback;
     
     /* -- REFERENCES TO PRIVATE FIELDS -- */
     
@@ -175,7 +178,10 @@ public unsafe class Window
     private void SetCallbacks()
     {
         Glfw3.SetWindowSizeCallback(glfwWindow, resizeCallbackDelegate);
+        
         Glfw3.SetKeyCallback(glfwWindow, keyCallbackDelegate);
+
+        Glfw3.SetCursorPosCallback(glfwWindow, cursorCallbackDelegate);
     }
     
     /* -- INTERNAL HELPER METHODS -- */

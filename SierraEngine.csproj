@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
         <PackageReference Include="Evergine.Bindings.Vulkan" Version="2022.5.1.4" />
         <PackageReference Include="glfw-sharp" Version="0.2.14" />
         <PackageReference Include="GlmSharp" Version="0.9.8" />

@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Assimp;
 using Evergine.Bindings.Vulkan;
 using GlmSharp;
 
@@ -69,11 +70,11 @@ public unsafe partial class VulkanRenderer
             }
         };
 
-        private readonly  Vertex[] vertices2 = new Vertex[]
+        private  Vertex[] vertices2 = new Vertex[]
         {
             new Vertex()
             {
-                position = new Vector3(-1.0f, -1.0f, -1.0f),
+                position = new Vector3(-5.0f, -1.0f, -1.0f),
                 color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
@@ -133,10 +134,11 @@ public unsafe partial class VulkanRenderer
 
     #endregion
     
-    public VulkanRenderer(ref Window window)
+    public VulkanRenderer(in Window window)
     {
         this.window = window;
         VulkanCore.glfwWindow = this.window.GetCoreWindow();
+        VulkanCore.window = window;
         
         Init();
     }
@@ -147,7 +149,7 @@ public unsafe partial class VulkanRenderer
         {
             vertices2[i].position.X -= 5;
         }
-    
+        
         CreateInstance();
         CreateDebugMessenger();
         CreateWindowSurface();

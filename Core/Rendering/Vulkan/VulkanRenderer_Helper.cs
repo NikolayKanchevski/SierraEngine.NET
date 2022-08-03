@@ -277,14 +277,12 @@ public unsafe partial class VulkanRenderer
         }
 
         // Otherwise get the settings for it manually by finding out the width and height for it
-        int width, height;
-        Glfw3.GetFramebufferSize(window.GetCoreWindow(), out width, out height);
         
         // Save the sizes in a struct
         VkExtent2D createdExtent = new VkExtent2D()
         {
-            width = (uint) width,
-            height = (uint) height
+            width = (uint) window.width,
+            height = (uint) window.height
         };
         
         // Clamp the width and height so they don't exceed the maximums
