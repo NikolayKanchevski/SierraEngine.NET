@@ -1,8 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Assimp;
 using Evergine.Bindings.Vulkan;
-using GlmSharp;
+using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -248,8 +247,8 @@ public unsafe partial class VulkanRenderer
 
     public struct VP
     {
-        public mat4 model;
-        public mat4 view;
-        public mat4 projection;
+        public Matrix4x4 model;
+        public Matrix4x4 view;
+        public Matrix4x4 projection;
     }
 }

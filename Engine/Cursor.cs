@@ -1,34 +1,34 @@
 using Glfw;
-using GlmSharp;
+using System.Numerics;
 using SierraEngine.Core.Rendering.Vulkan;
 
 namespace SierraEngine.Engine;
 
 public static class Cursor
 {
-    public static vec2 cursorPosition { get; private set; }
-    public static vec2 cursorPositionNormalized { get; private set; }
+    public static Vector2 cursorPosition { get; private set; }
+    public static Vector2 cursorPositionNormalized { get; private set; }
     public static bool cursorShown { get; private set; } = true;
 
-    public static void SetCursorPosition(in vec2 newPosition)
+    public static void SetCursorPosition(in Vector2 newPosition)
     {
-        Glfw3.SetCursorPosition(VulkanCore.glfwWindow, newPosition.x, newPosition.y);
+        Glfw3.SetCursorPosition(VulkanCore.glfwWindow, newPosition.X, newPosition.Y);
         
-        CursorPositionCallback(VulkanCore.glfwWindow, newPosition.x, newPosition.y);
+        CursorPositionCallback(VulkanCore.glfwWindow, newPosition.X, newPosition.Y);
     }
     
-    public static void SetCursorPositionNormalized(in vec2 newPosition)
+    public static void SetCursorPositionNormalized(in Vector2 newPosition)
     {
-        vec2 nonNormalizedPosition = new vec2(newPosition.x * VulkanCore.window.width, newPosition.y * VulkanCore.window.height);
+        Vector2 nonNormalizedPosition = new Vector2(newPosition.X * VulkanCore.window.width, newPosition.Y * VulkanCore.window.height);
         
-        Glfw3.SetCursorPosition(VulkanCore.glfwWindow, nonNormalizedPosition.x, nonNormalizedPosition.y);
+        Glfw3.SetCursorPosition(VulkanCore.glfwWindow, nonNormalizedPosition.X, nonNormalizedPosition.Y);
         
-        CursorPositionCallback(VulkanCore.glfwWindow, nonNormalizedPosition.x, nonNormalizedPosition.y);
+        CursorPositionCallback(VulkanCore.glfwWindow, nonNormalizedPosition.X, nonNormalizedPosition.Y);
     }
 
     public static void CenterCursor()
     {
-        SetCursorPositionNormalized(new vec2(0.5f, 0.5f));
+        SetCursorPositionNormalized(new Vector2(0.5f, 0.5f));
     }
 
     public static void ShowCursor()
@@ -45,9 +45,9 @@ public static class Cursor
     
     public static void CursorPositionCallback(IntPtr glfwWindow, double xPosition, double yPosition)
     {
-        yPosition = glm.Abs(yPosition - VulkanCore.window.height);
+        yPosition = Math.Abs(yPosition - VulkanCore.window.height);
         
-        cursorPosition = new vec2((float) xPosition, (float) yPosition);
-        cursorPositionNormalized = new vec2((float) (xPosition / VulkanCore.window.width), (float) (yPosition / VulkanCore.window.height));
+        cursorPosition = new Vector2((float) xPosition, (float) yPosition);
+        cursorPositionNormalized = new Vector2((float) (xPosition / VulkanCore.window.width), (float) (yPosition / VulkanCore.window.height));
     }
 }

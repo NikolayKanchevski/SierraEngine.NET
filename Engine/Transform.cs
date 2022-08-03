@@ -1,11 +1,10 @@
 using System.Numerics;
-using GlmSharp;
 
 namespace SierraEngine.Engine;
 
 public struct Transform
 {
-    public vec3 position;
-    public vec3 rotation;
-    public vec3 scale;
+    public Vector3 position;
+    public Vector3 rotation;
+    public Vector3 scale;
 }

@@ -1,7 +1,4 @@
-using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using GlmSharp;
-using SierraEngine.Engine;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 

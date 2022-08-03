@@ -1,4 +1,4 @@
-using GlmSharp;
+using System.Numerics;
 
 namespace SierraEngine.Engine;
 
@@ -6,9 +6,9 @@ public class Camera
 {
     public Transform transform = new Transform();
     
-    public vec3 position => transform.position;
-    public vec3 rotation => transform.rotation;
+    public Vector3 position => transform.position;
+    public Vector3 rotation => transform.rotation;
 
-    public vec3 frontDirection = new vec3(0.0f, -0.0f, 1.0f);
-    public vec3 upDirection = new vec3(0.0f, 1.0f, 0.0f);
+    public Vector3 frontDirection = new Vector3(0.0f, -0.0f, 1.0f);
+    public Vector3 upDirection = new Vector3(0.0f, 1.0f, 0.0f);
 }
