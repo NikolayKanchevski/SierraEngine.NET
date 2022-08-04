@@ -1,5 +1,5 @@
 using Evergine.Bindings.Vulkan;
-using SierraEngine.Core.Rendering.Geometry;
+using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -134,7 +134,7 @@ public unsafe partial class VulkanRenderer
         ulong* offsets = stackalloc ulong[] { 0 };
         
         #pragma warning disable CA2014
-        foreach (Mesh mesh in meshes)
+        foreach (Mesh mesh in World.meshes)
         {
             // Define a pointer to the vertex buffer
             VkBuffer* vertexBuffers = stackalloc VkBuffer[] { mesh.GetVertexBuffer() };

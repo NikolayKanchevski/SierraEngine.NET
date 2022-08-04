@@ -1,20 +1,14 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Engine;
-using SierraEngine.Engine.Components;
 
-namespace SierraEngine.Core.Rendering.Geometry;
+namespace SierraEngine.Engine.Components;
 
-public unsafe class Mesh
+public unsafe class Mesh : Component
 {
-    public Transform transform = new Transform() with
-    {
-        position = new Vector3(0.0f, 0.0f, 0.0f),
-        rotation = new Vector3(0.0f, 0.0f, 0.0f),
-        scale = new Vector3(1.0f, 1.0f, 1.0f)
-    };
+    public Transform transform = new Transform();
     public uint verticesCount { get; private set; }
     public uint indexCount { get; private set; }
     public int textureID { get; private set; }
@@ -37,6 +31,9 @@ public unsafe class Mesh
         // Create buffers
         CreateVertexBuffer(in givenVertices);
         CreateIndexBuffer(in givenIndices);
+        
+        // Add the mesh to the world
+        World.meshes.Add(this);
     }
 
     public Model GetModelStructure()
@@ -61,7 +58,12 @@ public unsafe class Mesh
         return this.indexBuffer;
     }
 
-    public void DestroyBuffers()
+    public override void Destroy()
+    {
+        DestroyBuffers();
+    }
+
+    private void DestroyBuffers()
     {
         VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, vertexBuffer, null);
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, vertexBufferMemory, null);

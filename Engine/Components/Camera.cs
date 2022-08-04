@@ -2,10 +2,8 @@ using System.Numerics;
 
 namespace SierraEngine.Engine.Components;
 
-public class Camera
+public class Camera : Component
 {
-    public Transform transform = new Transform();
-    
     public Vector3 position => transform.position;
     public Vector3 rotation => transform.rotation;
 

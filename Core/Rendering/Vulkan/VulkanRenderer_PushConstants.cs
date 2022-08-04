@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using SierraEngine.Core.Rendering.Geometry;
+using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 

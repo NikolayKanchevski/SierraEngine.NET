@@ -16,10 +16,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Core\Rendering\Geometry" />
         <Folder Include="Core\Rendering\Shading\Compilers" />
         <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />
-        <Folder Include="Core\Rendering\Textures" />
-        <Folder Include="Other" />
     </ItemGroup>
 
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">

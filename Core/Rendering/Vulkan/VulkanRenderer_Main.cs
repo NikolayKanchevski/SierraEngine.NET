@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using SierraEngine.Core.Rendering.Geometry;
+using SierraEngine.Engine.Components;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -14,7 +14,7 @@ public unsafe partial class VulkanRenderer
 
         private readonly ulong vpSize = (ulong) Marshal.SizeOf(typeof(VP));
 
-        public readonly List<Mesh> meshes = new List<Mesh>();
+        // public readonly List<Mesh> meshes = new List<Mesh>();
 
         private readonly Window window;
         
@@ -173,10 +173,10 @@ public unsafe partial class VulkanRenderer
         CreateSynchronisation();
         
         Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("texture1.jpg"));
-        meshes.Add(mesh1);
+        // meshes.Add(mesh1);
         
-        Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("texture2.jpg"));
-        meshes.Add(mesh2);
+        // Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("texture2.jpg"));
+        // meshes.Add(mesh2);
     }
 
     public void Update()
@@ -213,10 +213,10 @@ public unsafe partial class VulkanRenderer
         
         VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.uniformDescriptorPool, null);
         VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.uniformDescriptorSetLayout, null);
-
-        foreach (Mesh mesh in meshes)
+        
+        foreach (Mesh mesh in World.meshes)
         {
-            mesh.DestroyBuffers();
+            mesh.Destroy();
         }
         
         for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)

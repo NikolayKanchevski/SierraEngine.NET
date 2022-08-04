@@ -1,7 +1,6 @@
 using System.Numerics;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Engine;
 using SierraEngine.Engine.Classes;
 using Camera = SierraEngine.Engine.Components.Camera;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
@@ -13,7 +12,7 @@ public class Application
 {
     private readonly Window window;
     
-    private readonly Camera camera = new Camera();
+    private readonly Camera camera = new GameObject("Camera").AddComponent(new Camera()) as Camera;
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
@@ -56,13 +55,7 @@ public class Application
     {
         HandleCameraMovement();
 
-        float upTimeCos = (float) Math.Cos(Time.upTime);
-        window.vulkanRenderer!.meshes[0].transform.position = new Vector3(0.0f, upTimeCos * -0.75f, 0.0f);
-        window.vulkanRenderer!.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);
-        window.vulkanRenderer!.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
-        
-        window.vulkanRenderer.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
-
+        UpdateObjects();
 
         window.SetTitle($"FPS: { Time.FPS }");
     }
@@ -129,6 +122,16 @@ public class Application
         window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
         window.vulkanRenderer!.vp.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
         window.vulkanRenderer!.vp.projection.M11 *= -1;
+    }
+
+    private void UpdateObjects()
+    {
+        float upTimeCos = (float) Math.Cos(Time.upTime);
+        World.meshes[0].transform.position = new Vector3(0.0f, upTimeCos * -0.75f, 0.0f);
+        World.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);
+        World.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
+        
+        // World.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
     }
 
     private float Radians(in float degrees)
