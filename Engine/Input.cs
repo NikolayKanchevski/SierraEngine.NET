@@ -32,7 +32,7 @@ public static class Input
         keyboardKeys[intCode] = intAction + 1;
         if (action == InputAction.Release)
         {
-            Wait(4, () => 
+            Wait(0.1f, () => 
                 keyboardKeys[intCode] = 0
             );
         }

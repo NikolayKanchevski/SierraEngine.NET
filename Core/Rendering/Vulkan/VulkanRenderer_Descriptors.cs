@@ -163,7 +163,7 @@ public unsafe partial class VulkanRenderer
             VkWriteDescriptorSet vpWriteDescriptorSet = new VkWriteDescriptorSet()
             {
                 sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                dstSet = uniformDescriptorSets[i],             // Descriptor set to update
+                dstSet = uniformDescriptorSets[i],      // Descriptor set to update
                 dstBinding = 0,                         // Binding to update
                 dstArrayElement = 0,                    // Index in array to update
                 descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,

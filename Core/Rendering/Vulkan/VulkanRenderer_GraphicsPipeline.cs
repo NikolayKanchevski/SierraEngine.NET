@@ -180,6 +180,7 @@ public unsafe partial class VulkanRenderer
         };
 
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.samplerDescriptorSetLayout };
+        VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.vertPushConstantRange };
 
         // Set pipeline layout creation info
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
@@ -187,8 +188,8 @@ public unsafe partial class VulkanRenderer
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             setLayoutCount = 2,
             pSetLayouts = descriptorSetLayoutsPtr,
-            pushConstantRangeCount = 0,
-            pPushConstantRanges = null
+            pushConstantRangeCount = 1,
+            pPushConstantRanges = pushConstantRangesPtr
         };
 
         // Create the pipeline layout

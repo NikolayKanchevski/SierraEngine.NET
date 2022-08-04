@@ -1,14 +1,24 @@
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Core.Rendering.Vulkan;
+using SierraEngine.Engine;
 
 namespace SierraEngine.Core.Rendering;
 
 public unsafe class Mesh
 {
+    public Transform transform = new Transform() with
+    {
+        position = new Vector3(0.0f, 0.0f, 0.0f),
+        rotation = new Vector3(0.0f, 0.0f, 0.0f),
+        scale = new Vector3(1.0f, 1.0f, 1.0f)
+    };
     public uint verticesCount { get; private set; }
     public uint indexCount { get; private set; }
-    public int textureID { get; private set; } = -1;
+    public int textureID { get; private set; }
+
+    private Model model = new Model();
     
     private VkBuffer vertexBuffer;
     private VkDeviceMemory vertexBufferMemory;
@@ -18,12 +28,26 @@ public unsafe class Mesh
 
     public Mesh(in Vertex[] givenVertices, in UInt16[] givenIndices, int newTextureID)
     {
+        // Retrieve the public values
         this.verticesCount = (uint) givenVertices.Length;
         this.indexCount = (uint) givenIndices.Length;
         this.textureID = newTextureID;
 
+        // Create buffers
         CreateVertexBuffer(in givenVertices);
         CreateIndexBuffer(in givenIndices);
+    }
+
+    public Model GetModelStructure()
+    {
+        // Update the model matrix per call
+        Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(transform.position);
+        Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(transform.rotation.X) * Matrix4x4.CreateRotationY(transform.rotation.Y) * Matrix4x4.CreateRotationZ(transform.rotation.Z);
+        Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(transform.scale);
+        model.modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+        
+        // Return it
+        return this.model;
     }
 
     public VkBuffer GetVertexBuffer()
@@ -130,4 +154,9 @@ public unsafe class Mesh
         VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, stagingBuffer, null);
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
     }
+}
+
+public struct Model
+{
+    public Matrix4x4 modelMatrix;
 }

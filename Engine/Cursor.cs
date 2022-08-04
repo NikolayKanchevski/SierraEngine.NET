@@ -42,6 +42,12 @@ public static class Cursor
         cursorShown = false;
         Glfw3.SetInputMode(VulkanCore.glfwWindow, InputMode.Cursor, 212995);
     }
+
+    public static void Start()
+    {
+        Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double cursorX, out double cursorY);
+        SetCursorPosition(new Vector2((float) cursorX, (float) cursorY));
+    }
     
     public static void CursorPositionCallback(IntPtr glfwWindow, double xPosition, double yPosition)
     {

@@ -13,7 +13,7 @@ public unsafe partial class VulkanRenderer
 
         private readonly ulong vpSize = (ulong) Marshal.SizeOf(typeof(VP));
 
-        private readonly List<Mesh> meshes = new List<Mesh>();
+        public readonly List<Mesh> meshes = new List<Mesh>();
 
         private readonly Window window;
         
@@ -136,19 +136,12 @@ public unsafe partial class VulkanRenderer
     public VulkanRenderer(in Window window)
     {
         this.window = window;
-        VulkanCore.glfwWindow = this.window.GetCoreWindow();
-        VulkanCore.window = window;
         
         Init();
     }
 
     private void Init()
     {
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            vertices2[i].position.X -= 5;
-        }
-        
         CreateInstance();
         CreateDebugMessenger();
         CreateWindowSurface();
@@ -160,6 +153,7 @@ public unsafe partial class VulkanRenderer
         CreateSwapchainImageViews();
         
         CreateRenderPass();
+        CreatePushConstants();
         CreateDescriptorSetLayout();
         CreateGraphicsPipeline();
         
@@ -243,7 +237,6 @@ public unsafe partial class VulkanRenderer
 
     public struct VP
     {
-        public Matrix4x4 model;
         public Matrix4x4 view;
         public Matrix4x4 projection;
     }

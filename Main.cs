@@ -1,4 +1,5 @@
 using SierraEngine.Core.Application;
+using SierraEngine.Core.Rendering.Vulkan;
 using Window = SierraEngine.Core.Rendering.Window;
 
 namespace SierraEngine;
@@ -8,6 +9,8 @@ public static class Program
     public static void Main()
     {
         Window window = new Window(800, 600, "Hello, Vulkan!", true);
+        VulkanCore.glfwWindow = window.GetCoreWindow();
+        VulkanCore.window = window;
         
         // if (OperatingSystem.IsWindows())
         // {

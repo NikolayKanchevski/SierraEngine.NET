@@ -27,11 +27,10 @@ public class Application
     
     public void Start()
     {
+        StartClasses();
+        
         VulkanRenderer vulkanRenderer = new VulkanRenderer(window);
         window.SetRenderer(ref vulkanRenderer);
-
-        Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double cursorX, out double cursorY);
-        Cursor.SetCursorPosition(new Vector2((float) cursorX, (float) cursorY));
         
         lastCursorPosition = Cursor.cursorPosition;
         Cursor.HideCursor();
@@ -55,11 +54,15 @@ public class Application
     private void Update()
     {
         HandleCameraMovement();
+
+        float upTimeCos = (float) Math.Cos(Time.upTime);
+        window.vulkanRenderer!.meshes[0].transform.position = new Vector3(0.0f, upTimeCos * -0.75f, 0.0f);
+        window.vulkanRenderer!.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);
+        window.vulkanRenderer!.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
         
-        window.vulkanRenderer!.vp.model = Matrix4x4.CreateTranslation(0, 0, 0);
-        window.vulkanRenderer!.vp.model = Matrix4x4.CreateRotationZ(Radians((float) Math.Cos(Time.upTime) * 100), new Vector3(0.0f, 0.0f, 1.0f));
-        window.vulkanRenderer!.vp.projection.M11 *= -1;
-            
+        window.vulkanRenderer.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
+
+
         window.SetTitle($"FPS: { Time.FPS }");
     }
     
@@ -124,11 +127,17 @@ public class Application
         
         window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
         window.vulkanRenderer!.vp.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.vp.projection.M11 *= -1;
     }
 
     private float Radians(in float degrees)
     {
         return (float) (Math.PI / 180) * degrees;
+    }
+
+    private void StartClasses()
+    {
+        Cursor.Start();
     }
 
     private void UpdateClasses()

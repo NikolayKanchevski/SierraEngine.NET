@@ -143,6 +143,13 @@ public unsafe partial class VulkanRenderer
             
             // Bind the index buffer
             VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, mesh.GetIndexBuffer(), 0, VkIndexType.VK_INDEX_TYPE_UINT16);
+
+            // Get the push constant model of the current mesh and push it to shader
+            Model curentModel = mesh.GetModelStructure();
+            VulkanNative.vkCmdPushConstants(
+                givenCommandBuffer, this.graphicsPipelineLayout,
+                VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT, 0, 
+                meshModelSize, &curentModel);
             
             VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { uniformDescriptorSets[currentFrame], samplerDescriptorSets[mesh.textureID] };
             VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 2, descriptorSetsPtr, 0, null);
