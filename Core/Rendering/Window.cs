@@ -2,6 +2,7 @@
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine;
+using SierraEngine.Engine.Classes;
 using Cursor = Glfw.Cursor;
 
 namespace SierraEngine.Core.Rendering;
@@ -24,7 +25,7 @@ public class Window
     
     private readonly WindowSizeDelegate resizeCallbackDelegate = WindowResizeCallback;
     private readonly KeyDelegate keyCallbackDelegate = Input.KeyboardKeyCallback;
-    private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Cursor.CursorPositionCallback;
+    private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
     
     /* -- REFERENCES TO PRIVATE FIELDS -- */
     

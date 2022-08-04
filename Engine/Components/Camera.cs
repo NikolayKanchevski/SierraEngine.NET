@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace SierraEngine.Engine;
+namespace SierraEngine.Engine.Components;
 
 public class Camera
 {

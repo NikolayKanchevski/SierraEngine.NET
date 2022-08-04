@@ -1,8 +1,8 @@
-using Glfw;
 using System.Numerics;
+using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 
-namespace SierraEngine.Engine;
+namespace SierraEngine.Engine.Classes;
 
 public static class Cursor
 {

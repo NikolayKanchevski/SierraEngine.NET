@@ -2,8 +2,9 @@ using System.Numerics;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine;
-using Camera = SierraEngine.Engine.Camera;
-using Cursor = SierraEngine.Engine.Cursor;
+using SierraEngine.Engine.Classes;
+using Camera = SierraEngine.Engine.Components.Camera;
+using Cursor = SierraEngine.Engine.Classes.Cursor;
 using Window = SierraEngine.Core.Rendering.Window;
 
 namespace SierraEngine.Core.Application;

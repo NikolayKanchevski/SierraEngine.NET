@@ -1,4 +1,4 @@
-namespace SierraEngine.Engine;
+namespace SierraEngine.Engine.Classes;
 
 public static class Mathematics
 {

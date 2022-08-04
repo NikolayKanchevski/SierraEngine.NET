@@ -1,5 +1,6 @@
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Engine;
+using SierraEngine.Engine.Classes;
 using StbImageSharp;
 
 namespace SierraEngine.Core.Rendering.Vulkan;

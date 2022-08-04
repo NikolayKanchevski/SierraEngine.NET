@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core.Rendering.Geometry;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace SierraEngine.Core.Rendering.Vulkan;

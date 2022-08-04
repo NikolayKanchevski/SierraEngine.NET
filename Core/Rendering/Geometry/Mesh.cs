@@ -3,8 +3,9 @@ using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine;
+using SierraEngine.Engine.Components;
 
-namespace SierraEngine.Core.Rendering;
+namespace SierraEngine.Core.Rendering.Geometry;
 
 public unsafe class Mesh
 {
