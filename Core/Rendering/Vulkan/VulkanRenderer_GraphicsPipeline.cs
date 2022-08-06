@@ -116,6 +116,7 @@ public unsafe partial class VulkanRenderer
             RenderingMode.Point => VkPolygonMode.VK_POLYGON_MODE_POINT,
             _ => rasterizationStateCreateInfo.polygonMode
         };
+        
 
         // Set up multi sampling
         VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo = new VkPipelineMultisampleStateCreateInfo()

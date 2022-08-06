@@ -67,7 +67,10 @@ public unsafe partial class VulkanRenderer
         else
         {
             // Add mandatory conditional device extensions
-            if (DeviceExtensionSupported(in this.physicalDevice, "VK_KHR_portability_subset")) requiredDeviceExtensions.Add("VK_KHR_portability_subset");
+            if (DeviceExtensionSupported(in this.physicalDevice, "VK_KHR_portability_subset"))
+            {
+                requiredDeviceExtensions.Add("VK_KHR_portability_subset");
+            }
 
             // Assign the EngineCore's physical device
             VulkanCore.physicalDevice = this.physicalDevice;

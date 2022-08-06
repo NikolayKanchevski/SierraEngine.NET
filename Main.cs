@@ -1,3 +1,4 @@
+using Glfw;
 using SierraEngine.Core;
 using SierraEngine.Core.Application;
 using SierraEngine.Core.Rendering.Vulkan;
@@ -26,7 +27,7 @@ public static class Program
         // World.PrintHierarchy();
         // return;
         
-        Window window = new Window(800, 600, "Hello, Vulkan!", true);
+        Window window = new Window(1920, 1080, "Hello, Vulkan!", true);
         VulkanCore.glfwWindow = window.GetCoreWindow();
         VulkanCore.window = window;
         
