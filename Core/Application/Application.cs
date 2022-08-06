@@ -95,11 +95,11 @@ public class Application
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
         }
         
-        if (Input.GetKeyHeld(Key.Q))
+        if (Input.GetKeyHeld(Key.Q) || Input.GetKeyHeld(Key.LeftControl))
         {
             camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }
-        if (Input.GetKeyHeld(Key.E))
+        if (Input.GetKeyHeld(Key.E) || Input.GetKeyHeld(Key.Space))
         {
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }

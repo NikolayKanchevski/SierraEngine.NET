@@ -128,7 +128,7 @@ public class Window
     /// <param name="title">What the title / name of the window should be.</param>
     /// <param name="resizable">Whether the window is going to be resizable or not.</param>
     /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
-    public Window(int width, int height, string title, bool resizable = false, bool requireFocus = false)
+    public Window(int width, int height, string title, bool maximised = false, bool resizable = false, bool requireFocus = false)
     {
         this.width = width;
         this.height = height;
@@ -137,6 +137,11 @@ public class Window
         this.requireFocus = requireFocus;
 
         InitWindow();
+
+        if (maximised)
+        {
+            Glfw3.MaximizeWindow(glfwWindow);
+        }
     }
     
     private void InitWindow()

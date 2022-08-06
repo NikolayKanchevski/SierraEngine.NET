@@ -27,7 +27,7 @@ public static class Program
         // World.PrintHierarchy();
         // return;
         
-        Window window = new Window(1920, 1080, "Hello, Vulkan!", true);
+        Window window = new Window(1920, 1080, "Hello, Vulkan!", true, true);
         VulkanCore.glfwWindow = window.GetCoreWindow();
         VulkanCore.window = window;
         
