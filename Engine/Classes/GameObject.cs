@@ -9,8 +9,8 @@ public class GameObject
     public string name = "Game Object";
 
     public readonly Transform transform = new Transform();
-    
-    public GameObject parent { get; private set; }
+
+    public GameObject parent { get; private set; } = null!;
     public bool hasParent;
     public readonly List<GameObject> children = new List<GameObject>();
 

@@ -1,0 +1,60 @@
+newmtl _default_
+Kd 0.502 0.502 0.502 
+Ks 0.067 0.067 0.067 
+Ns 30
+
+newmtl tank_turret_01_903
+Kd 0.753 0.753 0.753 
+Ks 1.000 1.000 1.000 
+Ns 20
+map_Kd textures/kranvagn_3dst_turret_01_diffuse.jpg
+map_Ks textures/kranvagn_3dst_turret_01_specular.jpg
+map_bump textures/kranvagn_3dst_turret_01_normal.jpg
+map_Ao textures/kranvagn_3dst_turret_01_ambient.jpg
+
+newmtl track_mat_L_skinned_300
+Kd 0.753 0.753 0.753 
+Ks 1.000 1.000 1.000 
+Ns 20
+map_Kd textures/kranvagn_track_diffuse.jpg
+map_Ks textures/kranvagn_track_specular.jpg
+map_bump textures/kranvagn_track_normal.jpg
+map_d textures/kranvagn_track_alpha.png
+
+newmtl tank_chassis_01_skinned_301
+Kd 0.753 0.753 0.753 
+Ks 1.000 1.000 1.000 
+Ns 20
+map_Kd textures/kranvagn_3dst_chassis_01_diffuse.jpg
+map_Ks textures/kranvagn_3dst_chassis_01_specular.jpg
+map_bump textures/kranvagn_3dst_chassis_01_normal.jpg
+map_Ao textures/kranvagn_3dst_chassis_01_ambient.jpg
+map_d textures/kranvagn_3dst_chassis_01_alpha.png
+
+newmtl tank_guns_skinned_928
+Kd 0.753 0.753 0.753 
+Ks 1.000 1.000 1.000 
+Ns 20
+map_Kd textures/kranvagn_3dst_guns_diffuse.jpg
+map_Ks textures/kranvagn_3dst_guns_specular.jpg
+map_bump textures/kranvagn_3dst_guns_normal.jpg
+map_Ao textures/kranvagn_3dst_guns_ambient.jpg
+
+newmtl tank_equipment_01_skinned_928
+Kd 0.753 0.753 0.753 
+Ks 1.000 1.000 1.000 
+Ns 20
+map_Kd textures/kranvagn_3dst_equipment_01_diffuse.jpg
+map_Ks textures/kranvagn_3dst_equipment_01_specular.jpg
+map_bump textures/kranvagn_3dst_equipment_01_normal.jpg
+map_Ao textures/kranvagn_3dst_equipment_01_ambient.jpg
+
+newmtl tank_hull_01_248
+Kd 0.753 0.753 0.753 
+Ks 1.000 1.000 1.000 
+Ns 20
+map_Kd textures/kranvagn_3dst_hull_01_diffuse.jpg
+map_Ks textures/kranvagn_3dst_hull_01_specular.jpg
+map_bump textures/kranvagn_3dst_hull_01_normal.jpg
+map_Ao textures/kranvagn_3dst_hull_01_ambient.jpg
+

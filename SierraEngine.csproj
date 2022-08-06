@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+    
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Core\Rendering\Geometry" />
+        <Folder Include="Core\Rendering\Models" />
         <Folder Include="Core\Rendering\Shading\Compilers" />
         <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />
     </ItemGroup>
@@ -33,6 +33,14 @@
             <FILES Include="Core/Rendering/Textures/*.*" />
         </ItemGroup>
         <Copy SourceFiles="@(FILES)" DestinationFolder="$(OutDir)/Textures" />
+    </Target>
+
+    <ItemGroup>
+        <FOLDERS Include="Core/Rendering/Models/**/*.*" />
+    </ItemGroup>
+
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <Copy SourceFiles="@(FOLDERS)" DestinationFiles="@(FOLDERS->'$(OutDir)/Models/%(RecursiveDir)%(Filename)%(Extension)')" />
     </Target>
 
 </Project>

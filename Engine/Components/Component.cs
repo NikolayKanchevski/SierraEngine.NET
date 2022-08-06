@@ -1,11 +1,15 @@
+using System.Numerics;
 using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Engine.Components;
 
 public class Component
 {
-    public GameObject gameObject;
+    public GameObject gameObject = null!;
     public Transform transform => this.gameObject.transform;
+    public Vector3 position => this.gameObject.transform.position;
+    public Vector3 rotation => this.gameObject.transform.rotation;
+    public Vector3 scale => this.gameObject.transform.scale;
 
     public virtual void Start() { }
     public virtual void Update() { }

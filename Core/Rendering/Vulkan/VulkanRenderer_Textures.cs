@@ -1,3 +1,4 @@
+using Assimp;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Engine;
 using SierraEngine.Engine.Classes;
@@ -14,10 +15,10 @@ public unsafe partial class VulkanRenderer
     private VkFormat textureImageFormat;
     private VkSampler textureSampler;
     
-    private int CreateTexture(string fileName, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    public int CreateTexture(string fileName, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
     {
         // Load image data in bytes
-        byte[] fileData = File.ReadAllBytes($"Textures/{ fileName }");
+        byte[] fileData = File.ReadAllBytes($"{ fileName }");
         ImageResult loadedImage = ImageResult.FromMemory(fileData, colors);
 
         // Calculate image size based on its size and color channels
@@ -25,6 +26,26 @@ public unsafe partial class VulkanRenderer
         
         // Create the vulkan image and its view
         CreateTextureImage(loadedImage.Width, loadedImage.Height, colors, imageSize, loadedImage.Data);
+        CreateTextureImageView();
+        
+        // Get the ID of the descriptor set assigned to the texture
+        int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
+        return textureDescriptorSetLocation;
+    }
+
+    public int CreateTexture(EmbeddedTexture assimpTexture)
+    {
+        // Load image data in bytes
+        // byte[] fileData = File.ReadAllBytes($"{ fileName }");
+        // ImageResult loadedImage = ImageResult.FromMemory(fileData, colors);
+        byte[] textureData = assimpTexture.CompressedData;
+
+        // Calculate image size based on its size and color channels
+        // ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
+        ulong textureSize = (ulong) assimpTexture.CompressedDataSize;
+        
+        // Create the vulkan image and its view
+        CreateTextureImage(assimpTexture.Width, assimpTexture.Height, ColorComponents.RedGreenBlueAlpha, textureSize, textureData);
         CreateTextureImageView();
         
         // Get the ID of the descriptor set assigned to the texture

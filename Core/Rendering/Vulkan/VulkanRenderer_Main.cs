@@ -172,11 +172,11 @@ public unsafe partial class VulkanRenderer
 
         CreateSynchronisation();
         
-        Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("texture1.jpg"));
-        // meshes.Add(mesh1);
-        
-        // Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("texture2.jpg"));
-        // meshes.Add(mesh2);
+        Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("Textures/texture1.jpg"));
+        Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("Textures/texture2.jpg"));
+
+        // MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.obj", this);
+        MeshObject model1 = MeshObject.LoadFromModel("Models/Kranvagn/Kranvagn_BB.obj", this);
     }
 
     public void Update()
