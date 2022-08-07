@@ -127,9 +127,9 @@ public class Application
     private void UpdateObjects()
     {
         float upTimeCos = (float) Math.Cos(Time.upTime);
-        World.meshes[0].transform.position = new Vector3(0.0f, (upTimeCos * -0.75f) + 3, 0.0f);
-        World.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);
-        World.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
+        // World.meshes[0].transform.position = new Vector3(0.0f, (upTimeCos * -0.75f) + 3, 0.0f);
+        // World.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);
+        // World.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
         
         World.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
 

@@ -91,7 +91,7 @@ public static unsafe class VulkanUtilities
         EndSingleTimeCommands(commandBuffer);
     }
 
-    public static void CreateImage(in uint width, in uint height, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
+    public static void CreateImage(in uint width, in uint height, in uint mipLevels, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
     {
         VkImageCreateInfo imageCreateInfo = new VkImageCreateInfo()
         {
@@ -103,7 +103,7 @@ public static unsafe class VulkanUtilities
                 height = height,
                 depth = 1
             },
-            mipLevels = 1,
+            mipLevels = mipLevels,
             arrayLayers = 1,
             format = format,
             tiling = imageTiling,
@@ -142,7 +142,7 @@ public static unsafe class VulkanUtilities
         VulkanNative.vkBindImageMemory(VulkanCore.logicalDevice, image, imageMemory, 0);
     }
 
-    public static void CreateImageView(in VkImage image, VkFormat imageFormat, VkImageAspectFlags aspectFlags, out VkImageView imageView)
+    public static void CreateImageView(in VkImage image, VkFormat imageFormat, VkImageAspectFlags aspectFlags, in uint mipLevels, out VkImageView imageView)
     {
         VkImageViewCreateInfo imageViewCreateInfo = new VkImageViewCreateInfo()
         {
@@ -154,7 +154,7 @@ public static unsafe class VulkanUtilities
             {
                 aspectMask = aspectFlags,
                 baseMipLevel = 0,
-                levelCount = 1,
+                levelCount = mipLevels,
                 baseArrayLayer = 0,
                 layerCount = 1
             }
@@ -204,7 +204,7 @@ public static unsafe class VulkanUtilities
         EndSingleTimeCommands(commandBuffer);
     }
 
-    public static void TransitionImageLayout(in VkImage image, in VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+    public static void TransitionImageLayout(in VkImage image, in VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, in uint mipLevels)
     {
         VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
         
@@ -219,7 +219,7 @@ public static unsafe class VulkanUtilities
             subresourceRange = new VkImageSubresourceRange()
             {
                 baseMipLevel = 0,						                    // First mip level to start alterations on
-                levelCount = 1,							                    // Number of mip levels to alter starting from baseMipLevel
+                levelCount = mipLevels,							                    // Number of mip levels to alter starting from baseMipLevel
                 baseArrayLayer = 0,						                    // First layer to start alterations on
                 layerCount = 1,							                    // Number of layers to alter starting from baseArrayLayer
             }
@@ -284,6 +284,127 @@ public static unsafe class VulkanUtilities
                 0, null,			// Buffer Memory Barrier count + data
                 1, &imageMemoryBarrier	            // Image Memory Barrier count + data
         );
+        
+        EndSingleTimeCommands(commandBuffer);
+    }
+
+    public static void GenerateMipMaps(in VkImage image, VkFormat imageFormat, uint textureWidth, uint textureHeight, uint mipLevels)
+    {
+        VkFormatProperties formatProperties;
+        VulkanNative.vkGetPhysicalDeviceFormatProperties(VulkanCore.physicalDevice, imageFormat, &formatProperties);
+
+        if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) == 0)
+        {
+            VulkanDebugger.ThrowError($"Texture image format [{ imageFormat.ToString() }] does not support linear blitting");
+        }
+        
+        VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+
+        VkImageMemoryBarrier memoryBarrier = new VkImageMemoryBarrier()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            image = image,
+            srcQueueFamilyIndex = ~0U,
+            dstQueueFamilyIndex = ~0U,
+            subresourceRange = new VkImageSubresourceRange()
+            {
+                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                baseArrayLayer = 0,
+                layerCount = 1,
+                levelCount = 1
+            }
+        };
+        
+        uint mipWidth = textureWidth;
+        uint mipHeight = textureHeight;
+
+        for (uint i = 1; i < mipLevels; i++) {
+            memoryBarrier.subresourceRange.baseMipLevel = i - 1;
+            memoryBarrier.oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            memoryBarrier.newLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            memoryBarrier.srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
+            memoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_READ_BIT;
+
+            VulkanNative.vkCmdPipelineBarrier(commandBuffer,
+                VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+                0, null,
+                0, null,
+                1, &memoryBarrier);
+
+            VkImageBlit blit = new VkImageBlit()
+            {
+                srcOffsets_0 = new VkOffset3D()
+                {
+                    x = 0,
+                    y = 0,
+                    z = 0
+                },
+                srcOffsets_1 = new VkOffset3D()
+                {
+                    x = (int)mipWidth,
+                    y = (int)mipHeight,
+                    z = 1
+                },
+                srcSubresource = new VkImageSubresourceLayers()
+                {
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                    mipLevel = i - 1,
+                    baseArrayLayer = 0,
+                    layerCount = 1,
+                },
+                dstOffsets_0 = new VkOffset3D()
+                {
+                    x = 0,
+                    y = 0,
+                    z = 0
+                },
+                dstOffsets_1 = new VkOffset3D()
+                {
+                    x = (int)(mipWidth > 1 ? mipWidth / 2 : 1),
+                    y = (int)(mipHeight > 1 ? mipHeight / 2 : 1),
+                    z = 1
+                },
+                dstSubresource = new VkImageSubresourceLayers()
+                {
+                    aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
+                    mipLevel = i,
+                    baseArrayLayer = 0,
+                    layerCount = 1
+                }
+            };
+
+            VulkanNative.vkCmdBlitImage(commandBuffer,
+                image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1, &blit,
+                VkFilter.VK_FILTER_LINEAR);
+
+            memoryBarrier.oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            memoryBarrier.newLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            memoryBarrier.srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_READ_BIT;
+            memoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
+            
+            VulkanNative.vkCmdPipelineBarrier(commandBuffer,
+                VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                0, null,
+                0, null,
+                1, &memoryBarrier);
+
+            if (mipWidth > 1) mipWidth /= 2;
+            if (mipHeight > 1) mipHeight /= 2;
+        }
+
+        memoryBarrier.subresourceRange.baseMipLevel = mipLevels - 1;
+        memoryBarrier.oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        memoryBarrier.newLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        memoryBarrier.srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
+        memoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
+
+        VulkanNative.vkCmdPipelineBarrier(commandBuffer,
+            VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+            0, null,
+            0, null,
+            1, &memoryBarrier);
         
         EndSingleTimeCommands(commandBuffer);
     }

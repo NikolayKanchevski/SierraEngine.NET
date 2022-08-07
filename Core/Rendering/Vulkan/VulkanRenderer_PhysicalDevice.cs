@@ -60,7 +60,8 @@ public unsafe partial class VulkanRenderer
                 SystemInformation.SetUsedGPUModel(VulkanUtilities.GetString(deviceProperties.deviceName));
                 
                 // Show support message
-                VulkanDebugger.DisplaySuccess($"Vulkan is supported by your { SystemInformation.deviceModelName } running { SystemInformation.operatingSystemVersion } [Validation: { VALIDATION_ENABLED } | CPU: { SystemInformation.cpuModelName } | GPU: { SystemInformation.gpuModelName }]", true);
+                VulkanDebugger.DisplaySuccess($"Vulkan is supported by your { SystemInformation.deviceModelName } running { SystemInformation.operatingSystemVersion } [Validation: { VALIDATION_ENABLED } | CPU: { SystemInformation.cpuModelName } | GPU: { SystemInformation.gpuModelName }]");
+                Console.WriteLine();
                 
                 break;
             }

@@ -13,7 +13,7 @@ public unsafe partial class VulkanRenderer
     {
         // Create the depth buffer image
         VulkanUtilities.CreateImage(
-            this.swapchainExtent.width, this.swapchainExtent.height, 
+            this.swapchainExtent.width, this.swapchainExtent.height, 1,
             depthImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL, 
             VkImageUsageFlags.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -21,13 +21,13 @@ public unsafe partial class VulkanRenderer
         );
         
         // Create the depth buffer image view
-        VulkanUtilities.CreateImageView(depthImage, depthImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT, out depthImageView);
+        VulkanUtilities.CreateImageView(depthImage, depthImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT, 1, out depthImageView);
         
         // Transition the layout of the depth buffer image so it is optimal
         VulkanUtilities.TransitionImageLayout(
             depthImage, depthImageFormat, 
             VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, 
-            VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1
         );
     }
 

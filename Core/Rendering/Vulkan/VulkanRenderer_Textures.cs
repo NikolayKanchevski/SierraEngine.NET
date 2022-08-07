@@ -11,7 +11,8 @@ public unsafe partial class VulkanRenderer
     private readonly List<VkImage> textureImages = new List<VkImage>();
     private readonly List<VkImageView> textureImageViews = new List<VkImageView>();
     private readonly List<VkDeviceMemory> textureImageMemories = new List<VkDeviceMemory>();
-    
+    private readonly List<uint> textureMipLevels = new List<uint>();
+
     private VkFormat textureImageFormat;
     private VkSampler textureSampler;
     
@@ -24,8 +25,11 @@ public unsafe partial class VulkanRenderer
         // Calculate image size based on its size and color channels
         ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
         
+        // Get mip levels
+        textureMipLevels.Add((uint) Math.Floor(Math.Log2(Math.Max(loadedImage.Width, loadedImage.Height)) + 1));
+        
         // Create the vulkan image and its view
-        CreateTextureImage(loadedImage.Width, loadedImage.Height, colors, imageSize, loadedImage.Data);
+        CreateTextureImage((uint) loadedImage.Width, (uint) loadedImage.Height, colors, imageSize, loadedImage.Data);
         CreateTextureImageView();
         
         // Get the ID of the descriptor set assigned to the texture
@@ -33,27 +37,27 @@ public unsafe partial class VulkanRenderer
         return textureDescriptorSetLocation;
     }
 
-    public int CreateTexture(EmbeddedTexture assimpTexture)
-    {
-        // Load image data in bytes
-        // byte[] fileData = File.ReadAllBytes($"{ fileName }");
-        // ImageResult loadedImage = ImageResult.FromMemory(fileData, colors);
-        byte[] textureData = assimpTexture.CompressedData;
+    // public int CreateTexture(EmbeddedTexture assimpTexture)
+    // {
+    //     // Load image data in bytes
+    //     // byte[] fileData = File.ReadAllBytes($"{ fileName }");
+    //     // ImageResult loadedImage = ImageResult.FromMemory(fileData, colors);
+    //     byte[] textureData = assimpTexture.CompressedData;
+    //
+    //     // Calculate image size based on its size and color channels
+    //     // ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
+    //     ulong textureSize = (ulong) assimpTexture.CompressedDataSize;
+    //     
+    //     // Create the vulkan image and its view
+    //     CreateTextureImage(assimpTexture.Width, assimpTexture.Height, ColorComponents.RedGreenBlueAlpha, textureSize, textureData);
+    //     CreateTextureImageView();
+    //     
+    //     // Get the ID of the descriptor set assigned to the texture
+    //     int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
+    //     return textureDescriptorSetLocation;
+    // }
 
-        // Calculate image size based on its size and color channels
-        // ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
-        ulong textureSize = (ulong) assimpTexture.CompressedDataSize;
-        
-        // Create the vulkan image and its view
-        CreateTextureImage(assimpTexture.Width, assimpTexture.Height, ColorComponents.RedGreenBlueAlpha, textureSize, textureData);
-        CreateTextureImageView();
-        
-        // Get the ID of the descriptor set assigned to the texture
-        int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
-        return textureDescriptorSetLocation;
-    }
-
-    private void CreateTextureImage(in int imageWidth, in int imageHeight, in ColorComponents colors, in ulong imageSize, in byte[] imageData)
+    private void CreateTextureImage(in uint imageWidth, in uint imageHeight, in ColorComponents colors, in ulong imageSize, in byte[] imageData)
     {
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -89,9 +93,9 @@ public unsafe partial class VulkanRenderer
 
         // Create the vulkan image
         VulkanUtilities.CreateImage(
-            (uint) imageWidth, (uint) imageHeight,
+            imageWidth, imageHeight, textureMipLevels.Last(),
             textureImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
-            VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
+            VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             out textureImage, out textureImageMemory
         );
@@ -99,19 +103,19 @@ public unsafe partial class VulkanRenderer
         // Transition its layout so that it can be used for copying
         VulkanUtilities.TransitionImageLayout(
             textureImage, textureImageFormat, 
-            VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+            VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipLevels.Last()
         );
         
         // Copy the transitioned image to the staging buffer
         VulkanUtilities.CopyImageToBuffer(
-            stagingBuffer, textureImage, (uint) imageWidth, (uint) imageHeight
+            stagingBuffer, textureImage, imageWidth, imageHeight
         );
         
         // Once again transition its layout so that it can be read by shaders
-        VulkanUtilities.TransitionImageLayout(
-            textureImage, textureImageFormat,
-            VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        );
+        // VulkanUtilities.TransitionImageLayout(
+        //     textureImage, textureImageFormat,
+        //     VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1
+        // );
         
         // Add the texture image and its memory to the lists
         textureImages.Add(textureImage);
@@ -120,13 +124,15 @@ public unsafe partial class VulkanRenderer
         // Destroy the staging buffer and free its memory
         VulkanNative.vkDestroyBuffer(this.logicalDevice, stagingBuffer, null);
         VulkanNative.vkFreeMemory(this.logicalDevice, stagingBufferMemory, null);
+        
+        VulkanUtilities.GenerateMipMaps(textureImage, textureImageFormat, imageWidth, imageHeight, textureMipLevels.Last());
     }
 
     private void CreateTextureImageView()
     {
         // Create the image view using the proper image format
         VkImageView textureImageView;
-        VulkanUtilities.CreateImageView(textureImages.Last(), textureImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, out textureImageView);
+        VulkanUtilities.CreateImageView(textureImages.Last(), textureImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, textureMipLevels.Last(), out textureImageView);
         
         // Add the image view to the list
         textureImageViews.Add(textureImageView);
@@ -153,7 +159,7 @@ public unsafe partial class VulkanRenderer
             mipmapMode = VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_LINEAR,
             mipLodBias = 0.0f,
             minLod = 0.0f,
-            maxLod = 0.0f
+            maxLod = 13.0f
         };
 
         // Check if sampler anisotropy is requested and supported
@@ -161,7 +167,7 @@ public unsafe partial class VulkanRenderer
         {
             samplerCreateInfo.anisotropyEnable = VkBool32.True;
             maxAnisotropy = Mathematics.Clamp(maxAnisotropy, 0f, 100f);
-            samplerCreateInfo.maxAnisotropy = (maxAnisotropy / 100.0f ) * this.physicalDeviceProperties.limits.maxSamplerAnisotropy;
+            samplerCreateInfo.maxAnisotropy = (maxAnisotropy / 100.0f) * this.physicalDeviceProperties.limits.maxSamplerAnisotropy;
         }
         else
         {
@@ -177,6 +183,8 @@ public unsafe partial class VulkanRenderer
             }
         }
     }
+    
+    
 
     private int GetColorChannelCount(ColorComponents colors)
     {
