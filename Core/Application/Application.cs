@@ -35,7 +35,7 @@ public class Application
         lastCursorPosition = Cursor.cursorPosition;
         Cursor.HideCursor();
 
-        camera.transform.position = new Vector3(0.0f, 0.0f, 10.0f);
+        camera.transform.position = new Vector3(0.0f, -1.0f, 10.0f);
 
         while (!window.closed)
         {
@@ -132,6 +132,9 @@ public class Application
         World.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
         
         World.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
+
+        World.meshes[7].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+        World.meshes[8].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
     }
 
     private float Radians(in float degrees)

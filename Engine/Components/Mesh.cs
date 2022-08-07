@@ -9,6 +9,7 @@ namespace SierraEngine.Engine.Components;
 public unsafe class Mesh : Component
 {
     public new Transform transform = new Transform();
+    public string meshName = "None";
     public uint verticesCount { get; private set; }
     public uint indexCount { get; private set; }
     public int textureID { get; private set; }

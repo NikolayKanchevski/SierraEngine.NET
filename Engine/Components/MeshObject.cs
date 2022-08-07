@@ -81,6 +81,7 @@ public class MeshObject
             string currentTexturePath = materialFilePaths[currentAssimpMesh.MaterialIndex];
 
             this.meshes[i] = new Mesh(vertices.ToArray(), indices, vulkanRenderer.CreateTexture(fileName[..idx] + "/" + currentTexturePath));
+            this.meshes[i].meshName = currentAssimpMesh.Name;
         }
         
         VulkanDebugger.DisplayInfo($"Total vertices count for the model [{fileName[(idx + 1)..]}] containing [{meshes.Length}] mesh(es): {verticesCount}. Time elapsed during model loading: {stopwatch.ElapsedMilliseconds}ms");
