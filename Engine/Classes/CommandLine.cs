@@ -69,8 +69,7 @@ public static class CommandLine
     /// <param name="startingBounds">Starting point of the trimmed output.</param>
     /// <param name="endBounds">End point of the trimmed output.</param>
     /// <returns>Command line output.</returns>
-    
-    public static string ExecuteAndReadBetween(in string command, string startingBounds, string endBounds)
+    public static string ExecuteAndReadBetween(in string command, string? startingBounds, string? endBounds)
     {
         if (System.OperatingSystem.IsWindows())
         {
@@ -91,18 +90,35 @@ public static class CommandLine
                 process.WaitForExit();
                 builder.Append(process.StandardOutput.ReadToEnd());
             }
-            
+
             string result = builder.ToString();
             
-            int startIndex = result.IndexOf(startingBounds, StringComparison.Ordinal);
-            startIndex = Mathematics.Clamp(startIndex, 0, result.Length);
+            int startIndex;
+            if (startingBounds != null)
+            {
+                startIndex = result.IndexOf(startingBounds, StringComparison.Ordinal);
+                startIndex = Mathematics.Clamp(startIndex, 0, result.Length);
+            }
+            else
+            {
+                startIndex = 0;
+            }
 
             result = result[startIndex..];
 
-            int endIndex = result.IndexOf(endBounds, StringComparison.Ordinal);
-            endIndex = Mathematics.Clamp(endIndex, 0, result.Length);
-            
-            return result[..(endIndex + 1)].Trim();
+            int endIndex;
+            if (endBounds != null)
+            {
+                endIndex = result.IndexOf(endBounds, StringComparison.Ordinal);
+                endIndex++;
+                endIndex = Mathematics.Clamp(endIndex, 0, result.Length);
+            }
+            else
+            {
+                endIndex = result.Length;
+            }
+
+            return result[..(endIndex)].Trim();
         }
         catch (Exception exception)
         {
