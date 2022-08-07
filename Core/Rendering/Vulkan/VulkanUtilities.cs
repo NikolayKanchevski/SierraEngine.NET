@@ -293,13 +293,16 @@ public static unsafe class VulkanUtilities
         VkFormatProperties formatProperties;
         VulkanNative.vkGetPhysicalDeviceFormatProperties(VulkanCore.physicalDevice, imageFormat, &formatProperties);
 
+        // Check if optimal tiling is supported by the GPU
         if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) == 0)
         {
             VulkanDebugger.ThrowError($"Texture image format [{ imageFormat.ToString() }] does not support linear blitting");
         }
         
+        // Begin a command buffer
         VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
+        // Create an image memory barrier
         VkImageMemoryBarrier memoryBarrier = new VkImageMemoryBarrier()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -318,6 +321,7 @@ public static unsafe class VulkanUtilities
         uint mipWidth = textureWidth;
         uint mipHeight = textureHeight;
 
+        // For each mip level resize the image
         for (uint i = 1; i < mipLevels; i++) {
             memoryBarrier.subresourceRange.baseMipLevel = i - 1;
             memoryBarrier.oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -394,18 +398,21 @@ public static unsafe class VulkanUtilities
             if (mipHeight > 1) mipHeight /= 2;
         }
 
+        // Set base mip level and transition the layout of the texture
         memoryBarrier.subresourceRange.baseMipLevel = mipLevels - 1;
         memoryBarrier.oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         memoryBarrier.newLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         memoryBarrier.srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
         memoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
 
+        // Bind the image barrier and apply the changes
         VulkanNative.vkCmdPipelineBarrier(commandBuffer,
             VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
             0, null,
             0, null,
             1, &memoryBarrier);
         
+        // End the current command buffer
         EndSingleTimeCommands(commandBuffer);
     }
     

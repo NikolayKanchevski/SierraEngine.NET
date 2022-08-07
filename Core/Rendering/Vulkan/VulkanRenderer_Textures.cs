@@ -111,11 +111,7 @@ public unsafe partial class VulkanRenderer
             stagingBuffer, textureImage, imageWidth, imageHeight
         );
         
-        // Once again transition its layout so that it can be read by shaders
-        // VulkanUtilities.TransitionImageLayout(
-        //     textureImage, textureImageFormat,
-        //     VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1
-        // );
+        // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
         
         // Add the texture image and its memory to the lists
         textureImages.Add(textureImage);
@@ -125,6 +121,7 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroyBuffer(this.logicalDevice, stagingBuffer, null);
         VulkanNative.vkFreeMemory(this.logicalDevice, stagingBufferMemory, null);
         
+        // Generate mip maps for the current texture
         VulkanUtilities.GenerateMipMaps(textureImage, textureImageFormat, imageWidth, imageHeight, textureMipLevels.Last());
     }
 
