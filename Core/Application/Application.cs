@@ -12,7 +12,7 @@ public class Application
 {
     private readonly Window window;
     
-    private readonly Camera camera = new GameObject("Camera").AddComponent(new Camera()) as Camera;
+    private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
@@ -75,7 +75,7 @@ public class Application
             camera.fov = 45.0f;
         }
         
-        camera.fov = Mathematics.Clamp(camera.fov, 90.0f, 5.0f);
+        camera.fov = Mathematics.Clamp(camera.fov, 5.0f, 90.0f);
 
         if (Input.GetKeyHeld(Key.W))
         {
@@ -111,7 +111,7 @@ public class Application
         yaw += xCursorOffset;
         pitch += yCursorOffset;
 
-        pitch = Mathematics.Clamp(pitch, 89.0f, -89.0f);
+        pitch = Mathematics.Clamp(pitch, -89.0f, 89.0f);
 
         Vector3 newCameraFrontDirection;
         newCameraFrontDirection.X = (float) (Math.Cos(Radians(yaw)) * Math.Cos(Radians(pitch)));

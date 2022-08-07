@@ -8,21 +8,6 @@ public struct Vertex
     public Vector3 position;
     public Vector3 color;
     public Vector2 textureCoordinates;
-
-    public static bool operator ==(Vertex left, Vertex right)
-    {
-        return left.position == right.position;
-    }
-
-    public static bool operator !=(Vertex left, Vertex right)
-    {
-        return !(left == right);
-    }
-
-    public static bool Equals(Vertex left, Vertex right)
-    {
-        return left == right;
-    }
 }
 
 public static unsafe class VulkanUtilities

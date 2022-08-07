@@ -14,8 +14,6 @@ public class MeshObject
 
     private readonly string[] materialFilePaths = null!;
     
-    public MeshObject() { }
-    
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
     {
         return new MeshObject(fileName, vulkanRenderer);
@@ -85,7 +83,7 @@ public class MeshObject
             this.meshes[i] = new Mesh(vertices.ToArray(), indices, vulkanRenderer.CreateTexture(fileName[..idx] + "/" + currentTexturePath));
         }
         
-        VulkanDebugger.DisplayInfo($"Total vertices count for the model [{fileName[(idx + 1)..]}] which contains [{meshes.Length}] mesh(es): {verticesCount}.\n    Time elapsed during model loading: {stopwatch.ElapsedMilliseconds}ms");
+        VulkanDebugger.DisplayInfo($"Total vertices count for the model [{fileName[(idx + 1)..]}] containing [{meshes.Length}] mesh(es): {verticesCount}. Time elapsed during model loading: {stopwatch.ElapsedMilliseconds}ms");
         model.Clear();
     } 
 }

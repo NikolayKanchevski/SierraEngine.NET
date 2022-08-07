@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using Evergine.Bindings.Vulkan;
+using Glfw;
 using SierraEngine.Engine.Components;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
@@ -140,7 +143,7 @@ public unsafe partial class VulkanRenderer
         
         Init();
     }
-
+    
     private void Init()
     {
         CreateInstance();

@@ -160,7 +160,7 @@ public unsafe partial class VulkanRenderer
         if (physicalDeviceFeatures.samplerAnisotropy && maxAnisotropy > 0.0f)
         {
             samplerCreateInfo.anisotropyEnable = VkBool32.True;
-            maxAnisotropy = Mathematics.Clamp(maxAnisotropy, 100f, 0f);
+            maxAnisotropy = Mathematics.Clamp(maxAnisotropy, 0f, 100f);
             samplerCreateInfo.maxAnisotropy = (maxAnisotropy / 100.0f ) * this.physicalDeviceProperties.limits.maxSamplerAnisotropy;
         }
         else

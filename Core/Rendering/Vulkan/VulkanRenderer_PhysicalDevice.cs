@@ -1,4 +1,6 @@
 ﻿using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Classes;
+using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -53,7 +55,12 @@ public unsafe partial class VulkanRenderer
                 VulkanNative.vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
                 this.physicalDeviceFeatures = deviceFeatures;
                 
-                VulkanDebugger.DisplayInfo($"Supported GPU found: { VulkanUtilities.GetString(deviceProperties.deviceName) }");
+                // Detect system properties now that we are sure the system is capable of running the Vulkan program
+                SystemInformation.PopulateSystemInfo();
+                SystemInformation.SetUsedGPUModel(VulkanUtilities.GetString(deviceProperties.deviceName));
+                
+                // Show support message
+                VulkanDebugger.DisplaySuccess($"Vulkan is supported by your { SystemInformation.deviceModelName } running { SystemInformation.operatingSystemVersion } [Validation: { VALIDATION_ENABLED } | CPU: { SystemInformation.cpuModelName } | GPU: { SystemInformation.gpuModelName }]", true);
                 
                 break;
             }
