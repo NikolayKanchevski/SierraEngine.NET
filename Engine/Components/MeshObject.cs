@@ -8,11 +8,11 @@ namespace SierraEngine.Engine.Components;
 
 public class MeshObject
 {
-    public readonly Mesh[] meshes = null!;
+    public readonly Mesh[] meshes;
     public readonly uint verticesCount;
     public readonly string modelLocation;
 
-    private readonly string[] materialFilePaths = null!;
+    private readonly string[] materialFilePaths;
     
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
     {
@@ -26,7 +26,7 @@ public class MeshObject
         Scene model = new AssimpContext().ImportFile(fileName);
         
         this.meshes = new Mesh[model.MeshCount];
-
+        
         Stopwatch stopwatch = Stopwatch.StartNew();
         
         int idx = fileName.LastIndexOf('/');
@@ -34,16 +34,16 @@ public class MeshObject
         {
             Assimp.Mesh currentAssimpMesh = model.Meshes[i];
             int[] assimpIndices = currentAssimpMesh.GetIndices();
-
+        
             Vertex[] vertices = new Vertex[currentAssimpMesh.VertexCount];
             UInt16[] indices = new UInt16[assimpIndices.Length];
             
             verticesCount += (uint) currentAssimpMesh.VertexCount;
-
+        
             for (int j = 0; j < currentAssimpMesh.VertexCount; j++)
             {
                 Assimp.Vector3D currentAssimpVertex = currentAssimpMesh.Vertices[j];
-
+        
                 Vertex currentVertex = new Vertex() with
                 {
                     position = new Vector3(currentAssimpVertex.X, -currentAssimpVertex.Y, currentAssimpVertex.Z)
@@ -58,15 +58,15 @@ public class MeshObject
                 vertices[j] = currentVertex;
                 indices[j] = (UInt16) assimpIndices[j];
             }
-
+        
             if (model.HasMaterials)
             {
                 materialFilePaths = new string[model.MaterialCount];
-
+        
                 for (int j = 0; j < model.MaterialCount; j++)
                 {
                     Material currentAssimpMaterial = model.Materials[j];
-
+        
                     if (currentAssimpMaterial.GetMaterialTexture(TextureType.Diffuse, 0, out TextureSlot textureSlot))
                     {
                         materialFilePaths[j] = textureSlot.FilePath;
@@ -79,7 +79,7 @@ public class MeshObject
             }
             
             string currentTexturePath = materialFilePaths[currentAssimpMesh.MaterialIndex];
-
+        
             this.meshes[i] = new Mesh(vertices.ToArray(), indices, vulkanRenderer.CreateTexture(fileName[..idx] + "/" + currentTexturePath));
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }

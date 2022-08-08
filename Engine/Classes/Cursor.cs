@@ -43,6 +43,12 @@ public static class Cursor
         Glfw3.SetInputMode(VulkanCore.glfwWindow, InputMode.Cursor, 212995);
     }
 
+    public static void SetCursorVisibility(bool showCursor)
+    {
+        if (showCursor) ShowCursor();
+        else HideCursor();
+    }
+
     public static void Start()
     {
         Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double cursorX, out double cursorY);

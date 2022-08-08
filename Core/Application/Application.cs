@@ -17,6 +17,7 @@ public class Application
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
     private float yaw = -90.0f, pitch = 0.0f;
+    private bool cursorShown = false;
 
     private Vector2 lastCursorPosition;
     
@@ -70,7 +71,7 @@ public class Application
         {
             camera.fov -= CAMERA_ZOOM_SPEED * camera.fov / 7 * Time.deltaTime;
         }
-        else if (Input.GetKeyHeld(Key.Space)) 
+        else if (Input.GetKeyHeld(Key.Tab)) 
         {
             camera.fov = 45.0f;
         }
@@ -122,8 +123,6 @@ public class Application
         window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
         window.vulkanRenderer!.vp.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
         window.vulkanRenderer!.vp.projection.M11 *= -1;
-
-        camera.transform.position = new Vector3(-1.3327036f, -2.042252f, 0.94270474f);
     }
 
     private void UpdateObjects()
@@ -135,8 +134,8 @@ public class Application
         
         World.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
 
-        // World.meshes[7].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
-        // World.meshes[8].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+        World.meshes[7].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+        World.meshes[8].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
     }
 
     private float Radians(in float degrees)
