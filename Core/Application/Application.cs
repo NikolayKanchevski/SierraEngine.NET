@@ -17,7 +17,6 @@ public class Application
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
     private float yaw = -90.0f, pitch = 0.0f;
-    private bool cursorShown = false;
 
     private Vector2 lastCursorPosition;
     
