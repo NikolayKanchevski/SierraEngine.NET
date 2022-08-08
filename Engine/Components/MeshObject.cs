@@ -12,7 +12,8 @@ public class MeshObject
     public readonly uint verticesCount;
     public readonly string modelLocation;
 
-    private readonly string[] materialFilePaths;
+    private readonly string[] materialFilePaths = null!;
+    private readonly EmbeddedTexture[] embeddedTextures = null!;
     
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
     {
@@ -33,30 +34,22 @@ public class MeshObject
         for (int i = 0; i < model.MeshCount; i++)
         {
             Assimp.Mesh currentAssimpMesh = model.Meshes[i];
-            int[] assimpIndices = currentAssimpMesh.GetIndices();
-        
+
             Vertex[] vertices = new Vertex[currentAssimpMesh.VertexCount];
-            UInt16[] indices = new UInt16[assimpIndices.Length];
+            UInt32[] indices = currentAssimpMesh.GetUnsignedIndices();
             
             verticesCount += (uint) currentAssimpMesh.VertexCount;
         
             for (int j = 0; j < currentAssimpMesh.VertexCount; j++)
             {
-                Assimp.Vector3D currentAssimpVertex = currentAssimpMesh.Vertices[j];
-        
-                Vertex currentVertex = new Vertex() with
-                {
-                    position = new Vector3(currentAssimpVertex.X, -currentAssimpVertex.Y, currentAssimpVertex.Z)
-                };
+                vertices[j].position = currentAssimpMesh.Vertices[j].ToVector3();
+                vertices[j].position.Y *= -1;
                 
-                if (currentAssimpMesh.HasTextureCoords(0))
-                {
-                    Assimp.Vector3D currentAssimpTextureCoordinate = currentAssimpMesh.TextureCoordinateChannels[0][j];
-                    currentVertex.textureCoordinates = new Vector2(currentAssimpTextureCoordinate.X, -currentAssimpTextureCoordinate.Y);
-                }
+                vertices[j].normal = currentAssimpMesh.Normals[j].ToVector3();
+                vertices[j].normal.Y *= -1;
                 
-                vertices[j] = currentVertex;
-                indices[j] = (UInt16) assimpIndices[j];
+                vertices[j].textureCoordinates = currentAssimpMesh.HasTextureCoords(0) ? currentAssimpMesh.TextureCoordinateChannels[0][j].ToVector2() : Vector2.Zero;
+                vertices[j].textureCoordinates.Y *= -1;
             }
         
             if (model.HasMaterials)
@@ -65,9 +58,7 @@ public class MeshObject
         
                 for (int j = 0; j < model.MaterialCount; j++)
                 {
-                    Material currentAssimpMaterial = model.Materials[j];
-        
-                    if (currentAssimpMaterial.GetMaterialTexture(TextureType.Diffuse, 0, out TextureSlot textureSlot))
+                    if (model.Materials[j].GetMaterialTexture(TextureType.Diffuse, 0, out TextureSlot textureSlot))
                     {
                         materialFilePaths[j] = textureSlot.FilePath;
                     }
@@ -79,8 +70,16 @@ public class MeshObject
             }
             
             string currentTexturePath = materialFilePaths[currentAssimpMesh.MaterialIndex];
+
+            if (fileName.EndsWith(".fbx"))
+            {
+                int texturePathIdx = currentTexturePath.IndexOf("/", StringComparison.Ordinal);
+                currentTexturePath = "textures" + currentTexturePath[texturePathIdx..];
+            }
+            
+            if (currentTexturePath == null || currentTexturePath.Trim() == "") continue;
         
-            this.meshes[i] = new Mesh(vertices.ToArray(), indices, vulkanRenderer.CreateTexture(fileName[..idx] + "/" + currentTexturePath));
+            this.meshes[i] = new Mesh(vertices, indices, vulkanRenderer.CreateTexture(fileName[..idx] + "/" + currentTexturePath));
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }
         

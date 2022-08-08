@@ -6,7 +6,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public struct Vertex
 {
     public Vector3 position;
-    public Vector3 color;
+    public Vector3 normal;
     public Vector2 textureCoordinates;
 }
 
@@ -20,6 +20,21 @@ public static unsafe class VulkanUtilities
     public static uint Version(uint major, uint minor, uint patch)
     {
         return (major << 22) | (minor << 12) | patch;
+    }
+
+    public static Vector2 ToVector3(this Assimp.Vector2D givenVector)
+    {
+        return new Vector2(givenVector.X, givenVector.Y);
+    }
+
+    public static Vector2 ToVector2(this Assimp.Vector3D givenVector)
+    {
+        return new Vector2(givenVector.X, givenVector.Y);
+    }
+
+    public static Vector3 ToVector3(this Assimp.Vector3D givenVector)
+    {
+        return new Vector3(givenVector.X, givenVector.Y, givenVector.Z);
     }
 
     public static string GetString(byte* stringStart)

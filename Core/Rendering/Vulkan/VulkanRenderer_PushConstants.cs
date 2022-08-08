@@ -7,7 +7,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private VkPushConstantRange vertPushConstantRange;
-    private readonly uint meshModelSize = (uint) Marshal.SizeOf(typeof(Model));
+    private readonly uint meshModelSize = (uint) Marshal.SizeOf(typeof(VertexPushConstant));
     
     private void CreatePushConstants()
     {

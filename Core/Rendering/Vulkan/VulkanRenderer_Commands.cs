@@ -143,20 +143,21 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
             
             // Bind the index buffer
-            VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, mesh.GetIndexBuffer(), 0, VkIndexType.VK_INDEX_TYPE_UINT16);
+            VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, mesh.GetIndexBuffer(), 0, VkIndexType.VK_INDEX_TYPE_UINT32);
 
             // Get the push constant model of the current mesh and push it to shader
-            Model curentModel = mesh.GetModelStructure();
+            VertexPushConstant vertexPushConstantData = mesh.GetVertexPushConstantData();
             VulkanNative.vkCmdPushConstants(
                 givenCommandBuffer, this.graphicsPipelineLayout,
                 VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT, 0, 
-                meshModelSize, &curentModel);
+                meshModelSize, &vertexPushConstantData);
             
             VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { uniformDescriptorSets[currentFrame], samplerDescriptorSets[mesh.textureID] };
             VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 2, descriptorSetsPtr, 0, null);
             
             // Draw using the index buffer to prevent vertex re-usage
             VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);
+            // VulkanNative.vkCmdDraw(givenCommandBuffer, mesh.verticesCount, 1, 0, 0);
         }
         
         // End the render pass

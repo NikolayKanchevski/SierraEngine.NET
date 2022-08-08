@@ -26,49 +26,49 @@ public unsafe partial class VulkanRenderer
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, -1.0f),
-                color = new Vector3(1.0f, 0.0f, 0.0f),
+                // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, -1.0f),
-                color = new Vector3(1.0f, 1.0f, 0.0f),
+                // color = new Vector3(1.0f, 1.0f, 0.0f),
                 textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, -1.0f),
-                color = new Vector3(1.0f, 1.0f, 1.0f),
+                // color = new Vector3(1.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, -1.0f),
-                color = new Vector3(0.0f, 1.0f, 1.0f),
+                // color = new Vector3(0.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(0.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, 1.0f),
-                color = new Vector3(1.0f, 0.0f, 0.0f),
+                // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, 1.0f),
-                color = new Vector3(1.0f, 1.0f, 0.0f),
+                // color = new Vector3(1.0f, 1.0f, 0.0f),
                 textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, 1.0f),
-                color = new Vector3(1.0f, 1.0f, 1.0f),
+                // color = new Vector3(1.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, 1.0f),
-                color = new Vector3(0.0f, 1.0f, 1.0f),
+                // color = new Vector3(0.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(0.0f, 1.0f)
             }
         };
@@ -78,49 +78,49 @@ public unsafe partial class VulkanRenderer
             new Vertex()
             {
                 position = new Vector3(-5.0f, -1.0f, -1.0f),
-                color = new Vector3(1.0f, 0.0f, 0.0f),
+                // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, -1.0f),
-                color = new Vector3(1.0f, 1.0f, 0.0f),
+                // color = new Vector3(1.0f, 1.0f, 0.0f),
                 textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, -1.0f),
-                color = new Vector3(1.0f, 1.0f, 1.0f),
+                // color = new Vector3(1.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, -1.0f),
-                color = new Vector3(0.0f, 1.0f, 1.0f),
+                // color = new Vector3(0.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(0.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, 1.0f),
-                color = new Vector3(1.0f, 0.0f, 0.0f),
+                // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, 1.0f),
-                color = new Vector3(1.0f, 1.0f, 0.0f),
+                // color = new Vector3(1.0f, 1.0f, 0.0f),
                 textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, 1.0f),
-                color = new Vector3(1.0f, 1.0f, 1.0f),
+                // color = new Vector3(1.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, 1.0f),
-                color = new Vector3(0.0f, 1.0f, 1.0f),
+                // color = new Vector3(0.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(0.0f, 1.0f)
             }
         };
@@ -147,7 +147,7 @@ public unsafe partial class VulkanRenderer
     private void Init()
     {
         CreateInstance();
-        CreateDebugMessenger();
+        // CreateDebugMessenger();
         CreateWindowSurface();
         
         GetPhysicalDevice();
@@ -178,11 +178,14 @@ public unsafe partial class VulkanRenderer
 
         CreateSynchronisation();
         
-        Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("Textures/texture1.jpg"));
-        Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("Textures/texture2.jpg"));
+        // Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("Textures/texture1.jpg"));
+        // Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("Textures/texture2.jpg"));
 
-        MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.obj", this);
+        // MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.obj", this);
+        MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
         // MeshObject model1 = MeshObject.LoadFromModel("Models/Kranvagn/Kranvagn_BB.obj", this);
+        // MeshObject model1 = MeshObject.LoadFromModel("Models/Lamborghini/lamborghini-aventador-pbribl.obj", this);
+        // MeshObject model1 = MeshObject.LoadFromModel("Models/Lambo/Lamborghini_Aventador.fbx", this);
     }
 
     public void Update()

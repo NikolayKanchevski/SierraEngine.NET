@@ -14,7 +14,7 @@ public unsafe class Mesh : Component
     public uint indexCount { get; private set; }
     public int textureID { get; private set; }
 
-    private Model model = new Model();
+    private VertexPushConstant vertexPushConstantData = new VertexPushConstant();
     
     private VkBuffer vertexBuffer;
     private VkDeviceMemory vertexBufferMemory;
@@ -22,7 +22,7 @@ public unsafe class Mesh : Component
     private VkBuffer indexBuffer;
     private VkDeviceMemory indexBufferMemory;
 
-    public Mesh(in Vertex[] givenVertices, in UInt16[] givenIndices, int newTextureID)
+    public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newTextureID)
     {
         // Retrieve the public values
         this.verticesCount = (uint) givenVertices.Length;
@@ -37,16 +37,19 @@ public unsafe class Mesh : Component
         World.meshes.Add(this);
     }
 
-    public Model GetModelStructure()
+    public VertexPushConstant GetVertexPushConstantData()
     {
         // Update the model matrix per call
         Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(transform.position);
         Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(transform.rotation.X) * Matrix4x4.CreateRotationY(transform.rotation.Y) * Matrix4x4.CreateRotationZ(transform.rotation.Z);
         Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(transform.scale);
-        model.modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+        vertexPushConstantData.modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+        // Set proportional scale bool
+        // vertexPushConstantData.proportionalScale = transform.scale.X == transform.scale.Y && transform.scale.Y == transform.scale.Z && transform.scale.Z == transform.scale.X;
         
         // Return it
-        return this.model;
+        return this.vertexPushConstantData;
     }
 
     public VkBuffer GetVertexBuffer()
@@ -115,7 +118,7 @@ public unsafe class Mesh : Component
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
     }
 
-    private void CreateIndexBuffer(in UInt16[] indices)
+    private void CreateIndexBuffer(in UInt32[] indices)
     {
         // Calculate the buffer size
         ulong bufferSize = (ulong) (Marshal.SizeOf(indices[0]) * indices.Length);
@@ -137,7 +140,7 @@ public unsafe class Mesh : Component
         VulkanNative.vkMapMemory(VulkanCore.logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
 
         // Fill the data pointer with the indices array's information
-        fixed (UInt16* indicesPtr = indices)
+        fixed (UInt32* indicesPtr = indices)
         {
             Buffer.MemoryCopy(indicesPtr, data, bufferSize, bufferSize);
         }
@@ -160,7 +163,7 @@ public unsafe class Mesh : Component
     }
 }
 
-public struct Model
+public struct VertexPushConstant
 {
     public Matrix4x4 modelMatrix;
 }
