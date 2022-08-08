@@ -4,21 +4,23 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private VkSampleCountFlags msaaSampleCount = VkSampleCountFlags.VK_SAMPLE_COUNT_2_BIT;
+    private VkSampleCountFlags msaaSampleCount = VkSampleCountFlags.VK_SAMPLE_COUNT_64_BIT;
+    private bool sampleShadingEnabled = true;
 
     private VkImage colorImage;
     private VkImageView colorImageView;
     private VkDeviceMemory colorImageMemory;
     
-    // TODO: Lower requested sample count if not supported
     private void CreateColorBufferImage()
     {
+        // Create the sampled color image
         VulkanUtilities.CreateImage(
             this.swapchainExtent.width, this.swapchainExtent.height, 1, msaaSampleCount,
             swapchainImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL, VkImageUsageFlags.VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, out colorImage, out colorImageMemory
         );
-        
+
+        // Create an image view off the sampled color image
         VulkanUtilities.CreateImageView(colorImage, this.swapchainImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, 1, out colorImageView);
     }
 

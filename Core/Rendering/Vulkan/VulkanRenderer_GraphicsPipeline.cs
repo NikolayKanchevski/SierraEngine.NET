@@ -130,6 +130,12 @@ public unsafe partial class VulkanRenderer
             alphaToOneEnable = VkBool32.False,
         };
 
+        if (this.msaaSampleCount != VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT && this.sampleShadingEnabled)
+        {
+            multisampleStateCreateInfo.sampleShadingEnable = VkBool32.True;
+            multisampleStateCreateInfo.minSampleShading = 0.2f;
+        }
+
         // Set up color blending
         VkPipelineColorBlendAttachmentState blendingAttachmentState = new VkPipelineColorBlendAttachmentState()
         {

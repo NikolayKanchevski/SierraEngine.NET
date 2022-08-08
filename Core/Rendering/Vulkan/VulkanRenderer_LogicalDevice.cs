@@ -45,6 +45,11 @@ public unsafe partial class VulkanRenderer
         {
             requiredPhysicalDeviceFeatures.samplerAnisotropy = VkBool32.True;
         }
+
+        if (this.msaaSampleCount != VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT && this.sampleShadingEnabled)
+        {
+            requiredPhysicalDeviceFeatures.sampleRateShading = VkBool32.True;
+        }
         
         // Convert to pointers and put every device extension into an array  
         IntPtr* deviceExtensionsArray = stackalloc IntPtr[requiredDeviceExtensions.Count];

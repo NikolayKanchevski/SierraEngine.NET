@@ -8,6 +8,14 @@ public unsafe partial class VulkanRenderer
     
     private void CreateRenderPass()
     {
+        // Lower the sample count if it is not supported
+        VkSampleCountFlags highestSupportedSampleCount = this.GetHighestSupportedSampleCount();
+        if (msaaSampleCount > highestSupportedSampleCount)
+        {
+            VulkanDebugger.ThrowWarning($"Sampling MSAA level [{ this.msaaSampleCount.ToString() }] requested but is not supported by the system. It is automatically lowered to [{ highestSupportedSampleCount }] which is the highest supported setting");
+            msaaSampleCount = highestSupportedSampleCount;
+        }
+        
         // Set up color attachment properties - operations, format, and samples
         VkAttachmentDescription colorAttachment = new VkAttachmentDescription()
         {
