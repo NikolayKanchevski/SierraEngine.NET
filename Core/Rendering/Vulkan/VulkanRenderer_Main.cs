@@ -162,7 +162,10 @@ public unsafe partial class VulkanRenderer
         CreateGraphicsPipeline();
         
         CreateCommandPool();
+        
+        CreateColorBufferImage();
         CreateDepthBufferImage();
+        
         CreateFrameBuffers();
         
         CreateTextureSampler();

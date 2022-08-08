@@ -176,7 +176,11 @@ public static class SystemInformation
     {
         return $"Operating System Version: { operatingSystemVersion }\n" +
                $"Kernel Version: { kernelVersion }\n" +
+               $"CPU Model: { cpuModelName }\n" +
+               $"CPU Manufacturer: { cpuManufacturer }\n" +
+               $"Total RAM: { ramMemorySize }\n" +
                $"Device Name: { deviceName }\n" +
-               $"Device Model: { deviceModelName }";
+               $"Device Model: { deviceModelName }\n" +
+               $"Device Configuration: { deviceConfiguration }";
     }
 }

@@ -16,14 +16,14 @@ public unsafe partial class VulkanRenderer
         {
             // Define the attachments for the framebuffer
             #pragma warning disable CA2014
-            VkImageView* attachments = stackalloc VkImageView[] { swapchainImageViews[i], depthImageView };
+            VkImageView* attachments = stackalloc VkImageView[] { this.colorImageView, this.depthImageView, this.swapchainImageViews[i] };
 
             // Set up the framebuffer creation info
             VkFramebufferCreateInfo framebufferCreateInfo = new VkFramebufferCreateInfo()
             {
                 sType = VkStructureType.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                 renderPass = this.renderPass,
-                attachmentCount = 2,
+                attachmentCount = 3,
                 pAttachments = attachments,
                 width = swapchainExtent.width,
                 height = swapchainExtent.height,

@@ -13,7 +13,7 @@ public unsafe partial class VulkanRenderer
     {
         // Create the depth buffer image
         VulkanUtilities.CreateImage(
-            this.swapchainExtent.width, this.swapchainExtent.height, 1,
+            this.swapchainExtent.width, this.swapchainExtent.height, 1, this.msaaSampleCount,
             depthImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL, 
             VkImageUsageFlags.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

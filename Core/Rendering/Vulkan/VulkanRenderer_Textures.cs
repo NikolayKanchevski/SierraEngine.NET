@@ -93,7 +93,7 @@ public unsafe partial class VulkanRenderer
 
         // Create the vulkan image
         VulkanUtilities.CreateImage(
-            imageWidth, imageHeight, textureMipLevels.Last(),
+            imageWidth, imageHeight, textureMipLevels.Last(), VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
             textureImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
             VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

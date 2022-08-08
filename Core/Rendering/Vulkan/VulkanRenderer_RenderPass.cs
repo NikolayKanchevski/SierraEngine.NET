@@ -12,13 +12,13 @@ public unsafe partial class VulkanRenderer
         VkAttachmentDescription colorAttachment = new VkAttachmentDescription()
         {
             format = swapchainImageFormat,
-            samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            samples = this.msaaSampleCount,
             loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
             storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_STORE,
             stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
             initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, 
-            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
         };
 
         // Set up the color attachment reference
@@ -39,7 +39,7 @@ public unsafe partial class VulkanRenderer
         VkAttachmentDescription depthAttachment = new VkAttachmentDescription()
         {
             format = depthImageFormat,
-            samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            samples = this.msaaSampleCount,
             loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_CLEAR,
             storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
             stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -55,13 +55,33 @@ public unsafe partial class VulkanRenderer
             layout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
         };
 
+        VkAttachmentDescription colorAttachmentResolve = new VkAttachmentDescription()
+        {
+            format = this.swapchainImageFormat,
+            samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_STORE,
+            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
+            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+        };
+
+        VkAttachmentReference colorAttachmentResolveReference = new VkAttachmentReference()
+        {
+            attachment = 2,
+            layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        };
+
+        VkAttachmentReference* resolveAttachmentReferencesPtr = stackalloc VkAttachmentReference[] { colorAttachmentResolveReference };
+        
         // Set up the subpass properties
         VkSubpassDescription subpassDescription = new VkSubpassDescription()
         {
             pipelineBindPoint = VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS,
             colorAttachmentCount = 1,
             pColorAttachments = &colorAttachmentReference,
-            pDepthStencilAttachment = &depthAttachmentReference
+            pDepthStencilAttachment = &depthAttachmentReference,
+            pResolveAttachments = resolveAttachmentReferencesPtr
         };
         
         // Create a subpass dependency
@@ -75,13 +95,13 @@ public unsafe partial class VulkanRenderer
             dstAccessMask = VkAccessFlags.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VkAccessFlags.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
         };
 
-        VkAttachmentDescription* attachmentReferencesPtr = stackalloc VkAttachmentDescription[] { colorAttachment, depthAttachment };
+        VkAttachmentDescription* attachmentReferencesPtr = stackalloc VkAttachmentDescription[] { colorAttachment, depthAttachment, colorAttachmentResolve };
         
         // Set up the render pass creation info 
         VkRenderPassCreateInfo renderPassCreateInfo = new VkRenderPassCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-            attachmentCount = 2,
+            attachmentCount = 3,
             pAttachments = attachmentReferencesPtr,
             subpassCount = 1,
             pSubpasses = &subpassDescription,

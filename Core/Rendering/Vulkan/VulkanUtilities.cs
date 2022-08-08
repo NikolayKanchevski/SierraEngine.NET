@@ -91,7 +91,7 @@ public static unsafe class VulkanUtilities
         EndSingleTimeCommands(commandBuffer);
     }
 
-    public static void CreateImage(in uint width, in uint height, in uint mipLevels, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
+    public static void CreateImage(in uint width, in uint height, in uint mipLevels, VkSampleCountFlags sampleCountFlags, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
     {
         VkImageCreateInfo imageCreateInfo = new VkImageCreateInfo()
         {
@@ -109,7 +109,7 @@ public static unsafe class VulkanUtilities
             tiling = imageTiling,
             initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
             usage = usageFlags,
-            samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            samples = sampleCountFlags,
             sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE
         };
         

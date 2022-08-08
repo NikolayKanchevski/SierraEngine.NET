@@ -105,7 +105,7 @@ public unsafe partial class VulkanRenderer
             lineWidth = 1.0f,
             cullMode = VkCullModeFlags.VK_CULL_MODE_FRONT_BIT,
             frontFace = VkFrontFace.VK_FRONT_FACE_COUNTER_CLOCKWISE,
-            depthBiasEnable = VkBool32.False
+            depthBiasEnable = VkBool32.False,
         };
 
         // Determine the polygon mode depending on "renderingMode"
@@ -123,7 +123,7 @@ public unsafe partial class VulkanRenderer
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
             sampleShadingEnable = VkBool32.False,
-            rasterizationSamples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            rasterizationSamples = this.msaaSampleCount,
             minSampleShading = 1.0f,
             pSampleMask = null,
             alphaToCoverageEnable = VkBool32.False,
@@ -160,7 +160,7 @@ public unsafe partial class VulkanRenderer
             VkDynamicState.VK_DYNAMIC_STATE_SCISSOR
         };
 
-        // Set up rasterization
+        // Set up dynamic states
         VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = new VkPipelineDynamicStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
