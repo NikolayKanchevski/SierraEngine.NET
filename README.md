@@ -3,13 +3,12 @@
 <br>
 
 <p>
-A little <strong>open-source</strong> game engine, which features some of the most common game programming techniques built-in. 
+A little <strong>open-source</strong> game engine, written in C# (.NET 6.0), which features some of the most common game programming techniques built-in. 
 It is based on the <b><a href="https://www.vulkan.org/">Vulkan</a></b> rendering API, which provides support for 
 <b>Windows 7-11</b>, <b>macOS</b>, <b>Linux</b>, <b>Android</b>, <b>iOS</b>, <b>tvOS</b> and other operating systems,
 though the engine has only been tested on <b>Windows 11</b> and <b>macOS</b>. All of its features are listed below.
 </p>
 
-<br>
 <br>
 
 ## 🧭 Object Transformations
@@ -39,7 +38,6 @@ This is the result:
 Hold on a second! Is that a custom 3D model?
 
 <br>
-<br>
 
 
 ## 🗿 Model Loader
@@ -51,7 +49,6 @@ That's right! How can a game engine be an engine and... not allow importing cust
     MeshObject model = new MeshObject.LoadFromModel("Models/Train.obj"); // <-- Example
 ```
 
-<br>
 <br>
 
 ## 🖼️ Texturing System
@@ -65,13 +62,11 @@ Loading models is cool, but what is the point of it if they are not going to be 
 ![ScreenShot](Screenshots/TextureSystem.png)
 
 <br>
-<br>
 
 ## ☀️ Directional Lighting 
 
 What is that? The tank's lower plate is very dark... strange, right? Nope, not at all.  There is <a href="https://en.wikipedia.org/wiki/Shading#Directional_lighting">Directional Lighting</a> implemented, which is calculated based on the normals of each mesh's vertices. Here is a comparison between <b>no MSAA</b> and <b>MSAAx8</b>:
 
-<br>
 <br>
 
 ## 👾 MSAA Anti-Aliasing
@@ -81,7 +76,6 @@ Because I doubt anyone likes pixelated images, there is a <a href="https://en.wi
 ![ScreenShot](Screenshots/NoMsaa.jpg)
 ![ScreenShot](Screenshots/8xMsaa.jpg)
 
-<br>
 <br>
 
 ## 🗺️ Mip Mapping
@@ -93,7 +87,6 @@ There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, wh
 
 <p style="opacity: 0.5">Note: that the second picture is zoomed in a lot to show the effect. In reality you cannot even see the quality being lowered due to how far the object is from you.</p>
 
-<br>
 <br>
 
 ## 👍 Ease of Use
@@ -130,7 +123,6 @@ using SierraEngine.Engine;
 ```
 
 <br>
-<br>
 
 ## 🆕 What next?
 
@@ -147,7 +139,6 @@ There are many other features planned. Some of them are:
     </ul>
 </p>
 
-<br>
 <br>
 
 ##  🤓️  About
