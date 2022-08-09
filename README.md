@@ -25,7 +25,7 @@ someObject.transform.scale = new Vector3(10.0f, 0.0f, -5.0f);    // Changes the 
 You could, for example, put a tank in your world and make its turret rotate like so:
 
 ```c#
- float upTimeCos = (float) Math.Cos(Time.upTime); // The cos of the time since the program was started
+float upTimeCos = (float) Math.Cos(Time.upTime);    // The cosine of the time since the program was started
 turretObject.transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
 gunObject.transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
 ```
@@ -81,7 +81,7 @@ Because I doubt anyone likes pixelated images, there is a <a href="https://en.wi
 
 ## 🗺️ Mip Mapping
 
-There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, which, not only gets rid of <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré patterns</a>, but also greatly increases the frame rate. What it does is lower the quality of textures when the camera is far. It is barely noticable to the user, but saves a lot of resources on textures. Here is an example:
+There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, which, not only gets rid of <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré patterns</a> in textures, but also greatly increases the frame rate. What it does is lower the quality of textures when the camera is far. It is barely noticable to the user, but saves a lot of resources on textures. Here is an example:
 
 ![ScreenShot](Screenshots/MipMappingClose.jpg)
 ![ScreenShot](Screenshots/MipMappingFar.jpg)
