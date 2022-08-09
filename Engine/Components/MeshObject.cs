@@ -14,7 +14,7 @@ public class MeshObject
     public readonly string modelLocation;
 
     private readonly string[] materialFileNames = null!;
-    private readonly EmbeddedTexture[] embeddedTextures = null!;
+    // private readonly EmbeddedTexture[] embeddedTextures = null!;
     
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
     {
@@ -46,7 +46,7 @@ public class MeshObject
                 vertices[j].position = currentAssimpMesh.Vertices[j].ToVector3();
                 vertices[j].position.Y *= -1;
                 
-                vertices[j].normal = currentAssimpMesh.Normals[j].ToVector3();
+                vertices[j].normal = currentAssimpMesh.HasNormals ? currentAssimpMesh.Normals[j].ToVector3() : Vector3.Zero;
                 vertices[j].normal.Y *= -1;
                 
                 vertices[j].textureCoordinates = currentAssimpMesh.HasTextureCoords(0) ? currentAssimpMesh.TextureCoordinateChannels[0][j].ToVector2() : Vector2.Zero;

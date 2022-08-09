@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using Evergine.Bindings.Vulkan;
+using Glfw;
 using SierraEngine.Engine.Components;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
@@ -179,9 +182,8 @@ public unsafe partial class VulkanRenderer
         // Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("Textures/texture2.jpg"));
 
         MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
-        // Mesh skyBox = Mesh.CreateSphere(50, 100, 100, CreateTexture("Textures/sky.jpg"), true);
-        // skyBox.transform.rotation.X += 90;
         // MeshObject model1 = MeshObject.LoadFromModel("Models/Kranvagn/Kranvagn_BB.obj", this);
+        // MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.obj", this);
         // MeshObject model1 = MeshObject.LoadFromModel("Models/Lamborghini/lamborghini-aventador-pbribl.obj", this);
         // MeshObject model1 = MeshObject.LoadFromModel("Models/Lambo/Lamborghini_Aventador.fbx", this);
     }

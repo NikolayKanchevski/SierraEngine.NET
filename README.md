@@ -125,6 +125,14 @@ using SierraEngine.Engine;
 
 <br>
 
+## 🏃 Performance
+
+Graphics applications are usually very heavy and run slowly. Thankfully, this is not the case with Sierra Engine.
+Despite all of its features, it still manages to do <b>2,000</b> frames per second (FPS) on a <b>Ryzen 5 2600X</b>, 
+<b>NVIDIA GeForce GTX 1070 TI</b>.
+
+<br>
+
 ## 🆕 What next?
 
 There are many other features planned. Some of them are:
@@ -163,3 +171,9 @@ There are many other features planned. Some of them are:
         <li><a href="https://trello.com/en">Trello</a> - For pretending to have an organized list of things to implement next.</li>
     </ul>
 </p>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<p align="center" id="LinesCounter">Total lines of code: 999</p>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
