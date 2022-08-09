@@ -20,6 +20,7 @@
         <Folder Include="Core\Rendering\Models" />
         <Folder Include="Core\Rendering\Shading\Compilers" />
         <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />
+        <Folder Include="Screenshots" />
     </ItemGroup>
 
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">

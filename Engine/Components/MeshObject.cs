@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Assimp;
 using SierraEngine.Core.Rendering.Vulkan;
+using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Engine.Components;
 
@@ -12,7 +13,7 @@ public class MeshObject
     public readonly uint verticesCount;
     public readonly string modelLocation;
 
-    private readonly string[] materialFilePaths = null!;
+    private readonly string[] materialFileNames = null!;
     private readonly EmbeddedTexture[] embeddedTextures = null!;
     
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
@@ -54,13 +55,16 @@ public class MeshObject
         
             if (model.HasMaterials)
             {
-                materialFilePaths = new string[model.MaterialCount];
+                materialFileNames = new string[model.MaterialCount];
         
                 for (int j = 0; j < model.MaterialCount; j++)
                 {
                     if (model.Materials[j].GetMaterialTexture(TextureType.Diffuse, 0, out TextureSlot textureSlot))
                     {
-                        materialFilePaths[j] = textureSlot.FilePath;
+                        // materialFileNames[j] = textureSlot.FilePath[..textureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal)];
+                        // Console.WriteLine(materialFileNames[j]);
+                        int materialPathIdx = textureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal) + 1;
+                        materialFileNames[j] = textureSlot.FilePath[materialPathIdx..];
                     }
                 }
             }
@@ -69,17 +73,11 @@ public class MeshObject
                 VulkanDebugger.ThrowError($"No textures/materials found in {fileName}");
             }
             
-            string currentTexturePath = materialFilePaths[currentAssimpMesh.MaterialIndex];
+            string currentTexturePath = Files.FindInSubdirectories(fileName[..idx] + "/", materialFileNames[currentAssimpMesh.MaterialIndex]);
 
-            if (fileName.EndsWith(".fbx"))
-            {
-                int texturePathIdx = currentTexturePath.IndexOf("/", StringComparison.Ordinal);
-                currentTexturePath = "textures" + currentTexturePath[texturePathIdx..];
-            }
-            
             if (currentTexturePath == null || currentTexturePath.Trim() == "") continue;
         
-            this.meshes[i] = new Mesh(vertices, indices, vulkanRenderer.CreateTexture(fileName[..idx] + "/" + currentTexturePath));
+            this.meshes[i] = new Mesh(vertices, indices, vulkanRenderer.CreateTexture(currentTexturePath));
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }
         

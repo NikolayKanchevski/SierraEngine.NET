@@ -29,4 +29,5 @@ void main() {
         float lightIntensity = AMBIENT + max(dot(normalWorldSpace, DIRECTION_TO_LIGHT), 0);
         
         outColor = lightIntensity * texture(textureSampler, fromVert_TextureCoordinates);
+//        outColor = texture(textureSampler, fromVert_TextureCoordinates);
 }

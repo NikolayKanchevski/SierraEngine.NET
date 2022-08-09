@@ -22,6 +22,88 @@ public unsafe class Mesh : Component
     private VkBuffer indexBuffer;
     private VkDeviceMemory indexBufferMemory;
 
+    public static Mesh CreateSphere(in float radius, in int sectorCount, in int stackCount, in int newTextureID, bool renderBackFace = false)
+    {
+       List<Vertex> vertices = new ();
+
+        float x, y, z, xy;                              // vertex position
+        float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
+        float s, t;                                     // vertex texCoord
+
+        float sectorStep = 2 * 3.141592653589793f / sectorCount;
+        float stackStep = 3.141592653589793f / stackCount;
+        float sectorAngle, stackAngle;
+
+        for (int i = 0; i <= stackCount; ++i)
+        {
+            stackAngle = 3.141592653589793f / 2 - i * stackStep; // starting from pi/2 to -pi/2
+            xy = radius * (float)Math.Cos(stackAngle); // r * cos(u)
+            z = radius * (float)Math.Sin(stackAngle); // r * sin(u)
+
+            // add (sectorCount+1) vertexPositions per stack
+            // the first and last vertexPositions have same position and normal, but different tex coords
+            for (int j = 0; j <= sectorCount; ++j)
+            {
+                sectorAngle = j * sectorStep; // starting from 0 to 2pi
+
+                // vertex position (x, y, z)
+                x = xy * (float)Math.Cos(sectorAngle); // r * cos(u) * cos(v)
+                y = xy * (float)Math.Sin(sectorAngle); // r * cos(u) * sin(v)
+                if (!renderBackFace) x *= -1;
+                var position = new Vector3(x, y, z);
+
+                // normalized vertex normal (nx, ny, nz)
+                nx = x * lengthInv;
+                ny = y * lengthInv;
+                nz = z * lengthInv;
+                var normal = new Vector3(nx, ny, nz);
+
+                // vertex tex coord (s, t) range between [0, 1]
+                s = (float)j / sectorCount;
+                t = (float)i / stackCount;
+                var textureCoordinate = new Vector2(s, t);
+                
+                vertices.Add(new Vertex() with
+                {
+                    position = position,
+                    normal = normal,
+                    textureCoordinates = textureCoordinate
+                });
+            }
+        }
+
+        List<UInt32> indices = new List<UInt32>();
+        
+        int k1, k2;
+        for (int i = 0; i < stackCount; ++i)
+        {
+            k1 = i * (sectorCount + 1);     // beginning of current stack
+            k2 = k1 + sectorCount + 1;      // beginning of next stack
+
+            for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+            {
+                // 2 triangles per sector excluding first and last stacks
+                // k1 => k2 => k1+1
+                if (i != 0)
+                {
+                    indices.Add((UInt32) k1);
+                    indices.Add((UInt32) k2);
+                    indices.Add((UInt32) k1 + 1);
+                }
+
+                // k1+1 => k2 => k2+1
+                if (i != (stackCount-1))
+                {
+                    indices.Add((UInt32) k1 + 1);
+                    indices.Add((UInt32) k2);
+                    indices.Add((UInt32) k2 + 1);
+                }
+            }
+        }
+
+        return new Mesh(vertices.ToArray(), indices.ToArray(), newTextureID);
+    }
+
     public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newTextureID)
     {
         // Retrieve the public values

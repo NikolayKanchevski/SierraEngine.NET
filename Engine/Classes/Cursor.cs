@@ -57,6 +57,7 @@ public static class Cursor
     
     public static void CursorPositionCallback(IntPtr glfwWindow, double xPosition, double yPosition)
     {
+        
         yPosition = Math.Abs(yPosition - VulkanCore.window.height);
         
         cursorPosition = new Vector2((float) xPosition, (float) yPosition);

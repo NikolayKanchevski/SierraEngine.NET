@@ -5,8 +5,8 @@ namespace SierraEngine.Engine.Classes;
 public static class Input
 {
     private static readonly int[] keyboardKeys = new int[348];
-    private static int[] mouseButtons = new int[7];
-    
+    // private static int[] mouseButtons = new int[7];
+
     public static bool GetKeyPressed(Key keyCode) {
         return keyboardKeys[(int) keyCode] == (int) InputAction.Press + 1;
     }
