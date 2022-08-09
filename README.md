@@ -65,13 +65,13 @@ Loading models is cool, but what is the point of it if they are not going to be 
 
 ## ☀️ Directional Lighting 
 
-What is that? The tank's lower plate is very dark... strange, right? Nope, not at all.  There is <a href="https://en.wikipedia.org/wiki/Shading#Directional_lighting">Directional Lighting</a> implemented, which is calculated based on the normals of each mesh's vertices. Here is a comparison between <b>no MSAA</b> and <b>MSAAx8</b>:
+What is that? The tank's lower plate is very dark... strange, right? Nope, not at all.  There is <a href="https://en.wikipedia.org/wiki/Shading#Directional_lighting">Directional Lighting</a> implemented, which is calculated based on the normals of each mesh's vertices.
 
 <br>
 
 ## 👾 MSAA Anti-Aliasing
 
-Because I doubt anyone likes pixelated images, there is a <a href="https://en.wikipedia.org/wiki/Multisample_anti-aliasing#:~:text=Multisample%20anti%2Daliasing%20(MSAA),computer%20graphics%20to%20remove%20jaggies.">MSAA</a> (Multisample Anti-Aliasing) system in place to get rid of all those pesky pixelelated fragments.
+Because I doubt anyone likes pixelated images, there is a <a href="https://en.wikipedia.org/wiki/Multisample_anti-aliasing#:~:text=Multisample%20anti%2Daliasing%20(MSAA),computer%20graphics%20to%20remove%20jaggies.">MSAA</a> (Multisample Anti-Aliasing) system in place to get rid of all those pesky pixelelated fragments. Here is a comparison between <b>no MSAA</b> and <b>MSAAx8</b>:
 
 ![ScreenShot](Screenshots/NoMsaa.jpg)
 ![ScreenShot](Screenshots/8xMsaa.jpg)
@@ -80,7 +80,7 @@ Because I doubt anyone likes pixelated images, there is a <a href="https://en.wi
 
 ## 🗺️ Mip Mapping
 
-There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, which, not only does it get rid of <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré patterns</a>, but it also greatly increases the frame rate. What it does is lower the quality of textures when the camera is far. It is barely noticable to the user, but saves a lot of resources on textures. Here is an example:
+There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, which, not only does gets rid of <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré patterns</a>, but it also greatly increases the frame rate. What it does is lower the quality of textures when the camera is far. It is barely noticable to the user, but saves a lot of resources on textures. Here is an example:
 
 ![ScreenShot](Screenshots/MipMappingClose.jpg)
 ![ScreenShot](Screenshots/MipMappingFar.jpg)
