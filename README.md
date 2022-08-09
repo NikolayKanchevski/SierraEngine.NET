@@ -9,6 +9,34 @@ It is based on the <b><a href="https://www.vulkan.org/">Vulkan</a></b> rendering
 though the engine has only been tested on <b>Windows 11</b> and <b>macOS</b>. All of its features are listed below.
 </p>
 
+<br>
+<br>
+
+## 🧭 Object Transformations
+
+Every object has a field called <b>"transform"</b> and, you guessed it, it is capable of changing the <b>position</b>, <b>rotation</b>, and <b>scale</b> of each object in the 3D space. Here is an example on how to do just that:
+
+```c#
+someObject.transform.position = new Vector3(10.0f, 0.0f, -5.0f); // Changes the position in the world
+someObject.transform.rotation = new Vector3(0.0f, 0.0f, 90.0f);  // Changes the rotation of the object
+someObject.transform.scale = new Vector3(10.0f, 0.0f, -5.0f);    // Changes the scale of the object
+```
+<br>
+
+You could, for example, put a tank in your world and make its turret rotate like so:
+
+```c#
+turretObject.transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+gunObject.transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+```
+<br>
+
+This is the result:
+![Screenshot](Screenshots/TransformTank.gif)
+
+<br>
+<br>
+
 
 ## 🗿 Model Loader
 
@@ -54,7 +82,69 @@ Because I doubt anyone likes pixelated images, there is a <a href="https://en.wi
 
 ## 🗺️ Mip Mapping
 
-There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, which, not only does it get rid of <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré patterns</a>, but it also greatly increases the frame rate.
+There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, which, not only does it get rid of <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré patterns</a>, but it also greatly increases the frame rate. What it does is lower the quality of textures when the camera is far. It is barely noticable to the user, but saves a lot of resources on textures. Here is an example:
+
+![ScreenShot](Screenshots/MipMappingClose.jpg)
+![ScreenShot](Screenshots/MipMappingFar.jpg)
+
+<p style="opacity: 0.5">Note: that the second picture is zoomed in a lot to show the effect. In reality you cannot even see the quality being lowered due to how far the object is from you.</p>
+
+<br>
+<br>
+
+## 👍 Ease of Use
+
+The program is packed with numerous useful classes. Let's say you wanted to maximize the window. This is how you would do it:
+
+```c#
+window.Maximize();
+```
+<br>
+
+If you want to get the current position of the cursor over the window:
+```c#
+Vector2 cursorPosition = Cursor.cursorPosition;
+```
+<br>
+
+And if you want to check whether a key on the keyboard is pressed:
+```c#
+bool spacePressed = Input.GetKeyPressed(Key.Space);
+```
+<br>
+
+Wait, you want to detect the GPU model of the machine? Easy:
+```c#
+string gpuModel = SystemInformation.gpuModel;
+```
+<br>
+
+There are many other similar utility classes that make the gathering of data within your game/program/app incredibly easy. All of this - in a single namespace:
+
+```c#
+using SierraEngine.Engine;
+```
+
+<br>
+<br>
+
+## 🆕 What next?
+
+There are many other features planned. Some of them are:
+
+<p>
+    <ul>
+        <li><a href="https://en.wikipedia.org/wiki/User_interface">UI</a>
+        <li><a href="https://en.wikipedia.org/wiki/Video_post-processing">Post-Processing</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)">Multi-Threading 😥</a></li>
+        <li>Performance Monitoring</li>
+        <li>Camera System</li>
+    </ul>
+</p>
+
+<br>
+<br>
 
 ##  🤓️  About
 
@@ -77,60 +167,3 @@ There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, wh
         <li><a href="https://trello.com/en">Trello</a> - For pretending to have an organized list of things to implement next.</li>
     </ul>
 </p>
-
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-
-```c#
-using Ultimate.Algorithms.AStar;
-```
-
-<br>
-<p>Add some variables to make the tweaking of the behavior of the pathfinding easy. Here's an example:</p>
-
-```c#
-public int startNodeIndex = 0; // The index of the start node in the grid.nodes list
-public int endNodeIndex = 1; // The index of the end node in the grid.nodes list
-public float nodeUnwalkablePercentange = 20f;     // Chance of a node being unwalkable
-public Vector2Int size; // Size of the grid - X means width and Y means height
-```
-
-<br>
-
-
-
-
-<h1 align="center">Grid Pathfinding 2D</h1>
-<h6 align="center">By: <a href="https://nikichatv.com/Website/N-Studios.html">N-Studios</a></h6>
-
-<br>
-<p align="">A <strong>free-to-use</strong> open source project. Built using the <strong>A* pathfinding algorithm</strong>, on C#, it makes it incredibly easy to set up grid-based pathfinding in a Unity 2D workspace. You can have a look at or build on top of the scripts inside the /Scripts folder. A setup tutorial is listed below and the whole Examples.cs is described with comments on almost every line. Feel free to use in <strong>any kind of projects</strong>. Credit is not required but is appreciated.</p>
-
-<br>
-
-##  ⚙️  Setup
-
-<p>At the very top of your code make sure to reference the AStar namespace by doing:</p>
-
-```c#
-using Ultimate.Algorithms.AStar;
-```
-
-<br>
-<p>Add some variables to make the tweaking of the behavior of the pathfinding easy. Here's an example:</p>
-
-```c#
-public int startNodeIndex = 0; // The index of the start node in the grid.nodes list
-public int endNodeIndex = 1; // The index of the end node in the grid.nodes list
-public float nodeUnwalkablePercentange = 20f;     // Chance of a node being unwalkable
-public Vector2Int size; // Size of the grid - X means width and Y means height
-```
-
-<br>
