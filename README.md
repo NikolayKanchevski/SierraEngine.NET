@@ -35,6 +35,10 @@ This is the result:
 ![Screenshot](Screenshots/TransformTank.gif)
 
 <br>
+
+Hold on a second! Is that a custom 3D model?
+
+<br>
 <br>
 
 
