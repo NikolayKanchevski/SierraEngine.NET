@@ -170,6 +170,8 @@ public unsafe partial class VulkanRenderer
         CreateCommandBuffers();
         CreateUniformBuffers();
         
+        CreateQueryPool();
+        
         CreateDescriptorPool();
         CreateUniformDescriptorSets();
         CreateImGuiContext();
@@ -198,6 +200,8 @@ public unsafe partial class VulkanRenderer
         DestroySwapchainObjects();
         
         VulkanNative.vkDestroySampler(this.logicalDevice, this.textureSampler, null);
+        
+        VulkanNative.vkDestroyQueryPool(this.logicalDevice, this.drawTimeQueryPool, null);
 
         VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.samplerDescriptorPool, null);
         VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.samplerDescriptorSetLayout, null);

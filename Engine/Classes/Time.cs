@@ -4,7 +4,7 @@ namespace SierraEngine.Engine.Classes;
 
 public static class Time
 {
-    public static uint FPS { get; private set; }
+    public static int FPS { get; private set; }
     public static float deltaTime { get; private set; }
     public static double doubleDeltaTime { get; private set; }
     public static float upTime { get; private set; }
@@ -20,7 +20,7 @@ public static class Time
         
         lastFrameTime = currentFrameTime;
 
-        FPS = (uint) Math.Round(1.0 / doubleDeltaTime);
+        FPS = (int) Math.Round(1.0 / doubleDeltaTime);
         upTime = (float) currentFrameTime;
     }
 }

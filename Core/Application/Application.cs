@@ -57,7 +57,7 @@ public class Application
 
         UpdateObjects();
 
-        window.SetTitle($"FPS: { Time.FPS }");
+        window.SetTitle($"Sierra Engine | FPS: { Time.FPS.ToString().PadLeft(4, '0') } | GPU Draw Time: { VulkanRendererInfo.drawTime.ToString("n9") }ms");
     }
     
     private void HandleCameraMovement()

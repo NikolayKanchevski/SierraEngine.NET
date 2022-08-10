@@ -9,6 +9,7 @@ public unsafe partial class VulkanRenderer
     private VkPhysicalDevice physicalDevice;
     private VkPhysicalDeviceProperties physicalDeviceProperties;
     private VkPhysicalDeviceFeatures physicalDeviceFeatures;
+    private QueueFamilyIndices queueFamilyIndices;
     
     private readonly List<string> requiredDeviceExtensions = new List<string>()
     {
@@ -54,6 +55,9 @@ public unsafe partial class VulkanRenderer
                 VkPhysicalDeviceFeatures deviceFeatures;
                 VulkanNative.vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
                 this.physicalDeviceFeatures = deviceFeatures;
+
+                // Get queue family indices
+                this.queueFamilyIndices = FindQueueFamilies(currentPhysicalDevice);
                 
                 // Detect system properties now that we are sure the system is capable of running the Vulkan program
                 SystemInformation.PopulateSystemInfo();

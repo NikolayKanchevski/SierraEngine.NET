@@ -1,5 +1,6 @@
 using Evergine.Bindings.Vulkan;
 using Glfw;
+using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -58,7 +59,7 @@ public unsafe partial class VulkanRenderer
             }
         }
     }
-
+    
     private void Draw()
     {
         

@@ -11,9 +11,6 @@ public unsafe partial class VulkanRenderer
     
     private void CreateLogicalDevice()
     {
-        // Get queue indices for the physical device
-        QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(in this.physicalDevice);
-
         // Filter out repeating indices using a HashSet
         HashSet<uint> uniqueQueueFamilies = new HashSet<uint>(2) { queueFamilyIndices.graphicsFamily!.Value, queueFamilyIndices.presentFamily!.Value };
         
@@ -58,13 +55,20 @@ public unsafe partial class VulkanRenderer
             deviceExtensionsArray[i] = Marshal.StringToHGlobalAnsi(requiredDeviceExtensions[i]);
         }
         
+        VkPhysicalDeviceHostQueryResetFeatures resetFeatures = new VkPhysicalDeviceHostQueryResetFeatures()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES,
+            hostQueryReset = VkBool32.True
+        };
+        
         // Fill in logical device creation info
         VkDeviceCreateInfo logicalDeviceCreateInfo = new VkDeviceCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             pEnabledFeatures = &requiredPhysicalDeviceFeatures,
             enabledExtensionCount = (uint) requiredDeviceExtensions.Count,
-            ppEnabledExtensionNames = (byte**) deviceExtensionsArray
+            ppEnabledExtensionNames = (byte**) deviceExtensionsArray,
+            pNext = &resetFeatures
         };
         
         // Reference queues create infos to the actual device create info
