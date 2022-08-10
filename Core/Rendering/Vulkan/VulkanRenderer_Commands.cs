@@ -101,6 +101,9 @@ public unsafe partial class VulkanRenderer
         renderPassBeginInfo.clearValueCount = 2;
         renderPassBeginInfo.pClearValues = clearValues;
         
+        // Queries must be reset after each individual use.
+        VulkanNative.vkCmdResetQueryPool(givenCommandBuffer, this.drawTimeQueryPool,  imageIndex * 2, 2);
+        
         // Start GPU timer
         VulkanNative.vkCmdWriteTimestamp(givenCommandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, drawTimeQueryPool, imageIndex * 2);
 
@@ -195,10 +198,7 @@ public unsafe partial class VulkanRenderer
         {
             VulkanDebugger.ThrowError("Failed to receive query results");
         }
-
-        // Queries must be reset after each individual use.
-        VulkanNative.vkResetQueryPool(this.logicalDevice, drawTimeQueryPool, swapchainIndex * 2, 2);
-
+        
         // Calculate final GPU draw time
         VulkanRendererInfo.drawTime = AverageDrawTime(this.drawTimeQueryResults);
     }

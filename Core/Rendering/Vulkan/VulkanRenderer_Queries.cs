@@ -29,8 +29,5 @@ public unsafe partial class VulkanRenderer
 
         // Get the timestamp period of the physical device
         timestampPeriod = physicalDeviceProperties.limits.timestampPeriod;
-        
-        // Reset the query pool so it is ready to be used
-        VulkanNative.vkResetQueryPool(this.logicalDevice, drawTimeQueryPool, 0, queryPoolCreateInfo.queryCount);
     }
 }
