@@ -52,15 +52,14 @@ public unsafe partial class VulkanRenderer
         };
 
         // Get the queue indices
-        QueueFamilyIndices familyIndices = FindQueueFamilies(this.physicalDevice);
-        uint* queueFamilyIndices = stackalloc uint[] { familyIndices.graphicsFamily!.Value, familyIndices.presentFamily!.Value };
+        uint* queueFamilyIndicesPtr = stackalloc uint[] { queueFamilyIndices.graphicsFamily!.Value, queueFamilyIndices.presentFamily!.Value };
 
         // Check whether the graphics family is the same as the present one and based on that configure the creation info
-        if (familyIndices.graphicsFamily != familyIndices.presentFamily)
+        if (queueFamilyIndices.graphicsFamily != queueFamilyIndices.presentFamily)
         {
             swapchainCreateInfo.imageSharingMode = VkSharingMode.VK_SHARING_MODE_CONCURRENT;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
-            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+            swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndicesPtr;
         }
         else
         {
