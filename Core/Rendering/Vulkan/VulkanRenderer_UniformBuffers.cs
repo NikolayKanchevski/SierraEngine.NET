@@ -20,7 +20,7 @@ public unsafe partial class VulkanRenderer
         {
             // Create a uniform buffer
             VulkanUtilities.CreateBuffer(
-                vpSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+                vertexUniformDataSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
                 VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 out uniformBuffers[i], out uniformBuffersMemory[i]
             );
@@ -33,12 +33,12 @@ public unsafe partial class VulkanRenderer
         void *data;
         
         // Map memory to current uniform buffer's memory to the empty pointer
-        VulkanNative.vkMapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex], 0, vpSize, 0, &data);
+        VulkanNative.vkMapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex], 0, vertexUniformDataSize, 0, &data);
 
         // Copy memory data
-        fixed (VP* mvpPtr = &vp)
+        fixed (VertexUniformData* mvpPtr = &vertexUniformData)
         {
-            Buffer.MemoryCopy(mvpPtr, data, vpSize, vpSize);
+            Buffer.MemoryCopy(mvpPtr, data, vertexUniformDataSize, vertexUniformDataSize);
         }
         
         // Unmap the memory for current uniform buffer's memory

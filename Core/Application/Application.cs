@@ -119,9 +119,9 @@ public class Application
         newCameraFrontDirection.Z = (float) (Math.Sin(Radians(yaw)) * Math.Cos(Radians(pitch)));
         camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
         
-        window.vulkanRenderer!.vp.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        window.vulkanRenderer!.vp.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
-        window.vulkanRenderer!.vp.projection.M11 *= -1;
+        window.vulkanRenderer!.vertexUniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        window.vulkanRenderer!.vertexUniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.vertexUniformData.projection.M11 *= -1;
     }
 
     private void UpdateObjects()

@@ -10,12 +10,12 @@ public unsafe partial class VulkanRenderer
 {
     #region VARIABLES
 
-        public VP vp;
+        public VertexUniformData vertexUniformData;
+        private readonly ulong vertexUniformDataSize = (ulong) Marshal.SizeOf(typeof(VertexUniformData));
 
-        private readonly ulong vpSize = (ulong) Marshal.SizeOf(typeof(VP));
-
-        // public readonly List<Mesh> meshes = new List<Mesh>();
-
+        public FragmentUniformData fragmentUniformData;
+        private readonly ulong fragmentUniformDataSize = (ulong)Marshal.SizeOf(typeof(FragmentUniformData));
+        
         private readonly Window window;
         
         private readonly Vertex[] vertices = new Vertex[]
@@ -23,58 +23,6 @@ public unsafe partial class VulkanRenderer
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, -1.0f),
-                // color = new Vector3(1.0f, 0.0f, 0.0f),
-                textureCoordinates = new Vector2(0.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, -1.0f, -1.0f),
-                // color = new Vector3(1.0f, 1.0f, 0.0f),
-                textureCoordinates = new Vector2(1.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, 1.0f, -1.0f),
-                // color = new Vector3(1.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(1.0f, 1.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, 1.0f, -1.0f),
-                // color = new Vector3(0.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(0.0f, 1.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, -1.0f, 1.0f),
-                // color = new Vector3(1.0f, 0.0f, 0.0f),
-                textureCoordinates = new Vector2(0.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, -1.0f, 1.0f),
-                // color = new Vector3(1.0f, 1.0f, 0.0f),
-                textureCoordinates = new Vector2(1.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, 1.0f, 1.0f),
-                // color = new Vector3(1.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(1.0f, 1.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, 1.0f, 1.0f),
-                // color = new Vector3(0.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(0.0f, 1.0f)
-            }
-        };
-
-        private  Vertex[] vertices2 = new Vertex[]
-        {
-            new Vertex()
-            {
-                position = new Vector3(-5.0f, -1.0f, -1.0f),
                 // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
@@ -247,9 +195,14 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroyInstance(this.instance, null);
     }
 
-    public struct VP
+    public struct VertexUniformData
     {
         public Matrix4x4 view;
         public Matrix4x4 projection;
+    }
+
+    public struct FragmentUniformData
+    {
+        public Vector3 directionToLight;
     }
 }

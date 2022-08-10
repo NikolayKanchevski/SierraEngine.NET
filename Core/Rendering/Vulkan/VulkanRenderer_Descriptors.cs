@@ -125,7 +125,7 @@ public unsafe partial class VulkanRenderer
         
         return;
 
-        #region ImGui Pool Sizes
+        #region ImGui Pool
         VkDescriptorPoolSize* imGuiPoolSizes = stackalloc VkDescriptorPoolSize[11];
         imGuiPoolSizes[0].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_SAMPLER;
         imGuiPoolSizes[0].descriptorCount = 1000;
@@ -149,7 +149,6 @@ public unsafe partial class VulkanRenderer
         imGuiPoolSizes[9].descriptorCount = 1000;
         imGuiPoolSizes[10].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         imGuiPoolSizes[10].descriptorCount = 1000;
-        #endregion
 
         VkDescriptorPoolCreateInfo imGuiDescriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
         {
@@ -167,6 +166,7 @@ public unsafe partial class VulkanRenderer
                 VulkanDebugger.ThrowError("Failed to create ImGui descriptor pool");
             }
         }
+        #endregion
     }
 
     private void CreateUniformDescriptorSets()
@@ -203,7 +203,7 @@ public unsafe partial class VulkanRenderer
             {
                 buffer = uniformBuffers[i],
                 offset = 0,
-                range = vpSize
+                range = vertexUniformDataSize
             };
             
             // Create the write descriptor set for VP
