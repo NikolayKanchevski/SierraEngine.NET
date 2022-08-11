@@ -13,7 +13,7 @@ public unsafe partial class VulkanRenderer
         public VertexUniformData vertexUniformData;
         private readonly ulong vertexUniformDataSize = (ulong) Marshal.SizeOf(typeof(VertexUniformData));
 
-        public FragmentUniformData fragmentUniformData;
+        public FragmentUniformData fragmentUniformData = new FragmentUniformData() with { directionToLight = new Vector3(0.0f, -1.0f, 0.0f)};
         private readonly ulong fragmentUniformDataSize = (ulong)Marshal.SizeOf(typeof(FragmentUniformData));
         
         private readonly Window window;
@@ -125,8 +125,6 @@ public unsafe partial class VulkanRenderer
         CreateImGuiContext();
 
         CreateSynchronisation();
-        
-        // Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("Textures/texture1.jpg"));
         // Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("Textures/texture2.jpg"));
 
         MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
@@ -134,6 +132,8 @@ public unsafe partial class VulkanRenderer
         // MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.obj", this);
         // MeshObject model1 = MeshObject.LoadFromModel("Models/Lamborghini/lamborghini-aventador-pbribl.obj", this);
         // MeshObject model1 = MeshObject.LoadFromModel("Models/Lambo/Lamborghini_Aventador.fbx", this);
+        
+        Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("Textures/texture1.jpg"));
     }
 
     public void Update()
@@ -166,8 +166,10 @@ public unsafe partial class VulkanRenderer
 
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.uniformBuffers[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
+            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.vertexUniformBuffers[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.vertexUniformBuffersMemory[i], null);
+            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.fragmentUniformBuffers[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.fragmentUniformBuffersMemory[i], null);
         }
         
         VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.uniformDescriptorPool, null);

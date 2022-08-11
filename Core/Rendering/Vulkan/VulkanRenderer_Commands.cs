@@ -155,8 +155,8 @@ public unsafe partial class VulkanRenderer
                 VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT, 0,
                 meshModelSize, &vertexPushConstantData);
 
-            VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { uniformDescriptorSets[currentFrame], samplerDescriptorSets[mesh.textureID] };
-            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 2, descriptorSetsPtr, 0, null);
+            VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { vertexUniformDescriptorSets[currentFrame], fragmentUniformDescriptorSets[currentFrame], samplerDescriptorSets[mesh.textureID] };
+            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 3, descriptorSetsPtr, 0, null);
 
             // Draw using the index buffer to prevent vertex re-usage
             VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);

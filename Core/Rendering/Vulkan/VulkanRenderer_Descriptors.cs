@@ -12,13 +12,14 @@ public unsafe partial class VulkanRenderer
 
     private VkDescriptorPool imGuiDescriptorPool;
     
-    private VkDescriptorSet[] uniformDescriptorSets = null!;
+    private VkDescriptorSet[] vertexUniformDescriptorSets = null!;
+    private VkDescriptorSet[] fragmentUniformDescriptorSets = null!;
     private List<VkDescriptorSet> samplerDescriptorSets = new List<VkDescriptorSet>();
     
     private void CreateDescriptorSetLayout()
     {
         // Set up VP binding info
-        VkDescriptorSetLayoutBinding vpBinding = new VkDescriptorSetLayoutBinding()
+        VkDescriptorSetLayoutBinding vertexUniformBinding = new VkDescriptorSetLayoutBinding()
         {
             binding = 0,
             descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -26,12 +27,23 @@ public unsafe partial class VulkanRenderer
             stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT
         };
         
+        // Set up VP binding info
+        VkDescriptorSetLayoutBinding fragmentUniformBinding = new VkDescriptorSetLayoutBinding()
+        {
+            binding = 1,
+            descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            descriptorCount = 1,
+            stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
+        };
+
+        VkDescriptorSetLayoutBinding* descriptorSetLayoutBindingsPtr = stackalloc VkDescriptorSetLayoutBinding[] { vertexUniformBinding, fragmentUniformBinding };
+        
         // Set up uniform layout creation info
         VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            bindingCount = 1,
-            pBindings = &vpBinding
+            bindingCount = 2,
+            pBindings = descriptorSetLayoutBindingsPtr
         };
 
         // Create the uniform descriptor set layout
@@ -74,19 +86,29 @@ public unsafe partial class VulkanRenderer
     private void CreateDescriptorPool()
     {
         // Set up uniform buffer's pool size info
-        VkDescriptorPoolSize uniformPoolSize = new VkDescriptorPoolSize()
+        VkDescriptorPoolSize vertexUniformPoolSize = new VkDescriptorPoolSize()
         {
             type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            descriptorCount = MAX_CONCURRENT_FRAMES
+            descriptorCount = MAX_CONCURRENT_FRAMES * 2
         };
+        
+        // Set up uniform buffer's pool size info
+        VkDescriptorPoolSize fragmentUniformPoolSize = new VkDescriptorPoolSize()
+        {
+            type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            descriptorCount = MAX_CONCURRENT_FRAMES * 2
+        };
+
+        // TODO: Toy around with this code cuz bruh
+        VkDescriptorPoolSize* descriptorPoolSizesPtr = stackalloc VkDescriptorPoolSize[] { vertexUniformPoolSize, fragmentUniformPoolSize };
         
         // Set up descriptor pool creation info
         VkDescriptorPoolCreateInfo uniformDescriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            maxSets = MAX_CONCURRENT_FRAMES,
-            poolSizeCount = 1,
-            pPoolSizes = &uniformPoolSize
+            maxSets = MAX_CONCURRENT_FRAMES * 2,
+            poolSizeCount = 2,
+            pPoolSizes = descriptorPoolSizesPtr
         };
 
         // Create the uniform descriptor pool
@@ -172,7 +194,8 @@ public unsafe partial class VulkanRenderer
     private void CreateUniformDescriptorSets()
     {
         // Resize the uniformDescriptorSets array
-        uniformDescriptorSets = new VkDescriptorSet[MAX_CONCURRENT_FRAMES];
+        vertexUniformDescriptorSets = new VkDescriptorSet[MAX_CONCURRENT_FRAMES];
+        fragmentUniformDescriptorSets = new VkDescriptorSet[MAX_CONCURRENT_FRAMES];
         
         // Allocate a descriptor set layout for each uniform descriptor set
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.uniformDescriptorSetLayout, this.uniformDescriptorSetLayout };
@@ -187,11 +210,20 @@ public unsafe partial class VulkanRenderer
         };
 
         // Create all uniform descriptor sets
-        fixed (VkDescriptorSet* descriptorSetsPtr = uniformDescriptorSets)
+        fixed (VkDescriptorSet* descriptorSetsPtr = vertexUniformDescriptorSets)
         {
             if (VulkanNative.vkAllocateDescriptorSets(this.logicalDevice, &setAllocateInfo, descriptorSetsPtr) != VkResult.VK_SUCCESS)
             {
-                VulkanDebugger.ThrowError("Failed to allocate uniform descriptor sets");
+                VulkanDebugger.ThrowError("Failed to allocate vertex uniform descriptor sets");
+            }
+        }
+
+        // Create all uniform descriptor sets
+        fixed (VkDescriptorSet* descriptorSetsPtr = fragmentUniformDescriptorSets)
+        {
+            if (VulkanNative.vkAllocateDescriptorSets(this.logicalDevice, &setAllocateInfo, descriptorSetsPtr) != VkResult.VK_SUCCESS)
+            {
+                VulkanDebugger.ThrowError("Failed to allocate fragment uniform descriptor sets");
             }
         }
 
@@ -199,27 +231,49 @@ public unsafe partial class VulkanRenderer
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
             // Set up VP buffer info
-            VkDescriptorBufferInfo vpBufferInfo = new VkDescriptorBufferInfo()
+            VkDescriptorBufferInfo vertexUniformBufferInfo = new VkDescriptorBufferInfo()
             {
-                buffer = uniformBuffers[i],
+                buffer = vertexUniformBuffers[i],
                 offset = 0,
                 range = vertexUniformDataSize
             };
             
             // Create the write descriptor set for VP
-            VkWriteDescriptorSet vpWriteDescriptorSet = new VkWriteDescriptorSet()
+            VkWriteDescriptorSet vertexUniformWriteDescriptorSet = new VkWriteDescriptorSet()
             {
                 sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                dstSet = uniformDescriptorSets[i],      // Descriptor set to update
+                dstSet = vertexUniformDescriptorSets[i],      // Descriptor set to update
                 dstBinding = 0,                         // Binding to update
                 dstArrayElement = 0,                    // Index in array to update
                 descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 descriptorCount = 1,                    // Amount to update
-                pBufferInfo = &vpBufferInfo             // Information on buffer data to bind
+                pBufferInfo = &vertexUniformBufferInfo             // Information on buffer data to bind
+            };
+            
+            // Set up VP buffer info
+            VkDescriptorBufferInfo fragmentUniformBufferInfo = new VkDescriptorBufferInfo()
+            {
+                buffer = fragmentUniformBuffers[i],
+                offset = 0,
+                range = fragmentUniformDataSize
+            };
+            
+            // Create the write descriptor set for VP
+            VkWriteDescriptorSet fragmentUniformWriteDescriptorSet = new VkWriteDescriptorSet()
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                dstSet = fragmentUniformDescriptorSets[i],      // Descriptor set to update
+                dstBinding = 1,                         // Binding to update
+                dstArrayElement = 0,                    // Index in array to update
+                descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                descriptorCount = 1,                    // Amount to update
+                pBufferInfo = &fragmentUniformBufferInfo             // Information on buffer data to bind
             };
 
             // Update the VP write set
-            VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, &vpWriteDescriptorSet, 0, null);
+            VkWriteDescriptorSet* writeDescriptorSetsPtr = stackalloc VkWriteDescriptorSet[] { vertexUniformWriteDescriptorSet, fragmentUniformWriteDescriptorSet };
+            
+            VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 2, writeDescriptorSetsPtr, 0, null);
         }
     }
 

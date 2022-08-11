@@ -2,6 +2,7 @@ using System.Numerics;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
+using SierraEngine.Engine.Components;
 using Camera = SierraEngine.Engine.Components.Camera;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
 using Window = SierraEngine.Core.Rendering.Window;
@@ -11,7 +12,7 @@ namespace SierraEngine.Core.Application;
 public class Application
 {
     private readonly Window window;
-    
+
     private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.2f;
@@ -127,6 +128,19 @@ public class Application
     private void UpdateObjects()
     {
         float upTimeCos = (float) Math.Cos(Time.upTime);
+        
+        
+        const float RADIUS = 8.0f;
+        float lightX = (float) Math.Sin(Time.upTime) * RADIUS;
+        float lightZ = (float) Math.Cos(Time.upTime) * RADIUS;
+        
+        Vector3 lightPosition = new Vector3(lightX, -5.0f, lightZ);
+        Vector3 lightDirection = Vector3.Normalize(lightPosition - Vector3.Zero);
+
+        World.meshes.LastOrDefault()!.transform.position = lightPosition;
+        
+        window.vulkanRenderer!.fragmentUniformData.directionToLight = lightDirection;
+
         
         // World.meshes[0].transform.position = new Vector3(0.0f, (upTimeCos * -0.75f) + 3, 0.0f);
         // World.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);

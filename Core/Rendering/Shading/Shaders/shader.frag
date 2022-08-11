@@ -4,7 +4,11 @@ layout(location = 0) in vec3 fromVert_Normal;
 layout(location = 1) in vec2 fromVert_TextureCoordinates;
 layout(location = 2) in mat4 fromVert_ModelMatrix;
 
-layout(set = 1, binding = 0) uniform sampler2D textureSampler;
+layout(set = 1, binding = 1) uniform UniformBuffer {
+        vec3 directionToLight;
+} uniformBuffer;
+
+layout(set = 2, binding = 0) uniform sampler2D textureSampler;
 
 layout(location = 0) out vec4 outColor;
 
@@ -26,7 +30,7 @@ void main() {
         mat3 normalMatrix = transpose(inverse(mat3(fromVert_ModelMatrix)));
         vec3 normalWorldSpace = normalize(normalMatrix * fromVert_Normal);
         
-        float lightIntensity = AMBIENT + max(dot(normalWorldSpace, DIRECTION_TO_LIGHT), 0);
+        float lightIntensity = AMBIENT + max(dot(normalWorldSpace, uniformBuffer.directionToLight), 0);
         
         outColor = lightIntensity * texture(textureSampler, fromVert_TextureCoordinates);
 //        outColor = texture(textureSampler, fromVert_TextureCoordinates);

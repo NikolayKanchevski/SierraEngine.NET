@@ -192,14 +192,14 @@ public unsafe partial class VulkanRenderer
             stencilTestEnable = VkBool32.False
         };
 
-        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.samplerDescriptorSetLayout };
+        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.uniformDescriptorSetLayout, this.uniformDescriptorSetLayout, this.samplerDescriptorSetLayout };
         VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.vertPushConstantRange };
 
         // Set pipeline layout creation info
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            setLayoutCount = 2,
+            setLayoutCount = 3,
             pSetLayouts = descriptorSetLayoutsPtr,
             pushConstantRangeCount = 1,
             pPushConstantRanges = pushConstantRangesPtr
