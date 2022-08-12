@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core.Application;
 using SierraEngine.Engine.Components;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
@@ -13,8 +14,8 @@ public unsafe partial class VulkanRenderer
         public VertexUniformData vertexUniformData;
         private readonly ulong vertexUniformDataSize = (ulong) Marshal.SizeOf(typeof(VertexUniformData));
 
-        public FragmentUniformData fragmentUniformData = new FragmentUniformData() with { directionToLight = new Vector3(0.0f, -1.0f, 0.0f)};
-        private readonly ulong fragmentUniformDataSize = (ulong)Marshal.SizeOf(typeof(FragmentUniformData));
+        public FragmentUniformData fragmentUniformData;
+        private readonly ulong fragmentUniformDataSize = (ulong) Marshal.SizeOf(typeof(FragmentUniformData));
         
         private readonly Window window;
         
@@ -23,30 +24,35 @@ public unsafe partial class VulkanRenderer
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, -1.0f),
+                normal = new Vector3(0, 0, 1),
                 // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, -1.0f, -1.0f),
+                normal = new Vector3(1, 0, 0),
                 // color = new Vector3(1.0f, 1.0f, 0.0f),
                 textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, -1.0f),
+                normal = new Vector3(0, 0, -1),
                 // color = new Vector3(1.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, -1.0f),
+                normal = new Vector3(-1, 0, 0),
                 // color = new Vector3(0.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(0.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, -1.0f, 1.0f),
+                normal = new Vector3(0, 1, 0),
                 // color = new Vector3(1.0f, 0.0f, 0.0f),
                 textureCoordinates = new Vector2(0.0f, 0.0f)
             },
@@ -54,17 +60,20 @@ public unsafe partial class VulkanRenderer
             {
                 position = new Vector3(1.0f, -1.0f, 1.0f),
                 // color = new Vector3(1.0f, 1.0f, 0.0f),
+                normal = new Vector3(0, -1, 0),
                 textureCoordinates = new Vector2(1.0f, 0.0f)
             },
             new Vertex()
             {
                 position = new Vector3(1.0f, 1.0f, 1.0f),
+                normal = new Vector3(0, 0, 1),
                 // color = new Vector3(1.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(1.0f, 1.0f)
             },
             new Vertex()
             {
                 position = new Vector3(-1.0f, 1.0f, 1.0f),
+                normal = new Vector3(1, 0, 0),
                 // color = new Vector3(0.0f, 1.0f, 1.0f),
                 textureCoordinates = new Vector2(0.0f, 1.0f)
             }
@@ -125,15 +134,9 @@ public unsafe partial class VulkanRenderer
         CreateImGuiContext();
 
         CreateSynchronisation();
-        // Mesh mesh2 = new Mesh(this.vertices2, this.indices, CreateTexture("Textures/texture2.jpg"));
 
+        Mesh mesh = new Mesh(vertices, indices, CreateTexture("Textures/lamp.png"));
         MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
-        // MeshObject model1 = MeshObject.LoadFromModel("Models/Kranvagn/Kranvagn_BB.obj", this);
-        // MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.obj", this);
-        // MeshObject model1 = MeshObject.LoadFromModel("Models/Lamborghini/lamborghini-aventador-pbribl.obj", this);
-        // MeshObject model1 = MeshObject.LoadFromModel("Models/Lambo/Lamborghini_Aventador.fbx", this);
-        
-        Mesh mesh1 = new Mesh(this.vertices, this.indices, CreateTexture("Textures/texture1.jpg"));
     }
 
     public void Update()
@@ -206,5 +209,7 @@ public unsafe partial class VulkanRenderer
     public struct FragmentUniformData
     {
         public Vector3 directionToLight;
+        public float lightIntensity;
+        public Vector3 lightColor;
     }
 }

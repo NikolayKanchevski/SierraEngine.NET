@@ -21,8 +21,8 @@ public class Window
     private readonly bool requireFocus;
     
     private GCHandle selfPointerHandle;
-    
-    
+
+    private readonly ErrorDelegate glfwErrorDelegate = GlfwErrorCallback;
     private readonly WindowSizeDelegate resizeCallbackDelegate = WindowResizeCallback;
     private readonly KeyDelegate keyCallbackDelegate = Input.KeyboardKeyCallback;
     private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
@@ -161,6 +161,11 @@ public class Window
     }
 
     /* -- CALLBACKS -- */
+
+    private static void GlfwErrorCallback(ErrorCode errorCode, string errorMessage)
+    {
+        VulkanDebugger.ThrowError($"GLFW Error: { errorMessage } ({ errorCode.ToString() })");
+    }
     
     private static void WindowResizeCallback(IntPtr resizedGlfwWindow, int newWidth, int newHeight)
     {
@@ -182,6 +187,8 @@ public class Window
 
     private void SetCallbacks()
     {
+        Glfw3.SetErrorCallback(glfwErrorDelegate);
+        
         Glfw3.SetWindowSizeCallback(glfwWindow, resizeCallbackDelegate);
         
         Glfw3.SetKeyCallback(glfwWindow, keyCallbackDelegate);

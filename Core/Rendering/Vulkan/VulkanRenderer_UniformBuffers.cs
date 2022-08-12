@@ -49,16 +49,16 @@ public unsafe partial class VulkanRenderer
         // Create an empty pointer
         void *data;
         
-        // Map memory to current uniform buffer's memory to the empty pointer
+        // Map memory to current vertex uniform buffer's memory to the empty pointer
         VulkanNative.vkMapMemory(this.logicalDevice, vertexUniformBuffersMemory[imageIndex], 0, vertexUniformDataSize, 0, &data);
 
         // Copy memory data
-        fixed (VertexUniformData* mvpPtr = &vertexUniformData)
+        fixed (VertexUniformData* vertexUniformDataPtr = &vertexUniformData)
         {
-            Buffer.MemoryCopy(mvpPtr, data, vertexUniformDataSize, vertexUniformDataSize);
+            Buffer.MemoryCopy(vertexUniformDataPtr, data, vertexUniformDataSize, vertexUniformDataSize);
         }
         
-        // Unmap the memory for current uniform buffer's memory
+        // Unmap the memory for current vertex uniform buffer's memory
         VulkanNative.vkUnmapMemory(this.logicalDevice, vertexUniformBuffersMemory[imageIndex]);
     }
     
@@ -67,16 +67,16 @@ public unsafe partial class VulkanRenderer
         // Create an empty pointer
         void *data;
         
-        // Map memory to current uniform buffer's memory to the empty pointer
+        // Map memory to current fragment uniform buffer's memory to the empty pointer
         VulkanNative.vkMapMemory(this.logicalDevice, fragmentUniformBuffersMemory[imageIndex], 0, fragmentUniformDataSize, 0, &data);
 
         // Copy memory data
-        fixed (FragmentUniformData* mvpPtr = &fragmentUniformData)
+        fixed (FragmentUniformData* fragmentUniformDataPtr = &fragmentUniformData)
         {
-            Buffer.MemoryCopy(mvpPtr, data, fragmentUniformDataSize, fragmentUniformDataSize);
+            Buffer.MemoryCopy(fragmentUniformDataPtr, data, fragmentUniformDataSize, fragmentUniformDataSize);
         }
         
-        // Unmap the memory for current uniform buffer's memory
+        // Unmap the memory for current fragment uniform buffer's memory
         VulkanNative.vkUnmapMemory(this.logicalDevice, fragmentUniformBuffersMemory[imageIndex]);
     }
 }

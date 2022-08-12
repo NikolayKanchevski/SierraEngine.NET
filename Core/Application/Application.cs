@@ -128,28 +128,23 @@ public class Application
     private void UpdateObjects()
     {
         float upTimeCos = (float) Math.Cos(Time.upTime);
-        
-        
+
         const float RADIUS = 8.0f;
         float lightX = (float) Math.Sin(Time.upTime) * RADIUS;
+        float lightY= (float) -Math.Sin(Time.upTime) * RADIUS;
         float lightZ = (float) Math.Cos(Time.upTime) * RADIUS;
         
-        Vector3 lightPosition = new Vector3(lightX, -5.0f, lightZ);
+        Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
         Vector3 lightDirection = Vector3.Normalize(lightPosition - Vector3.Zero);
 
-        World.meshes.LastOrDefault()!.transform.position = lightPosition;
+        World.meshes[0].transform.position = lightPosition;
         
         window.vulkanRenderer!.fragmentUniformData.directionToLight = lightDirection;
+        window.vulkanRenderer!.fragmentUniformData.lightIntensity = 1.0f;
+        window.vulkanRenderer!.fragmentUniformData.lightColor = Vector3.One;
 
-        
-        // World.meshes[0].transform.position = new Vector3(0.0f, (upTimeCos * -0.75f) + 3, 0.0f);
-        // World.meshes[0].transform.rotation = new Vector3(0.0f, upTimeCos * 4, 0.0f);
-        // World.meshes[0].transform.scale = new Vector3(1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos), 1.5f - Math.Abs(upTimeCos));
-        
-        // World.meshes[1].transform.position = new Vector3(2.0f, -5.0f, 2.0f);
-        
-        World.meshes[3].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+        World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
     }
 
     private float Radians(in float degrees)

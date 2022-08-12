@@ -52,7 +52,7 @@ public class MeshObject
                 vertices[j].textureCoordinates = currentAssimpMesh.HasTextureCoords(0) ? currentAssimpMesh.TextureCoordinateChannels[0][j].ToVector2() : Vector2.Zero;
                 vertices[j].textureCoordinates.Y *= -1;
             }
-        
+            
             if (model.HasMaterials)
             {
                 materialFileNames = new string[model.MaterialCount];
