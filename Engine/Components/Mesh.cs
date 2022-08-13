@@ -22,91 +22,91 @@ public unsafe class Mesh : Component
     private VkBuffer indexBuffer;
     private VkDeviceMemory indexBufferMemory;
 
-    public static Mesh CreateCube(int textureID)
-    {
-        return null;
-        Vertex[] vertices = new Vertex[24];
-        UInt32[] indices = new UInt32[24];
-
-        for (int i = 0; i < 24; i++) indices[i] = (UInt32) i;
-        
-        vertices[0].position = new Vector3(1.0f, -1.0f, -1.0f);
-        vertices[1].position = new Vector3(-1.0f, -1.0f, -1.0f);
-        vertices[2].position = new Vector3(-1.0f, -1.0f, 1.0f);
-        vertices[3].position = new Vector3(1.0f, -1.0f, 1.0f);
-        vertices[4].position = new Vector3(1.0f, 1.0f, 1.0f);
-        vertices[5].position = new Vector3(1.0f, -1.0f, 1.0f);
-        vertices[6].position = new Vector3(-1.0f, -1.0f, 1.0f);
-        vertices[7].position = new Vector3(-1.0f, 1.0f, 1.0f);
-        vertices[8].position = new Vector3(-1.0f, 1.0f, 1.0f);
-        vertices[9].position = new Vector3(-1.0f, -1.0f, 1.0f);
-        vertices[10].position = new Vector3(-1.0f, -1.0f, -1.0f);
-        vertices[11].position = new Vector3(-1.0f, 1.0f, -1.0f);
-        vertices[12].position = new Vector3(-1.0f, 1.0f, -1.0f);
-        vertices[13].position = new Vector3(1.0f, 1.0f, -1.0f);
-        vertices[14].position = new Vector3(1.0f, 1.0f, 1.0f);
-        vertices[15].position = new Vector3(-1.0f, 1.0f, 1.0f);
-        vertices[16].position = new Vector3(1.0f, 1.0f, -1.0f);
-        vertices[17].position = new Vector3(1.0f, -1.0f, -1.0f);
-        vertices[18].position = new Vector3(1.0f, -1.0f, 1.0f);
-        vertices[19].position = new Vector3(1.0f, 1.0f, 1.0f);
-        vertices[20].position = new Vector3(-1.0f, 1.0f, -1.0f);
-        vertices[21].position = new Vector3(-1.0f, -1.0f, -1.0f);
-        vertices[22].position = new Vector3(1.0f, -1.0f, -1.0f);
-        vertices[23].position = new Vector3(1.0f, 1.0f, -1.0f);
-        
-        vertices[0].normal = new Vector3(0.0f, -1.0f, 0.0f);
-        vertices[1].normal = new Vector3(0.0f, -1.0f, 0.0f);
-        vertices[2].normal = new Vector3(0.0f, -1.0f, 0.0f);
-        vertices[3].normal = new Vector3(0.0f, -1.0f, 0.0f);
-        vertices[4].normal = new Vector3(0.0f, -0.0f, 1.0f);
-        vertices[5].normal = new Vector3(0.0f, -0.0f, 1.0f);
-        vertices[6].normal = new Vector3(0.0f, -0.0f, 1.0f);
-        vertices[7].normal = new Vector3(0.0f, -0.0f, 1.0f);
-        vertices[8].normal = new Vector3(-1.0f, -0.0f, 0.0f);
-        vertices[9].normal = new Vector3(-1.0f, -0.0f, 0.0f);
-        vertices[10].normal = new Vector3(-1.0f, -0.0f, 0.0f);
-        vertices[11].normal = new Vector3(-1.0f, -0.0f, 0.0f);
-        vertices[12].normal = new Vector3(0.0f, 1.0f, 0.0f);
-        vertices[13].normal = new Vector3(0.0f, 1.0f, 0.0f);
-        vertices[14].normal = new Vector3(0.0f, 1.0f, 0.0f);
-        vertices[15].normal = new Vector3(0.0f, 1.0f, 0.0f);
-        vertices[16].normal = new Vector3(1.0f, -0.0f, 0.0f);
-        vertices[17].normal = new Vector3(1.0f, -0.0f, 0.0f);
-        vertices[18].normal = new Vector3(1.0f, -0.0f, 0.0f);
-        vertices[19].normal = new Vector3(1.0f, -0.0f, 0.0f);
-        vertices[20].normal = new Vector3(0.0f, -0.0f, -1.0f);
-        vertices[21].normal = new Vector3(0.0f, -0.0f, -1.0f);
-        vertices[22].normal = new Vector3(0.0f, -0.0f, -1.0f);
-        vertices[23].normal = new Vector3(0.0f, -0.0f, -1.0f); 
-
-        vertices[0].textureCoordinates = new Vector2(0.625f, -0.5f);
-        vertices[1].textureCoordinates = new Vector2(0.875f, -0.5f);
-        vertices[2].textureCoordinates = new Vector2(0.875f, -0.75f);
-        vertices[3].textureCoordinates = new Vector2(0.625f, -0.75f);
-        vertices[4].textureCoordinates = new Vector2(0.375f, -0.75f);
-        vertices[5].textureCoordinates = new Vector2(0.625f, -0.75f);
-        vertices[6].textureCoordinates = new Vector2(0.625f, -1f);
-        vertices[7].textureCoordinates = new Vector2(0.375f, -1f);
-        vertices[8].textureCoordinates = new Vector2(0.375f, -0f);
-        vertices[9].textureCoordinates = new Vector2(0.625f, -0f);
-        vertices[10].textureCoordinates = new Vector2(0.625f, -0.25f);
-        vertices[11].textureCoordinates = new Vector2(0.375f, -0.25f);
-        vertices[12].textureCoordinates = new Vector2(0.125f, -0.5f);
-        vertices[13].textureCoordinates = new Vector2(0.375f, -0.5f);
-        vertices[14].textureCoordinates = new Vector2(0.375f, -0.75f);
-        vertices[15].textureCoordinates = new Vector2(0.125f, -0.75f);
-        vertices[16].textureCoordinates = new Vector2(0.375f, -0.5f);
-        vertices[17].textureCoordinates = new Vector2(0.625f, -0.5f);
-        vertices[18].textureCoordinates = new Vector2(0.625f, -0.75f);
-        vertices[19].textureCoordinates = new Vector2(0.375f, -0.75f);
-        vertices[20].textureCoordinates = new Vector2(0.375f, -0.25f);
-        vertices[21].textureCoordinates = new Vector2(0.625f, -0.25f);
-        vertices[22].textureCoordinates = new Vector2(0.625f, -0.5f);
-        vertices[23].textureCoordinates = new Vector2(0.375f, -0.5f);
-
-        return new Mesh(vertices, indices, textureID);
-    }
+    // public static Mesh CreateCube(int textureID)
+    // {
+    //     return null;
+    //     Vertex[] vertices = new Vertex[24];
+    //     UInt32[] indices = new UInt32[24];
+    //
+    //     for (int i = 0; i < 24; i++) indices[i] = (UInt32) i;
+    //     
+    //     vertices[0].position = new Vector3(1.0f, -1.0f, -1.0f);
+    //     vertices[1].position = new Vector3(-1.0f, -1.0f, -1.0f);
+    //     vertices[2].position = new Vector3(-1.0f, -1.0f, 1.0f);
+    //     vertices[3].position = new Vector3(1.0f, -1.0f, 1.0f);
+    //     vertices[4].position = new Vector3(1.0f, 1.0f, 1.0f);
+    //     vertices[5].position = new Vector3(1.0f, -1.0f, 1.0f);
+    //     vertices[6].position = new Vector3(-1.0f, -1.0f, 1.0f);
+    //     vertices[7].position = new Vector3(-1.0f, 1.0f, 1.0f);
+    //     vertices[8].position = new Vector3(-1.0f, 1.0f, 1.0f);
+    //     vertices[9].position = new Vector3(-1.0f, -1.0f, 1.0f);
+    //     vertices[10].position = new Vector3(-1.0f, -1.0f, -1.0f);
+    //     vertices[11].position = new Vector3(-1.0f, 1.0f, -1.0f);
+    //     vertices[12].position = new Vector3(-1.0f, 1.0f, -1.0f);
+    //     vertices[13].position = new Vector3(1.0f, 1.0f, -1.0f);
+    //     vertices[14].position = new Vector3(1.0f, 1.0f, 1.0f);
+    //     vertices[15].position = new Vector3(-1.0f, 1.0f, 1.0f);
+    //     vertices[16].position = new Vector3(1.0f, 1.0f, -1.0f);
+    //     vertices[17].position = new Vector3(1.0f, -1.0f, -1.0f);
+    //     vertices[18].position = new Vector3(1.0f, -1.0f, 1.0f);
+    //     vertices[19].position = new Vector3(1.0f, 1.0f, 1.0f);
+    //     vertices[20].position = new Vector3(-1.0f, 1.0f, -1.0f);
+    //     vertices[21].position = new Vector3(-1.0f, -1.0f, -1.0f);
+    //     vertices[22].position = new Vector3(1.0f, -1.0f, -1.0f);
+    //     vertices[23].position = new Vector3(1.0f, 1.0f, -1.0f);
+    //     
+    //     vertices[0].normal = new Vector3(0.0f, -1.0f, 0.0f);
+    //     vertices[1].normal = new Vector3(0.0f, -1.0f, 0.0f);
+    //     vertices[2].normal = new Vector3(0.0f, -1.0f, 0.0f);
+    //     vertices[3].normal = new Vector3(0.0f, -1.0f, 0.0f);
+    //     vertices[4].normal = new Vector3(0.0f, -0.0f, 1.0f);
+    //     vertices[5].normal = new Vector3(0.0f, -0.0f, 1.0f);
+    //     vertices[6].normal = new Vector3(0.0f, -0.0f, 1.0f);
+    //     vertices[7].normal = new Vector3(0.0f, -0.0f, 1.0f);
+    //     vertices[8].normal = new Vector3(-1.0f, -0.0f, 0.0f);
+    //     vertices[9].normal = new Vector3(-1.0f, -0.0f, 0.0f);
+    //     vertices[10].normal = new Vector3(-1.0f, -0.0f, 0.0f);
+    //     vertices[11].normal = new Vector3(-1.0f, -0.0f, 0.0f);
+    //     vertices[12].normal = new Vector3(0.0f, 1.0f, 0.0f);
+    //     vertices[13].normal = new Vector3(0.0f, 1.0f, 0.0f);
+    //     vertices[14].normal = new Vector3(0.0f, 1.0f, 0.0f);
+    //     vertices[15].normal = new Vector3(0.0f, 1.0f, 0.0f);
+    //     vertices[16].normal = new Vector3(1.0f, -0.0f, 0.0f);
+    //     vertices[17].normal = new Vector3(1.0f, -0.0f, 0.0f);
+    //     vertices[18].normal = new Vector3(1.0f, -0.0f, 0.0f);
+    //     vertices[19].normal = new Vector3(1.0f, -0.0f, 0.0f);
+    //     vertices[20].normal = new Vector3(0.0f, -0.0f, -1.0f);
+    //     vertices[21].normal = new Vector3(0.0f, -0.0f, -1.0f);
+    //     vertices[22].normal = new Vector3(0.0f, -0.0f, -1.0f);
+    //     vertices[23].normal = new Vector3(0.0f, -0.0f, -1.0f); 
+    //
+    //     vertices[0].textureCoordinates = new Vector2(0.625f, -0.5f);
+    //     vertices[1].textureCoordinates = new Vector2(0.875f, -0.5f);
+    //     vertices[2].textureCoordinates = new Vector2(0.875f, -0.75f);
+    //     vertices[3].textureCoordinates = new Vector2(0.625f, -0.75f);
+    //     vertices[4].textureCoordinates = new Vector2(0.375f, -0.75f);
+    //     vertices[5].textureCoordinates = new Vector2(0.625f, -0.75f);
+    //     vertices[6].textureCoordinates = new Vector2(0.625f, -1f);
+    //     vertices[7].textureCoordinates = new Vector2(0.375f, -1f);
+    //     vertices[8].textureCoordinates = new Vector2(0.375f, -0f);
+    //     vertices[9].textureCoordinates = new Vector2(0.625f, -0f);
+    //     vertices[10].textureCoordinates = new Vector2(0.625f, -0.25f);
+    //     vertices[11].textureCoordinates = new Vector2(0.375f, -0.25f);
+    //     vertices[12].textureCoordinates = new Vector2(0.125f, -0.5f);
+    //     vertices[13].textureCoordinates = new Vector2(0.375f, -0.5f);
+    //     vertices[14].textureCoordinates = new Vector2(0.375f, -0.75f);
+    //     vertices[15].textureCoordinates = new Vector2(0.125f, -0.75f);
+    //     vertices[16].textureCoordinates = new Vector2(0.375f, -0.5f);
+    //     vertices[17].textureCoordinates = new Vector2(0.625f, -0.5f);
+    //     vertices[18].textureCoordinates = new Vector2(0.625f, -0.75f);
+    //     vertices[19].textureCoordinates = new Vector2(0.375f, -0.75f);
+    //     vertices[20].textureCoordinates = new Vector2(0.375f, -0.25f);
+    //     vertices[21].textureCoordinates = new Vector2(0.625f, -0.25f);
+    //     vertices[22].textureCoordinates = new Vector2(0.625f, -0.5f);
+    //     vertices[23].textureCoordinates = new Vector2(0.375f, -0.5f);
+    //
+    //     return new Mesh(vertices, indices, textureID);
+    // }
     
     public static Mesh CreateSphere(in float radius, in int sectorCount, in int stackCount, in int newTextureID, bool renderBackFace = false)
     {

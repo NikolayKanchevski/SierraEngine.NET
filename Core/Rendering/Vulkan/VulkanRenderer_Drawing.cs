@@ -82,7 +82,7 @@ public unsafe partial class VulkanRenderer
         // Reset the fences
         VulkanNative.vkResetFences(this.logicalDevice, 1, fencesPtr);
 
-        UpdateUniformBuffer(imageIndex);
+        UpdateUniformBuffers(imageIndex);
         
         // Reset and re-record the command buffer
         VulkanNative.vkResetCommandBuffer(this.commandBuffers[currentFrame], 0);

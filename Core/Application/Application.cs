@@ -120,9 +120,9 @@ public class Application
         newCameraFrontDirection.Z = (float) (Math.Sin(Radians(yaw)) * Math.Cos(Radians(pitch)));
         camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
         
-        window.vulkanRenderer!.vertexUniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        window.vulkanRenderer!.vertexUniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
-        window.vulkanRenderer!.vertexUniformData.projection.M11 *= -1;
+        window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.uniformData.projection.M11 *= -1;
     }
 
     private void UpdateObjects()
@@ -139,9 +139,9 @@ public class Application
 
         World.meshes[0].transform.position = lightPosition;
         
-        window.vulkanRenderer!.fragmentUniformData.directionToLight = lightDirection;
-        window.vulkanRenderer!.fragmentUniformData.lightIntensity = 1.0f;
-        window.vulkanRenderer!.fragmentUniformData.lightColor = Vector3.One;
+        window.vulkanRenderer!.uniformData.directionToLight = lightDirection;
+        window.vulkanRenderer!.uniformData.lightIntensity = 1.0f;
+        window.vulkanRenderer!.uniformData.lightColor = Vector3.One;
 
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);

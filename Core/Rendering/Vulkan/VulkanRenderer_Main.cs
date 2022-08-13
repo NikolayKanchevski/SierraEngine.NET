@@ -10,14 +10,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     #region VARIABLES
-
-        public VertexUniformData vertexUniformData;
-        private readonly ulong vertexUniformDataSize = (ulong) Marshal.SizeOf(typeof(VertexUniformData));
-
-        public FragmentUniformData fragmentUniformData;
-        private readonly ulong fragmentUniformDataSize = (ulong) Marshal.SizeOf(typeof(FragmentUniformData));
-        
-        private readonly Window window;
+    private readonly Window window;
         
         private readonly Vertex[] vertices = new Vertex[]
         {
@@ -154,9 +147,6 @@ public unsafe partial class VulkanRenderer
         
         VulkanNative.vkDestroyQueryPool(this.logicalDevice, this.drawTimeQueryPool, null);
 
-        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.samplerDescriptorPool, null);
-        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.samplerDescriptorSetLayout, null);
-        
         for (int i = 0; i < this.samplerDescriptorSets.Count; i++)
         {
             VulkanNative.vkDestroyImage(this.logicalDevice, this.textureImages[i], null);
@@ -169,14 +159,12 @@ public unsafe partial class VulkanRenderer
 
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.vertexUniformBuffers[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.vertexUniformBuffersMemory[i], null);
-            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.fragmentUniformBuffers[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.fragmentUniformBuffersMemory[i], null);
+            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.uniformBuffers[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
         }
         
-        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.uniformDescriptorPool, null);
-        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.uniformDescriptorSetLayout, null);
+        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.descriptorPool, null);
+        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.descriptorSetLayout, null);
         
         foreach (Mesh mesh in World.meshes)
         {
@@ -198,18 +186,5 @@ public unsafe partial class VulkanRenderer
         
         VulkanNative.vkDestroySurfaceKHR(this.instance, this.surface, null);
         VulkanNative.vkDestroyInstance(this.instance, null);
-    }
-
-    public struct VertexUniformData
-    {
-        public Matrix4x4 view;
-        public Matrix4x4 projection;
-    }
-
-    public struct FragmentUniformData
-    {
-        public Vector3 directionToLight;
-        public float lightIntensity;
-        public Vector3 lightColor;
     }
 }

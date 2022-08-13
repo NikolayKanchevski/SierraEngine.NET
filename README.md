@@ -6,7 +6,7 @@
 A little <strong>open-source</strong> game engine, written in C# (.NET 6.0), which features some of the most common game programming techniques built-in. 
 It is based on the <b><a href="https://www.vulkan.org/">Vulkan</a></b> rendering API, which provides support for 
 <b>Windows 7-11</b>, <b>macOS</b>, <b>Linux</b>, <b>Android</b>, <b>iOS</b>, <b>tvOS</b> and other operating systems,
-though the engine has only been tested on <b>Windows 11</b> and <b>macOS Monterey</b>. All of its features are listed below.
+though the engine has only been tested on <b>Windows 10, 11</b> and <b>macOS Monterey</b>. All of its features are listed below.
 </p>
 
 <br>
@@ -46,8 +46,8 @@ Hold on a second! Is that a custom 3D model?
 That's right! How can a game engine be an engine and... not allow importing custom 3D models? In Sierra Engine it is as simple as:
 
 ```c#
-    MeshObject model = new MeshObject.LoadFromModel(FILE_NAME_HERE);
-    MeshObject model = new MeshObject.LoadFromModel("Models/Train.obj"); // <-- Example
+MeshObject model = new MeshObject.LoadFromModel(FILE_NAME_HERE);
+MeshObject model = new MeshObject.LoadFromModel("Models/Train.obj"); // <-- Example
 ```
 
 <br>
@@ -57,7 +57,7 @@ That's right! How can a game engine be an engine and... not allow importing cust
 Loading models is cool, but what is the point of it if they are not going to be colored, right? Well, when importing your model, the program automatically picks all textures applied to it and loads them into the renderer. Here is what the following code results in:
 
 ```c#
-    MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx");
+MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx");
 ```
 
 ![ScreenShot](Screenshots/TextureSystem.png)
@@ -128,8 +128,9 @@ using SierraEngine.Engine;
 ## 🏃 Performance
 
 Graphics applications are usually very heavy and run slowly. Thankfully, this is not the case with Sierra Engine.
-Despite all of its features, it still manages to do <b>2,000</b> frames per second (FPS) on a <b>Ryzen 5 2600X</b>, 
-<b>NVIDIA GeForce GTX 1070 TI</b>.
+Despite all of its features, it still manages to do about <b>1,800</b> frames per second (FPS) and <b>2,000</b> GPU
+draws per second on a system equipped with a <b>Ryzen 5 3600X</b> CPU
+and a <b>NVIDIA GeForce GTX 1070 TI</b> GPU.
 
 <br>
 
@@ -164,17 +165,17 @@ There are many other features planned. Some of them are:
         <li><a href="https://ih1.redbubble.net/image.528192883.5730/st,small,845x845-pad,1000x1000,f8f8f8.u9.jpg">My Brain</a> - There is not much left of it, actually...</li>
     </ul>
     <br>
-    Softwares used: 
+    Software used: 
     <ul>
         <li><a href="https://www.jetbrains.com/rider/">JetBrains Rider</a> - A <b>cross-platform</b> IDE used to develop the .NET project on both my <b>macOS</b> and <b>Windows</b> systems.</li>
         <li><a href="https://www.blender.org/">Blender</a> - For the testing of 3D models and textures functionality.</li>
-        <li><a href="https://trello.com/en">Trello</a> - For pretending to have an organized list of things to implement next.</li>
+        <li><a href="https://trello.com/b/RMYtZPOg/sierra-engine">Trello</a> - For pretending to have an organized list of things to implement next.</li>
     </ul>
 </p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 4733</p>
-<p align="center" id="LastUpdated">Last updated: 12/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 4857</p>
+<p align="center" id="LastUpdated">Last updated: 13/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

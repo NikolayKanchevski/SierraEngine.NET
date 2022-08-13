@@ -1,82 +1,62 @@
+using System.Numerics;
+using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
+public struct UniformData
+{
+    /* Vertex Uniform Data */
+    public Matrix4x4 view;
+    public Matrix4x4 projection;
+        
+    /* Fragment Uniform Data */
+    public Vector3 directionToLight;
+    public float lightIntensity;
+    public Vector3 lightColor;
+}
+
 public unsafe partial class VulkanRenderer
 {
-    private VkBuffer[] vertexUniformBuffers = null!;
-    private VkDeviceMemory[] vertexUniformBuffersMemory = null!;
+    public UniformData uniformData;
+    private readonly ulong uniformDataSize = (ulong) Marshal.SizeOf(typeof(UniformData));
     
-    private VkBuffer[] fragmentUniformBuffers = null!;
-    private VkDeviceMemory[] fragmentUniformBuffersMemory = null!;
+    private VkBuffer[] uniformBuffers = null!;
+    private VkDeviceMemory[] uniformBuffersMemory = null!;
     
     private void CreateUniformBuffers()
     {
         // Resize the uniformBuffers and its memories arrays
-        vertexUniformBuffers = new VkBuffer[MAX_CONCURRENT_FRAMES];
-        vertexUniformBuffersMemory = new VkDeviceMemory[MAX_CONCURRENT_FRAMES];
-
-        fragmentUniformBuffers = new VkBuffer[MAX_CONCURRENT_FRAMES];
-        fragmentUniformBuffersMemory = new VkDeviceMemory[MAX_CONCURRENT_FRAMES];
+        uniformBuffers = new VkBuffer[MAX_CONCURRENT_FRAMES];
+        uniformBuffersMemory = new VkDeviceMemory[MAX_CONCURRENT_FRAMES];
 
         // For each concurrent frame
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
             // Create a uniform buffer
             VulkanUtilities.CreateBuffer(
-                vertexUniformDataSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+                uniformDataSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
                 VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                out vertexUniformBuffers[i], out vertexUniformBuffersMemory[i]
-            );
-            
-            // Create a uniform buffer
-            VulkanUtilities.CreateBuffer(
-                vertexUniformDataSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-                VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                out fragmentUniformBuffers[i], out fragmentUniformBuffersMemory[i]
+                out uniformBuffers[i], out uniformBuffersMemory[i]
             );
         }
     }
 
-    private void UpdateUniformBuffer(uint imageIndex)
-    {
-        UpdateVertexUniformBuffer(imageIndex);
-        UpdateFragmentUniformBuffer(imageIndex);
-    }
-
-    private void UpdateVertexUniformBuffer(uint imageIndex)
+    private void UpdateUniformBuffers(in uint imageIndex)
     {
         // Create an empty pointer
         void *data;
         
         // Map memory to current vertex uniform buffer's memory to the empty pointer
-        VulkanNative.vkMapMemory(this.logicalDevice, vertexUniformBuffersMemory[imageIndex], 0, vertexUniformDataSize, 0, &data);
+        VulkanNative.vkMapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex], 0, uniformDataSize, 0, &data);
 
         // Copy memory data
-        fixed (VertexUniformData* vertexUniformDataPtr = &vertexUniformData)
+        fixed (UniformData* uniformDataPtr = &uniformData)
         {
-            Buffer.MemoryCopy(vertexUniformDataPtr, data, vertexUniformDataSize, vertexUniformDataSize);
+            Buffer.MemoryCopy(uniformDataPtr, data, uniformDataSize, uniformDataSize);
         }
         
         // Unmap the memory for current vertex uniform buffer's memory
-        VulkanNative.vkUnmapMemory(this.logicalDevice, vertexUniformBuffersMemory[imageIndex]);
-    }
-    
-    private void UpdateFragmentUniformBuffer(uint imageIndex)
-    {
-        // Create an empty pointer
-        void *data;
-        
-        // Map memory to current fragment uniform buffer's memory to the empty pointer
-        VulkanNative.vkMapMemory(this.logicalDevice, fragmentUniformBuffersMemory[imageIndex], 0, fragmentUniformDataSize, 0, &data);
-
-        // Copy memory data
-        fixed (FragmentUniformData* fragmentUniformDataPtr = &fragmentUniformData)
-        {
-            Buffer.MemoryCopy(fragmentUniformDataPtr, data, fragmentUniformDataSize, fragmentUniformDataSize);
-        }
-        
-        // Unmap the memory for current fragment uniform buffer's memory
-        VulkanNative.vkUnmapMemory(this.logicalDevice, fragmentUniformBuffersMemory[imageIndex]);
+        VulkanNative.vkUnmapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex]);
     }
 }
