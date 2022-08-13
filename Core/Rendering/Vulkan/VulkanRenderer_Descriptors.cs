@@ -2,7 +2,6 @@ using Evergine.Bindings.Vulkan;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
-#pragma warning disable CA2014
 public unsafe partial class VulkanRenderer
 {
     private VkDescriptorSetLayout descriptorSetLayout;
@@ -93,8 +92,6 @@ public unsafe partial class VulkanRenderer
             }
         }
         
-        return;
-
         #region ImGui Pool
         // VkDescriptorPoolSize* imGuiPoolSizes = stackalloc VkDescriptorPoolSize[11];
         // imGuiPoolSizes[0].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_SAMPLER;
@@ -166,6 +163,7 @@ public unsafe partial class VulkanRenderer
         }
 
         // For each descriptor set group
+        VkWriteDescriptorSet* writeDescriptorSetsPtr = stackalloc VkWriteDescriptorSet[1];
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
             // Set up vertex uniform descriptor buffer info
@@ -189,7 +187,7 @@ public unsafe partial class VulkanRenderer
             };
 
             // Put all uniform write descriptors in a single pointer array  
-            VkWriteDescriptorSet* writeDescriptorSetsPtr = stackalloc VkWriteDescriptorSet[] { uniformWriteDescriptorSet };
+            writeDescriptorSetsPtr[0] = uniformWriteDescriptorSet;
             
             // Update uniform descriptor sets
             VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, writeDescriptorSetsPtr, 0, null);

@@ -135,12 +135,13 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkCmdSetScissor(givenCommandBuffer, 0, 1, &scissor);
         
         ulong* offsets = stackalloc ulong[] { 0 };
+        VkBuffer* vertexBuffers = stackalloc VkBuffer[1]; 
+        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[3];
         
-        #pragma warning disable CA2014
         foreach (var mesh in World.meshes)
         {
             // Define a pointer to the vertex buffer
-            VkBuffer* vertexBuffers = stackalloc VkBuffer[] { mesh.GetVertexBuffer() };
+            vertexBuffers[0] = mesh.GetVertexBuffer();
 
             // Bind the vertex buffer
             VulkanNative.vkCmdBindVertexBuffers(givenCommandBuffer, 0, 1, vertexBuffers, offsets);
@@ -155,7 +156,9 @@ public unsafe partial class VulkanRenderer
                 VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT, 0,
                 meshModelSize, &vertexPushConstantData);
 
-            VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { uniformDescriptorSets[currentFrame], samplerDescriptorSets[mesh.textureID] };
+            descriptorSetsPtr[0] = uniformDescriptorSets[currentFrame];
+            descriptorSetsPtr[1] = samplerDescriptorSets[mesh.textureID];
+            
             VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 2, descriptorSetsPtr, 0, null);
 
             // Draw using the index buffer to prevent vertex re-usage
