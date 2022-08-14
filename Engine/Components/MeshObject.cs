@@ -77,7 +77,7 @@ public class MeshObject
 
             if (currentTexturePath == null || currentTexturePath.Trim() == "") continue;
         
-            this.meshes[i] = new Mesh(vertices, indices);//, vulkanRenderer.CreateTexture(currentTexturePath));
+            this.meshes[i] = new Mesh(vertices, indices, vulkanRenderer.CreateTexture(currentTexturePath));
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }
         
