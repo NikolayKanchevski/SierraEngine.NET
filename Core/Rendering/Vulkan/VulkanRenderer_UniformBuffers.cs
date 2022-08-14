@@ -11,7 +11,7 @@ public struct UniformData
     public Matrix4x4 projection;
         
     /* Fragment Uniform Data */
-    public Vector3 directionToLight;
+    public Vector3 lightPosition;
     public float lightIntensity;
     public Vector3 lightColor;
 }

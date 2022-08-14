@@ -18,6 +18,7 @@
 
     <ItemGroup>
         <Folder Include="Core\Dynamic Link Libraries\Unix" />
+        <Folder Include="Core\Rendering\ImGui\Shaders" />
         <Folder Include="Core\Rendering\Models" />
         <Folder Include="Core\Rendering\Shading\Compilers" />
         <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />

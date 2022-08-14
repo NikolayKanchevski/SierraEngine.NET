@@ -138,7 +138,7 @@ public class Application
 
         World.meshes[0].transform.position = lightPosition;
         
-        window.vulkanRenderer!.uniformData.directionToLight = lightPosition;
+        window.vulkanRenderer!.uniformData.lightPosition = lightPosition;
         window.vulkanRenderer!.uniformData.lightIntensity = 1.0f;
         window.vulkanRenderer!.uniformData.lightColor = Vector3.One;
 
