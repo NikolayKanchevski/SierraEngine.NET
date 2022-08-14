@@ -13,7 +13,7 @@ though the engine has only been tested on <b>Windows 10, 11</b> and <b>macOS Mon
 
 ## 🛠️ Building and Running the Engine
 
-Clone the repository in your IDE of choice (<i>Visual Studio</i>, <i>Rider</i>, etc.) Now, you will have to run a Python script what will configure the project for you. Obviously, this will require your machine to have <a href="https://www.python.org/downloads/">Python 3</a> installed, so make sure you have that. Navigate over to the folder where you cloned the repo and run the following command in the command promp or terminal:
+Clone the repository in your IDE of choice (<i>Visual Studio</i>, <i>Rider</i>, etc.) Now, you will have to run a Python script what will configure the project for you. Obviously, this will require your machine to have <b><a href="https://www.python.org/downloads/">Python 3</a></b> installed, so make sure you have that. Navigate over to the folder where you cloned the repo and run the following command in the command promp or terminal:
 ```bat
 $ python3 Scripts/FirstTime.py
 ```
@@ -186,7 +186,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 4869</p>
-<p align="center" id="LastUpdated">Last updated: 13/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 4887</p>
+<p align="center" id="LastUpdated">Last updated: 14/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -19,15 +19,17 @@ layout(push_constant) uniform PushConstant {
     mat4 model;
 } pushConstant;
 
-layout(location = 0) out vec3 toFrag_Normal;
-layout(location = 1) out vec2 toFrag_TextureCoordinates;
-layout(location = 2) out mat4 foFrag_ModelMatrix;
+layout(location = 0) out vec3 toFrag_Position;
+layout(location = 1) out vec3 toFrag_Normal;
+layout(location = 2) out vec2 toFrag_TextureCoordinates;
+layout(location = 3) out mat4 foFrag_ModelMatrix;
 
 void main() {
     // Set the position of the vertex in world space
     gl_Position =  uniformBuffer.projection * uniformBuffer.view * pushConstant.model * vec4(fromCode_Position, 1.0);
     
     // Transfer required data from vertex to fragment shader
+    toFrag_Position = fromCode_Position;
     toFrag_Normal = fromCode_Normal;
     toFrag_TextureCoordinates = fromCode_TextureCoordinates;
     foFrag_ModelMatrix = pushConstant.model;

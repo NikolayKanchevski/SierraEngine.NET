@@ -119,7 +119,7 @@ public class Application
         newCameraFrontDirection.Y = (float) (Math.Sin(Radians(pitch)));
         newCameraFrontDirection.Z = (float) (Math.Sin(Radians(yaw)) * Math.Cos(Radians(pitch)));
         camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
-        
+
         window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
         window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
         window.vulkanRenderer!.uniformData.projection.M11 *= -1;
@@ -135,12 +135,11 @@ public class Application
         float lightZ = (float) Math.Cos(Time.upTime) * RADIUS;
         
         Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
-        Vector3 lightDirection = Vector3.Normalize(lightPosition - Vector3.Zero);
 
         World.meshes[0].transform.position = lightPosition;
         
-        window.vulkanRenderer!.uniformData.directionToLight = lightDirection;
-        window.vulkanRenderer!.uniformData.lightIntensity = 1.0f;
+        window.vulkanRenderer!.uniformData.directionToLight = lightPosition;
+        window.vulkanRenderer!.uniformData.lightIntensity = 10.0f;
         window.vulkanRenderer!.uniformData.lightColor = Vector3.One;
 
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
