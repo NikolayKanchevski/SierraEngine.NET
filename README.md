@@ -77,7 +77,9 @@ MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chiefta
 
 ## ☀️ Directional Lighting 
 
-What is that? The tank's lower plate is very dark... strange, right? Nope, not at all.  There is <a href="https://en.wikipedia.org/wiki/Shading#Directional_lighting">Directional Lighting</a> implemented, which is calculated based on the normals of each mesh's vertices. It acts as light source, emitting rays at a single direction - pretty much like the sun does.
+What is that? The tank's lower plate is very dark... strange, right? Nope, not at all.  There is <a href="https://en.wikipedia.org/wiki/Shading#Directional_lighting">Directional Lighting</a> implemented, which, combined with <a href="https://en.wikipedia.org/wiki/Phong_shading#Phong_reflection_model">Phong Shading</a>, allows for pretty accurate results. The lighting is calculated based on the normals of each mesh's vertices and acts as a light source, emitting rays at a single direction - pretty much like the sun does. Its intensity and color can be changed at any time. Shadows, however, are yet to come... but will be added, for sure!
+
+![ScreenShot](Screenshots/DirectionalLighting.jpg)
 
 <br>
 
@@ -186,7 +188,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 4887</p>
+<p align="center" id="LinesCounter">Total lines of code: 4889</p>
 <p align="center" id="LastUpdated">Last updated: 14/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

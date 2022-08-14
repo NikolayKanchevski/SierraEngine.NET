@@ -139,7 +139,7 @@ public class Application
         World.meshes[0].transform.position = lightPosition;
         
         window.vulkanRenderer!.uniformData.directionToLight = lightPosition;
-        window.vulkanRenderer!.uniformData.lightIntensity = 10.0f;
+        window.vulkanRenderer!.uniformData.lightIntensity = 1.0f;
         window.vulkanRenderer!.uniformData.lightColor = Vector3.One;
 
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
