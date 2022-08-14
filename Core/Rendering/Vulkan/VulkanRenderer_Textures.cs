@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Assimp;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Engine;
@@ -36,6 +37,26 @@ public unsafe partial class VulkanRenderer
         int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
         return textureDescriptorSetLocation;
     }
+
+    // public int CreateTexture(in IntPtr imageData, int imageWidth, int imageHeight, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    // {
+    //     ulong imageSize = (ulong) (imageWidth * imageHeight * GetColorChannelCount(colors));
+    //     
+    //     // Get mip levels
+    //     textureMipLevels.Add((uint) Math.Floor(Math.Log2(Math.Max(imageWidth, imageHeight)) + 1));
+    //     
+    //     // Create the vulkan image and its view
+    //
+    //     byte[] extractedImageData = new byte[10000];
+    //     Marshal.Copy(imageData, extractedImageData, 0, 10000);
+    //     
+    //     CreateTextureImage((uint) imageWidth, (uint) imageHeight, colors, imageSize, extractedImageData);
+    //     CreateTextureImageView();
+    //     
+    //     // Get the ID of the descriptor set assigned to the texture
+    //     int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
+    //     return textureDescriptorSetLocation;
+    // }
 
     // public int CreateTexture(EmbeddedTexture assimpTexture)
     // {

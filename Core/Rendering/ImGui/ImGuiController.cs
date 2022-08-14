@@ -1,3 +1,8 @@
+// using System.Runtime.InteropServices;
+// using Evergine.Bindings.Vulkan;
+// using Glfw;
+// using SierraEngine.Core.Rendering.Vulkan;
+//
 // namespace SierraEngine.Core.Rendering.ImGui;
 //
 // using System.Resources;
@@ -13,23 +18,24 @@
 // /// A modified version of Veldrid.ImGui's ImGuiRenderer.
 // /// Manages input for ImGui and handles rendering ImGui's DrawLists with Veldrid.
 // /// </summary>
-// public class ImGuiController : IDisposable
+// public unsafe class ImGuiController : IDisposable
 // {
 //     private bool _frameBegun;
 //
 //     // Veldrid objects
-//     private DeviceBuffer _vertexBuffer;
-//     private DeviceBuffer _indexBuffer;
-//     private DeviceBuffer _projMatrixBuffer;
-//     private Texture _fontTexture;
-//     private TextureView _fontTextureView;
-//     private Shader _vertexShader;
-//     private Shader _fragmentShader;
-//     private ResourceLayout _layout;
-//     private ResourceLayout _textureLayout;
-//     private Pipeline _pipeline;
+//     private VkBuffer _vertexBuffer;
+//     private VkDeviceMemory _vertexBufferMemory;
+//     private VkBuffer _indexBuffer;
+//     private VkDeviceMemory _indexBufferMemory;
+//     private VkBuffer _projMatrixBuffer;
+//     private VkDeviceMemory _projMatrixBufferMemory;
+//     private uint _fontTextureID;
+//     private VkShaderModule _vertexShader;
+//     private VkShaderModule _fragmentShader;
 //     private ResourceSet _mainResourceSet;
 //     private ResourceSet _fontTextureResourceSet;
+//
+//     private ImGuiVertexAttribute vertexAttribute = new ImGuiVertexAttribute();
 //
 //     private IntPtr _fontAtlasID = (IntPtr)1;
 //     private bool _controlDown;
@@ -50,10 +56,17 @@
 //     private readonly List<IDisposable> _ownedResources = new List<IDisposable>();
 //     private int _lastAssignedID = 100;
 //
+//     private struct ImGuiVertexAttribute
+//     {
+//         public Vector2 in_position;
+//         public Vector2 in_texCoord;
+//         public Vector2 in_color;
+//     }
+//
 //     /// <summary>
 //     /// Constructs a new ImGuiController.
 //     /// </summary>
-//     public ImGuiController(OutputDescription outputDescription, int width, int height)
+//     public ImGuiController(ref VulkanRenderer vulkanRenderer, int width, int height)
 //     {
 //         _windowWidth = width;
 //         _windowHeight = height;
@@ -64,7 +77,7 @@
 //         ImGui.GetIO().Fonts.AddFontDefault();
 //         ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 //
-//         CreateDeviceResources(outputDescription);
+//         CreateDeviceResources(ref vulkanRenderer);
 //         SetKeyMappings();
 //
 //         SetPerFrameImGuiData(1f / 60f);
@@ -84,29 +97,49 @@
 //         Dispose();
 //     }
 //
-//     public void CreateDeviceResources(OutputDescription outputDescription)
+//     public void CreateDeviceResources(ref VulkanRenderer vulkanRenderer)
 //     {
-//         _vertexBuffer = factory.CreateBuffer(new BufferDescription(10000, BufferUsage.VertexBuffer | BufferUsage.Dynamic));
-//         _vertexBuffer.Name = "ImGui.NET Vertex Buffer";
-//         _indexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.Dynamic));
-//         _indexBuffer.Name = "ImGui.NET Index Buffer";
-//         RecreateFontDeviceTexture(gd);
+//         VulkanUtilities.CreateBuffer(
+//             10000, VkBufferUsageFlags.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+//             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+//             out _vertexBuffer, out _vertexBufferMemory
+//         );
+//         
+//         VulkanUtilities.CreateBuffer(
+//             1000, VkBufferUsageFlags.VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+//             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags. VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+//             out _indexBuffer, out _indexBufferMemory
+//         );
 //
-//         _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
-//         _projMatrixBuffer.Name = "ImGui.NET Projection Buffer";
+//         VulkanUtilities.CreateBuffer(
+//             64, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+//             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+//             out _projMatrixBuffer, out _projMatrixBufferMemory
+//         );
+//         
+//         RecreateFontDeviceTexture(ref vulkanRenderer);
 //
-//         byte[] vertexShaderBytes = LoadEmbeddedShaderCode(gd.ResourceFactory, "imgui-vertex", ShaderStages.Vertex);
-//         byte[] fragmentShaderBytes = LoadEmbeddedShaderCode(gd.ResourceFactory, "imgui-frag", ShaderStages.Fragment);
-//         _vertexShader = factory.CreateShader(new ShaderDescription(ShaderStages.Vertex, vertexShaderBytes, gd.BackendType == GraphicsBackend.Metal ? "VS" : "main"));
-//         _fragmentShader = factory.CreateShader(new ShaderDescription(ShaderStages.Fragment, fragmentShaderBytes, gd.BackendType == GraphicsBackend.Metal ? "FS" : "main"));
+//         _vertexShader = VulkanUtilities.CreateShaderModule("Shaders/imgui-vertex.spv");
+//         _fragmentShader = VulkanUtilities.CreateShaderModule("Shaders/imgui-frag.spv");
+//         
+//         VkVertexInputAttributeDescription* attributeDescriptions = stackalloc VkVertexInputAttributeDescription[3];
 //
-//         VertexLayoutDescription[] vertexLayouts = new VertexLayoutDescription[]
-//         {
-//             new VertexLayoutDescription(
-//                 new VertexElementDescription("in_position", VertexElementSemantic.Position, VertexElementFormat.Float2),
-//                 new VertexElementDescription("in_texCoord", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-//                 new VertexElementDescription("in_color", VertexElementSemantic.Color, VertexElementFormat.Byte4_Norm))
-//         };
+//         attributeDescriptions[0].binding = 0;
+//         attributeDescriptions[0].location = 0;
+//         attributeDescriptions[0].format = VkFormat.VK_FORMAT_R32G32_SFLOAT;
+//         attributeDescriptions[0].offset = (uint) Marshal.OffsetOf(typeof(ImGuiVertexAttribute), "in_position");
+//
+//         // Set up for the "normal" property
+//         attributeDescriptions[1].binding = 0;
+//         attributeDescriptions[1].location = 1;
+//         attributeDescriptions[1].format = VkFormat.VK_FORMAT_R32G32_SFLOAT;
+//         attributeDescriptions[1].offset = (uint) Marshal.OffsetOf(typeof(ImGuiVertexAttribute), "in_texCoord");
+//         
+//         // Set up for the "textureCoordinates" property
+//         attributeDescriptions[2].binding = 0;
+//         attributeDescriptions[2].location = 2;
+//         attributeDescriptions[2].format = VkFormat.VK_FORMAT_R32G32_SFLOAT;
+//         attributeDescriptions[2].offset = (uint) Marshal.OffsetOf(typeof(ImGuiVertexAttribute), "in_color");
 //
 //         _layout = factory.CreateResourceLayout(new ResourceLayoutDescription(
 //             new ResourceLayoutElementDescription("ProjectionMatrixBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
@@ -243,7 +276,7 @@
 //     /// <summary>
 //     /// Recreates the device texture used to render text.
 //     /// </summary>
-//     public void RecreateFontDeviceTexture(GraphicsDevice gd)
+//     public void RecreateFontDeviceTexture(ref VulkanRenderer vulkanRenderer)
 //     {
 //         ImGuiIOPtr io = ImGui.GetIO();
 //         // Build
@@ -253,27 +286,7 @@
 //         // Store our identifier
 //         io.Fonts.SetTexID(_fontAtlasID);
 //
-//         _fontTexture = gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
-//             (uint)width,
-//             (uint)height,
-//             1,
-//             1,
-//             PixelFormat.R8_G8_B8_A8_UNorm,
-//             TextureUsage.Sampled));
-//         _fontTexture.Name = "ImGui.NET Font Texture";
-//         gd.UpdateTexture(
-//             _fontTexture,
-//             pixels,
-//             (uint)(bytesPerPixel * width * height),
-//             0,
-//             0,
-//             0,
-//             (uint)width,
-//             (uint)height,
-//             1,
-//             0,
-//             0);
-//         _fontTextureView = gd.ResourceFactory.CreateTextureView(_fontTexture);
+//         var _fontTextureID = vulkanRenderer.CreateTexture(pixels, width, height);
 //
 //         io.Fonts.ClearTexData();
 //     }

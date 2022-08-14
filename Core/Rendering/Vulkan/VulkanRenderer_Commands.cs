@@ -136,8 +136,8 @@ public unsafe partial class VulkanRenderer
         
         ulong* offsets = stackalloc ulong[] { 0 };
         VkBuffer* vertexBuffers = stackalloc VkBuffer[1]; 
-        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[3];
-        
+        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[2];
+
         foreach (var mesh in World.meshes)
         {
             // Define a pointer to the vertex buffer
@@ -151,11 +151,20 @@ public unsafe partial class VulkanRenderer
 
             // Get the push constant model of the current mesh and push it to shader
             VertexPushConstant vertexPushConstantData = mesh.GetVertexPushConstantData();
+            // FragmentPushConstant fragmentPushConstantData = mesh.GetFragmentPushConstantData();
+
             VulkanNative.vkCmdPushConstants(
                 givenCommandBuffer, this.graphicsPipelineLayout,
                 VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT, 0,
-                meshModelSize, &vertexPushConstantData);
+                vertexPushConstantSize, &vertexPushConstantData
+            );
 
+            // VulkanNative.vkCmdPushConstants(
+            //     givenCommandBuffer, this.graphicsPipelineLayout,
+            //     VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT, vertexPushConstantSize,
+            //     fragmentPushConstantSize, &fragmentPushConstantData
+            // );
+            
             descriptorSetsPtr[0] = uniformDescriptorSets[currentFrame];
             descriptorSetsPtr[1] = samplerDescriptorSets[mesh.textureID];
             

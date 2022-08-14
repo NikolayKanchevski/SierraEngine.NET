@@ -15,8 +15,8 @@ public unsafe partial class VulkanRenderer
     private void CreateGraphicsPipeline()
     {
         // Create shader modules out of the read shader
-        VkShaderModule vertShaderModule = CreateShaderModule("Shaders/shader.vert.spv");
-        VkShaderModule fragShaderModule = CreateShaderModule("Shaders/shader.frag.spv");
+        VkShaderModule vertShaderModule = VulkanUtilities.CreateShaderModule("Shaders/shader.vert.spv");
+        VkShaderModule fragShaderModule = VulkanUtilities.CreateShaderModule("Shaders/shader.frag.spv");
 
         // Set vertex shader properties
         VkPipelineShaderStageCreateInfo vertShaderStageInfo = new VkPipelineShaderStageCreateInfo()
@@ -193,7 +193,7 @@ public unsafe partial class VulkanRenderer
         };
 
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.descriptorSetLayout, this.descriptorSetLayout, this.descriptorSetLayout };
-        VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.vertPushConstantRange };
+        VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.vertexPushConstantRange, this.fragmentPushConstantRange };
 
         // Set pipeline layout creation info
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
@@ -201,7 +201,7 @@ public unsafe partial class VulkanRenderer
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             setLayoutCount = 3,
             pSetLayouts = descriptorSetLayoutsPtr,
-            pushConstantRangeCount = 1,
+            pushConstantRangeCount = 2,
             pPushConstantRanges = pushConstantRangesPtr
         };
 

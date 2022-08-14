@@ -127,8 +127,12 @@ public unsafe partial class VulkanRenderer
         CreateImGuiContext();
 
         CreateSynchronisation();
+        
+        CreateTexture("Textures/null.jpg");
 
-        Mesh mesh = new Mesh(vertices, indices, CreateTexture("Textures/lamp.png"));
+        Mesh mesh = new Mesh(vertices, indices);
+        mesh.SetTexture(CreateTexture("Textures/lamp.png"));
+        
         MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
     }
 

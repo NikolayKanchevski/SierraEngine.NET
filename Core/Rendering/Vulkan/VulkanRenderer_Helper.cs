@@ -291,31 +291,4 @@ public unsafe partial class VulkanRenderer
         // Return the manually created extent
         return createdExtent;
     }
-
-    private VkShaderModule CreateShaderModule(string fileName)
-    {
-        // Read bytes from the given file
-        var shaderByteCode = File.ReadAllBytes(fileName);
-
-        // Set module creation info
-        VkShaderModuleCreateInfo moduleCreateInfo = new VkShaderModuleCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            codeSize = (UIntPtr) shaderByteCode.Length,
-        };
-
-        fixed (byte* shaderByteCodePtr = shaderByteCode)
-        {
-            moduleCreateInfo.pCode = (uint*) shaderByteCodePtr;
-        }
-
-        // Create shader module
-        VkShaderModule shaderModule;
-        if (VulkanNative.vkCreateShaderModule(this.logicalDevice, &moduleCreateInfo, null, &shaderModule) != VkResult.VK_SUCCESS)
-        {
-            VulkanDebugger.ThrowError($"Failed to create shader module for [{ fileName }]");
-        }
-
-        return shaderModule;
-    }
 }

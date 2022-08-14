@@ -54,6 +54,33 @@ public static unsafe class VulkanUtilities
         return (array == null || array.Length == 0);
     }
     
+    public static VkShaderModule CreateShaderModule(string fileName)
+    {
+        // Read bytes from the given file
+        var shaderByteCode = File.ReadAllBytes(fileName);
+
+        // Set module creation info
+        VkShaderModuleCreateInfo moduleCreateInfo = new VkShaderModuleCreateInfo()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            codeSize = (UIntPtr) shaderByteCode.Length,
+        };
+
+        fixed (byte* shaderByteCodePtr = shaderByteCode)
+        {
+            moduleCreateInfo.pCode = (uint*) shaderByteCodePtr;
+        }
+
+        // Create shader module
+        VkShaderModule shaderModule;
+        if (VulkanNative.vkCreateShaderModule(VulkanCore.logicalDevice, &moduleCreateInfo, null, &shaderModule) != VkResult.VK_SUCCESS)
+        {
+            VulkanDebugger.ThrowError($"Failed to create shader module for [{ fileName }]");
+        }
+
+        return shaderModule;
+    }
+    
     public static void CreateBuffer(ulong size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, out VkBuffer buffer, out VkDeviceMemory memory)
     {
         VkBufferCreateInfo bufferCreateInfo = new VkBufferCreateInfo()

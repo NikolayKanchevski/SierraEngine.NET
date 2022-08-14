@@ -12,9 +12,10 @@ public unsafe class Mesh : Component
     public string meshName = "None";
     public uint verticesCount { get; private set; }
     public uint indexCount { get; private set; }
-    public int textureID { get; private set; }
+    public int textureID { get; private set; } = 0;
 
     private VertexPushConstant vertexPushConstantData = new VertexPushConstant();
+    private FragmentPushConstant fragmentPushConstantData = new FragmentPushConstant();
     
     private VkBuffer vertexBuffer;
     private VkDeviceMemory vertexBufferMemory;
@@ -107,8 +108,44 @@ public unsafe class Mesh : Component
     //
     //     return new Mesh(vertices, indices, textureID);
     // }
+
+    public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newTextureID)
+    {
+        // Retrieve the public values
+        this.verticesCount = (uint) givenVertices.Length;
+        this.indexCount = (uint) givenIndices.Length;
+        this.textureID = newTextureID;
+
+        // Create buffers
+        CreateVertexBuffer(in givenVertices);
+        CreateIndexBuffer(in givenIndices);
+        
+        // Add the mesh to the world
+        World.meshes.Add(this);
+        VulkanRendererInfo.verticesDrawn += (int) verticesCount;
+    }
+
+    public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices)
+    {
+        // Retrieve the public values
+        this.verticesCount = (uint) givenVertices.Length;
+        this.indexCount = (uint) givenIndices.Length;
+
+        // Create buffers
+        CreateVertexBuffer(in givenVertices);
+        CreateIndexBuffer(in givenIndices);
+        
+        // Add the mesh to the world
+        World.meshes.Add(this);
+        VulkanRendererInfo.verticesDrawn += (int) verticesCount;
+    }
+
+    public void SetTexture(in int newTextureID)
+    {
+        this.textureID = newTextureID;
+    }
     
-    public static Mesh CreateSphere(in float radius, in int sectorCount, in int stackCount, in int newTextureID, bool renderBackFace = false)
+    public static Mesh CreateSphere(in float radius, in int sectorCount, in int stackCount, bool renderBackFace = false)
     {
        List<Vertex> vertices = new ();
 
@@ -187,23 +224,7 @@ public unsafe class Mesh : Component
             }
         }
 
-        return new Mesh(vertices.ToArray(), indices.ToArray(), newTextureID);
-    }
-
-    public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newTextureID)
-    {
-        // Retrieve the public values
-        this.verticesCount = (uint) givenVertices.Length;
-        this.indexCount = (uint) givenIndices.Length;
-        this.textureID = newTextureID;
-
-        // Create buffers
-        CreateVertexBuffer(in givenVertices);
-        CreateIndexBuffer(in givenIndices);
-        
-        // Add the mesh to the world
-        World.meshes.Add(this);
-        VulkanRendererInfo.verticesDrawn += (int) verticesCount;
+        return new Mesh(vertices.ToArray(), indices.ToArray());
     }
 
     public VertexPushConstant GetVertexPushConstantData()
@@ -213,12 +234,19 @@ public unsafe class Mesh : Component
         Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(transform.rotation.X) * Matrix4x4.CreateRotationY(transform.rotation.Y) * Matrix4x4.CreateRotationZ(transform.rotation.Z);
         Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(transform.scale);
         vertexPushConstantData.modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
-
-        // Set proportional scale bool
-        // vertexPushConstantData.proportionalScale = transform.scale.X == transform.scale.Y && transform.scale.Y == transform.scale.Z && transform.scale.Z == transform.scale.X;
         
         // Return it
         return this.vertexPushConstantData;
+    }
+
+    public FragmentPushConstant GetFragmentPushConstantData()
+    {
+        Vector4 newData = new Vector4();
+        newData.X = Convert.ToUInt32(transform.scale.X == transform.scale.Y && transform.scale.Y == transform.scale.Z && transform.scale.Z == transform.scale.X);
+
+        this.fragmentPushConstantData.data = newData;
+
+        return this.fragmentPushConstantData;
     }
 
     public VkBuffer GetVertexBuffer()
@@ -245,6 +273,7 @@ public unsafe class Mesh : Component
         VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, indexBuffer, null);
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, indexBufferMemory, null);
     }
+    
     private void CreateVertexBuffer(in Vertex[] vertices)
     {
         VulkanUtilities.CreateVertexBuffer(vertices, out vertexBuffer, out vertexBufferMemory);
@@ -254,9 +283,4 @@ public unsafe class Mesh : Component
     {
         VulkanUtilities.CreateIndexBuffer(indices, out indexBuffer, out indexBufferMemory);
     }
-}
-
-public struct VertexPushConstant
-{
-    public Matrix4x4 modelMatrix;
 }

@@ -18,6 +18,10 @@ layout(set = 0, binding = 0) uniform UniformBuffer {
 
 layout(set = 1, binding = 1) uniform sampler2D textureSampler;
 
+//layout(push_constant) uniform PushConstant {
+//        vec4 data;
+//} pushConstant;
+
 layout(location = 0) out vec4 outColor;
 
 const float AMBIENT_STRENGTH = 0.1f;
@@ -29,6 +33,11 @@ void main() {
         // mat3 normalMatrix = transpose(inverse(mat3(fromVert_ModelMatrix)));
         // vec3 normalWorldSpace = normalize(normalMatrix * fromVert_Normal);
 
+//        if (pushConstant.data.x == 1.0) {
+//                outColor = vec4(1.0, 0.0, 0.0, 1.0);
+//                return;
+//        }
+        
         // Get the texture color
         vec3 textureColor = (uniformBuffer.lightColor * texture(textureSampler, fromVert_TextureCoordinates).rgb) * uniformBuffer.lightIntensity;
         
