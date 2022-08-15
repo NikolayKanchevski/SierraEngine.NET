@@ -193,7 +193,7 @@ public unsafe partial class VulkanRenderer
         };
 
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { this.descriptorSetLayout, this.descriptorSetLayout, this.descriptorSetLayout };
-        VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.vertexPushConstantRange, this.fragmentPushConstantRange };
+        VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.pushConstantRange };
 
         // Set pipeline layout creation info
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
@@ -201,7 +201,7 @@ public unsafe partial class VulkanRenderer
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             setLayoutCount = 3,
             pSetLayouts = descriptorSetLayoutsPtr,
-            pushConstantRangeCount = 2,
+            pushConstantRangeCount = 1,
             pPushConstantRanges = pushConstantRangesPtr
         };
 

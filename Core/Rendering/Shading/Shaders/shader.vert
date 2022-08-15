@@ -10,19 +10,32 @@ layout(set = 0, binding = 0) uniform UniformBuffer {
     mat4 projection;
 
     /* FRAGMENT DATA */
-    vec3 directionToLight;
-    float lightIntensity;
+    vec3 lightPosition;
+    float _align1_;
+
     vec3 lightColor;
+    float _align2_;
+
+    vec3 lightAmbient;
+    float _align3_;
+
+    vec3 lightDiffuse;
+    float _align4_;
+
+    vec3 lightSpecular;
 } uniformBuffer; 
 
 layout(push_constant) uniform PushConstant {
+    /* VERTEX DATA */
     mat4 model;
+    
+    /* FRAGMENT DATA */
+    float shininess;
 } pushConstant;
 
 layout(location = 0) out vec3 toFrag_Position;
 layout(location = 1) out vec3 toFrag_Normal;
 layout(location = 2) out vec2 toFrag_TextureCoordinates;
-layout(location = 3) out mat4 foFrag_ModelMatrix;
 
 void main() {
     // Set the position of the vertex in world space
@@ -32,5 +45,4 @@ void main() {
     toFrag_Position = fromCode_Position;
     toFrag_Normal = fromCode_Normal;
     toFrag_TextureCoordinates = fromCode_TextureCoordinates;
-    foFrag_ModelMatrix = pushConstant.model;
 }

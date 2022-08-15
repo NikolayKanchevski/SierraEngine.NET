@@ -10,7 +10,9 @@ public unsafe partial class VulkanRenderer
     // private VkDescriptorPool imGuiDescriptorPool;
     
     private VkDescriptorSet[] uniformDescriptorSets = null!;
-    private readonly List<VkDescriptorSet> samplerDescriptorSets = new List<VkDescriptorSet>();
+    
+    private List<VkDescriptorSet> diffuseTextureDescriptorSets = new List<VkDescriptorSet>((int) MAX_TEXTURES);
+    private List<VkDescriptorSet> specularTextureDescriptorSets = new List<VkDescriptorSet>((int) MAX_TEXTURES);
     
     private void CreateDescriptorSetLayout()
     {
@@ -31,15 +33,24 @@ public unsafe partial class VulkanRenderer
             descriptorCount = 1,
             stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
         };
+        
+        // Set up fragment texture sampler binding info
+        VkDescriptorSetLayoutBinding fragmentSpecularSamplerBinding = new VkDescriptorSetLayoutBinding()
+        {
+            binding = 2,
+            descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            descriptorCount = 1,
+            stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT
+        };
 
         // Collect all layout bindings in a single pointer array
-        VkDescriptorSetLayoutBinding* descriptorSetLayoutBindingsPtr = stackalloc VkDescriptorSetLayoutBinding[] { uniformBinding, fragmentTextureSamplerBinding };
+        VkDescriptorSetLayoutBinding* descriptorSetLayoutBindingsPtr = stackalloc VkDescriptorSetLayoutBinding[] { uniformBinding, fragmentTextureSamplerBinding, fragmentSpecularSamplerBinding };
         
         // Set up descriptor layout creation info
         VkDescriptorSetLayoutCreateInfo uniformDescriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            bindingCount = 2,
+            bindingCount = 3,
             pBindings = descriptorSetLayoutBindingsPtr
         };
 
@@ -55,7 +66,7 @@ public unsafe partial class VulkanRenderer
     
     private void CreateDescriptorPool()
     {
-        uint descriptorCount = MAX_CONCURRENT_FRAMES + MAX_TEXTURES;
+        uint descriptorCount = MAX_CONCURRENT_FRAMES + (MAX_TEXTURES * 2);
         
         // Set up uniform buffer's pool size info
         VkDescriptorPoolSize uniformPoolSize = new VkDescriptorPoolSize()
@@ -78,7 +89,7 @@ public unsafe partial class VulkanRenderer
         VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            maxSets = MAX_CONCURRENT_FRAMES + MAX_TEXTURES,
+            maxSets = descriptorCount,
             poolSizeCount = 2,
             pPoolSizes = descriptorPoolSizesPtr
         };
@@ -194,7 +205,7 @@ public unsafe partial class VulkanRenderer
         }
     }
 
-    private int CreateTextureDescriptorSet(in VkImageView textureImageView)
+    private int CreateTextureDescriptorSet(in VkImageView textureImageView, ref List<VkDescriptorSet> textureDescriptorSetsList, in TextureType textureType)
     {
         // Create empty descriptor set
         VkDescriptorSet textureDescriptorSet;
@@ -230,7 +241,7 @@ public unsafe partial class VulkanRenderer
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             dstSet = textureDescriptorSet,
-            dstBinding = 1,
+            dstBinding = TextureTypeToBinding(textureType),
             dstArrayElement = 0,
             descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             descriptorCount = 1,
@@ -241,9 +252,14 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkUpdateDescriptorSets(this.logicalDevice, 1, &textureSamplerWriteDescriptorSet, 0, null);
 
         // Add the newly created descriptor set to the list
-        samplerDescriptorSets.Add(textureDescriptorSet);
-
+        textureDescriptorSetsList.Add(textureDescriptorSet);
+        
         // Return the ID of the newly created descriptor set
-        return samplerDescriptorSets.Count - 1;
+        return textureDescriptorSetsList.Count - 1;
+    }
+
+    private uint TextureTypeToBinding(in TextureType textureType)
+    {
+        return Convert.ToUInt32(textureType) + 1;
     }
 }

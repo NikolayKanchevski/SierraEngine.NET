@@ -37,6 +37,11 @@ public static unsafe class VulkanUtilities
     {
         return new Vector3(givenVector.X, givenVector.Y, givenVector.Z);
     }
+    
+    public static Vector3 ToVector3(this Assimp.Color4D givenVector)
+    {
+        return new Vector3(givenVector.R, givenVector.G, givenVector.B);
+    }
 
     public static string GetString(byte* stringStart)
     {

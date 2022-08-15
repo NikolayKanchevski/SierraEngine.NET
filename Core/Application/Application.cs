@@ -14,6 +14,8 @@ public class Application
     private readonly Window window;
 
     private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
+    private readonly DirectionalLight directionalLight = (new GameObject("Directional Light").AddComponent(new DirectionalLight()) as DirectionalLight)!;
+    
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
@@ -57,6 +59,8 @@ public class Application
         HandleCameraMovement();
 
         UpdateObjects();
+        
+        UpdateRenderer();
 
         window.SetTitle($"Sierra Engine | FPS: { Time.FPS.ToString().PadLeft(4, '0') } | GPU Draw Time: { VulkanRendererInfo.drawTime.ToString("n9") }ms");
     }
@@ -119,33 +123,46 @@ public class Application
         newCameraFrontDirection.Y = (float) (Math.Sin(Radians(pitch)));
         newCameraFrontDirection.Z = (float) (Math.Sin(Radians(yaw)) * Math.Cos(Radians(pitch)));
         camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
-
-        window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
-        window.vulkanRenderer!.uniformData.projection.M11 *= -1;
     }
 
     private void UpdateObjects()
     {
         float upTimeCos = (float) Math.Cos(Time.upTime);
+        float upTimeSin = (float) Math.Sin(Time.upTime);
 
-        const float RADIUS = 8.0f;
-        float lightX = (float) Math.Sin(Time.upTime) * RADIUS;
-        float lightY= (float) -Math.Sin(Time.upTime) * RADIUS;
-        float lightZ = (float) Math.Cos(Time.upTime) * RADIUS;
+        const float RADIUS = 12.0f;
+        float lightX = upTimeSin * RADIUS;
+        float lightY = -upTimeSin * RADIUS;
+        float lightZ = upTimeCos * RADIUS;
         
         Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
+        
+        directionalLight.transform.position = lightPosition;
+        directionalLight.color = Vector3.One;
+        
+        directionalLight.ambient = new Vector3(0.125f);
+        directionalLight.diffuse = new Vector3(0.5f);
+        directionalLight.specular = new Vector3(0.25f);
 
         World.meshes[0].transform.position = lightPosition;
         
-        window.vulkanRenderer!.uniformData.lightPosition = lightPosition;
-        window.vulkanRenderer!.uniformData.lightIntensity = 1.0f;
-        window.vulkanRenderer!.uniformData.lightColor = Vector3.One;
-
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
     }
 
+    private void UpdateRenderer()
+    {
+        window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Radians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.uniformData.projection.M11 *= -1;
+        
+        window.vulkanRenderer!.uniformData.lightPosition = directionalLight.transform.position;
+        window.vulkanRenderer!.uniformData.lightColor = directionalLight.color;
+        window.vulkanRenderer!.uniformData.lightDiffuse = directionalLight.diffuse;
+        window.vulkanRenderer!.uniformData.lightAmbient = directionalLight.ambient;
+        window.vulkanRenderer!.uniformData.lightSpecular = directionalLight.specular;
+    }
+    
     private float Radians(in float degrees)
     {
         return (float) (Math.PI / 180) * degrees;

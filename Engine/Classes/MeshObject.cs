@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Assimp;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Engine.Classes;
+using Mesh = SierraEngine.Engine.Components.Mesh;
+using TextureType = SierraEngine.Core.Rendering.Vulkan.TextureType;
 
-namespace SierraEngine.Engine.Components;
+namespace SierraEngine.Engine.Classes;
 
 public class MeshObject
 {
@@ -13,8 +13,8 @@ public class MeshObject
     public readonly uint verticesCount;
     public readonly string modelLocation;
 
-    private readonly string[] materialFileNames = null!;
-    // private readonly EmbeddedTexture[] embeddedTextures = null!;
+    private readonly string[] diffuseTextureFileNames = null!;
+    private readonly string[] specularTextureFileNames = null!;
     
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
     {
@@ -55,16 +55,21 @@ public class MeshObject
             
             if (model.HasMaterials)
             {
-                materialFileNames = new string[model.MaterialCount];
+                diffuseTextureFileNames = new string[model.MaterialCount];
+                specularTextureFileNames = new string[model.MaterialCount];
         
                 for (int j = 0; j < model.MaterialCount; j++)
                 {
-                    if (model.Materials[j].GetMaterialTexture(TextureType.Diffuse, 0, out TextureSlot textureSlot))
+                    if (model.Materials[j].GetMaterialTexture(Assimp.TextureType.Diffuse, 0, out TextureSlot diffuseTextureSlot))
                     {
-                        // materialFileNames[j] = textureSlot.FilePath[..textureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal)];
-                        // Console.WriteLine(materialFileNames[j]);
-                        int materialPathIdx = textureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal) + 1;
-                        materialFileNames[j] = textureSlot.FilePath[materialPathIdx..];
+                        int diffusePathIdx = diffuseTextureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal) + 1;
+                        diffuseTextureFileNames[j] = diffuseTextureSlot.FilePath[diffusePathIdx..];
+                    }
+                    
+                    if (model.Materials[j].GetMaterialTexture(Assimp.TextureType.Specular, 0, out TextureSlot specularTextureSlot))
+                    {
+                        int specularPathIdx = specularTextureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal) + 1;
+                        specularTextureFileNames[j] = specularTextureSlot.FilePath[specularPathIdx..]; 
                     }
                 }
             }
@@ -72,12 +77,25 @@ public class MeshObject
             {
                 VulkanDebugger.ThrowError($"No textures/materials found in {fileName}");
             }
-            
-            string currentTexturePath = Files.FindInSubdirectories(fileName[..idx] + "/", materialFileNames[currentAssimpMesh.MaterialIndex]);
 
-            if (currentTexturePath == null || currentTexturePath.Trim() == "") continue;
-        
-            this.meshes[i] = new Mesh(vertices, indices, vulkanRenderer.CreateTexture(currentTexturePath));
+            string currentDiffuseTexturePath = Files.FindInSubdirectories(fileName[..idx] + "/", diffuseTextureFileNames[currentAssimpMesh.MaterialIndex]);
+
+            this.meshes[i] = new Mesh(vertices, indices);
+
+            if (currentDiffuseTexturePath != null && currentDiffuseTexturePath.Trim() != "")
+            {
+                this.meshes[i].SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture(currentDiffuseTexturePath, TextureType.Diffuse));
+            }
+
+            string currentSpecularTexturePath = Files.FindInSubdirectories(fileName[..idx] + "/", specularTextureFileNames[currentAssimpMesh.MaterialIndex]);
+
+            if (currentSpecularTexturePath != null && currentSpecularTexturePath.Trim() != "")
+            {
+                this.meshes[i].SetTexture(TextureType.Specular, vulkanRenderer.CreateTexture(currentSpecularTexturePath, TextureType.Specular));
+            }
+
+            this.meshes[i].material.shininess = model.Materials[currentAssimpMesh.MaterialIndex].Shininess;
+
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }
         

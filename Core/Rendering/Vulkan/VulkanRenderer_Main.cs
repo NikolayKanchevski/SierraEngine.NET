@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Core.Application;
+using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
@@ -10,77 +11,78 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     #region VARIABLES
+    
     private readonly Window window;
         
-        private readonly Vertex[] vertices = new Vertex[]
+    private readonly Vertex[] vertices = new Vertex[]
+    {
+        new Vertex()
         {
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, -1.0f, -1.0f),
-                normal = new Vector3(0, 0, 1),
-                // color = new Vector3(1.0f, 0.0f, 0.0f),
-                textureCoordinates = new Vector2(0.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, -1.0f, -1.0f),
-                normal = new Vector3(1, 0, 0),
-                // color = new Vector3(1.0f, 1.0f, 0.0f),
-                textureCoordinates = new Vector2(1.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, 1.0f, -1.0f),
-                normal = new Vector3(0, 0, -1),
-                // color = new Vector3(1.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(1.0f, 1.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, 1.0f, -1.0f),
-                normal = new Vector3(-1, 0, 0),
-                // color = new Vector3(0.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(0.0f, 1.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, -1.0f, 1.0f),
-                normal = new Vector3(0, 1, 0),
-                // color = new Vector3(1.0f, 0.0f, 0.0f),
-                textureCoordinates = new Vector2(0.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, -1.0f, 1.0f),
-                // color = new Vector3(1.0f, 1.0f, 0.0f),
-                normal = new Vector3(0, -1, 0),
-                textureCoordinates = new Vector2(1.0f, 0.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(1.0f, 1.0f, 1.0f),
-                normal = new Vector3(0, 0, 1),
-                // color = new Vector3(1.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(1.0f, 1.0f)
-            },
-            new Vertex()
-            {
-                position = new Vector3(-1.0f, 1.0f, 1.0f),
-                normal = new Vector3(1, 0, 0),
-                // color = new Vector3(0.0f, 1.0f, 1.0f),
-                textureCoordinates = new Vector2(0.0f, 1.0f)
-            }
-        };
+            position = new Vector3(-1.0f, -1.0f, -1.0f),
+            normal = new Vector3(0, 0, 1),
+            // color = new Vector3(1.0f, 0.0f, 0.0f),
+            textureCoordinates = new Vector2(0.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, -1.0f, -1.0f),
+            normal = new Vector3(1, 0, 0),
+            // color = new Vector3(1.0f, 1.0f, 0.0f),
+            textureCoordinates = new Vector2(1.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, 1.0f, -1.0f),
+            normal = new Vector3(0, 0, -1),
+            // color = new Vector3(1.0f, 1.0f, 1.0f),
+            textureCoordinates = new Vector2(1.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, 1.0f, -1.0f),
+            normal = new Vector3(-1, 0, 0),
+            // color = new Vector3(0.0f, 1.0f, 1.0f),
+            textureCoordinates = new Vector2(0.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, -1.0f, 1.0f),
+            normal = new Vector3(0, 1, 0),
+            // color = new Vector3(1.0f, 0.0f, 0.0f),
+            textureCoordinates = new Vector2(0.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, -1.0f, 1.0f),
+            // color = new Vector3(1.0f, 1.0f, 0.0f),
+            normal = new Vector3(0, -1, 0),
+            textureCoordinates = new Vector2(1.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, 1.0f, 1.0f),
+            normal = new Vector3(0, 0, 1),
+            // color = new Vector3(1.0f, 1.0f, 1.0f),
+            textureCoordinates = new Vector2(1.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, 1.0f, 1.0f),
+            normal = new Vector3(1, 0, 0),
+            // color = new Vector3(0.0f, 1.0f, 1.0f),
+            textureCoordinates = new Vector2(0.0f, 1.0f)
+        }
+    };
 
-        private readonly UInt32[] indices = new UInt32[]
-        {
-            0, 1, 3, 3, 1, 2,
-            1, 5, 2, 2, 5, 6,
-            5, 4, 6, 6, 4, 7,
-            4, 0, 7, 7, 0, 3,
-            3, 2, 7, 7, 2, 6,
-            4, 5, 0, 0, 5, 1
-        };
+    private readonly UInt32[] indices = new UInt32[]
+    {
+        0, 1, 3, 3, 1, 2,
+        1, 5, 2, 2, 5, 6,
+        5, 4, 6, 6, 4, 7,
+        4, 0, 7, 7, 0, 3,
+        3, 2, 7, 7, 2, 6,
+        4, 5, 0, 0, 5, 1
+    };
 
     #endregion
     
@@ -94,7 +96,7 @@ public unsafe partial class VulkanRenderer
     private void Init()
     {
         CreateInstance();
-        // CreateDebugMessenger();
+        CreateDebugMessenger();
         CreateWindowSurface();
         
         GetPhysicalDevice();
@@ -127,11 +129,16 @@ public unsafe partial class VulkanRenderer
         CreateImGuiContext();
 
         CreateSynchronisation();
-        
-        CreateTexture("Textures/null.jpg");
 
+        CreateNullTextures();
+        
+        Start();
+    }
+
+    private void Start()
+    {
         Mesh mesh = new Mesh(vertices, indices);
-        mesh.SetTexture(CreateTexture("Textures/lamp.png"));
+        mesh.SetTexture(TextureType.Diffuse, CreateTexture("Textures/lamp.png", TextureType.Diffuse));
         
         MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
     }
@@ -150,12 +157,19 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroySampler(this.logicalDevice, this.textureSampler, null);
         
         VulkanNative.vkDestroyQueryPool(this.logicalDevice, this.drawTimeQueryPool, null);
-
-        for (int i = 0; i < this.samplerDescriptorSets.Count; i++)
+        
+        for (int i = 0; i < this.diffuseTextureImages.Count; i++)
         {
-            VulkanNative.vkDestroyImage(this.logicalDevice, this.textureImages[i], null);
-            VulkanNative.vkDestroyImageView(this.logicalDevice, this.textureImageViews[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.textureImageMemories[i], null);
+            VulkanNative.vkDestroyImage(this.logicalDevice, this.diffuseTextureImages[i], null);
+            VulkanNative.vkDestroyImageView(this.logicalDevice, this.diffuseTextureImageViews[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.diffuseTextureImageMemories[i], null);
+        }
+        
+        for (int i = 0; i < this.specularTextureImages.Count; i++)
+        {
+            VulkanNative.vkDestroyImage(this.logicalDevice, this.specularTextureImages[i], null);
+            VulkanNative.vkDestroyImageView(this.logicalDevice, this.specularTextureImageViews[i], null);
+            VulkanNative.vkFreeMemory(this.logicalDevice, this.specularTextureImageMemories[i], null);
         }
         
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);

@@ -136,7 +136,7 @@ public unsafe partial class VulkanRenderer
         
         ulong* offsets = stackalloc ulong[] { 0 };
         VkBuffer* vertexBuffers = stackalloc VkBuffer[1]; 
-        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[2];
+        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[3];
 
         foreach (var mesh in World.meshes)
         {
@@ -150,25 +150,21 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkCmdBindIndexBuffer(givenCommandBuffer, mesh.GetIndexBuffer(), 0, VkIndexType.VK_INDEX_TYPE_UINT32);
 
             // Get the push constant model of the current mesh and push it to shader
-            VertexPushConstant vertexPushConstantData = mesh.GetVertexPushConstantData();
+            PushConstant pushConstantData = mesh.GetPushConstantData();
             // FragmentPushConstant fragmentPushConstantData = mesh.GetFragmentPushConstantData();
 
             VulkanNative.vkCmdPushConstants(
                 givenCommandBuffer, this.graphicsPipelineLayout,
-                VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT, 0,
-                vertexPushConstantSize, &vertexPushConstantData
+                VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT | VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                pushConstantSize, &pushConstantData
             );
-
-            // VulkanNative.vkCmdPushConstants(
-            //     givenCommandBuffer, this.graphicsPipelineLayout,
-            //     VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT, vertexPushConstantSize,
-            //     fragmentPushConstantSize, &fragmentPushConstantData
-            // );
             
             descriptorSetsPtr[0] = uniformDescriptorSets[currentFrame];
-            descriptorSetsPtr[1] = samplerDescriptorSets[mesh.textureID];
+            descriptorSetsPtr[1] = diffuseTextureDescriptorSets[mesh.diffuseTextureID];
+            descriptorSetsPtr[2] = specularTextureDescriptorSets[mesh.specularTextureID];
+            // Console.WriteLine(diffuseTextureDescriptorSets.Count + "  " + specularTextureDescriptorSets.Count);
             
-            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 2, descriptorSetsPtr, 0, null);
+            VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 3, descriptorSetsPtr, 0, null);
 
             // Draw using the index buffer to prevent vertex re-usage
             VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);

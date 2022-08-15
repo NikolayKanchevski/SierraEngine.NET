@@ -188,7 +188,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 4889</p>
-<p align="center" id="LastUpdated">Last updated: 14/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 5578</p>
+<p align="center" id="LastUpdated">Last updated: 16/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

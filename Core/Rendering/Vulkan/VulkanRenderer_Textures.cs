@@ -7,78 +7,70 @@ using StbImageSharp;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
+public enum TextureType { Diffuse, Specular, Normal, Height }
+
 public unsafe partial class VulkanRenderer
 {
-    private readonly List<VkImage> textureImages = new List<VkImage>();
-    private readonly List<VkImageView> textureImageViews = new List<VkImageView>();
-    private readonly List<VkDeviceMemory> textureImageMemories = new List<VkDeviceMemory>();
-    private readonly List<uint> textureMipLevels = new List<uint>();
+    private List<uint> diffuseTextureMipLevels = new List<uint>((int) MAX_TEXTURES);
+    private List<VkImage> diffuseTextureImages = new List<VkImage>((int) MAX_TEXTURES);
+    private List<VkImageView> diffuseTextureImageViews = new List<VkImageView>((int) MAX_TEXTURES);
+    private List<VkDeviceMemory> diffuseTextureImageMemories = new List<VkDeviceMemory>((int) MAX_TEXTURES);
+    
+    private List<uint> specularTextureMipLevels = new List<uint>((int) MAX_TEXTURES);
+    private List<VkImage> specularTextureImages = new List<VkImage>((int) MAX_TEXTURES);
+    private List<VkImageView> specularTextureImageViews = new List<VkImageView>((int) MAX_TEXTURES);
+    private List<VkDeviceMemory> specularTextureImageMemories = new List<VkDeviceMemory>((int) MAX_TEXTURES);
 
     private VkFormat textureImageFormat;
     private VkSampler textureSampler;
+
+    private void CreateNullTextures()
+    {
+        CreateTexture("Textures/Null/DiffuseNull.jpg", TextureType.Diffuse);
+        CreateTexture("Textures/Null/SpecularNull.jpg", TextureType.Specular);
+    }
     
-    public int CreateTexture(string fileName, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    public int CreateTexture(string fileName, TextureType textureType, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
     {
         // Load image data in bytes
         byte[] fileData = File.ReadAllBytes($"{ fileName }");
         ImageResult loadedImage = ImageResult.FromMemory(fileData, colors);
 
-        // Calculate image size based on its size and color channels
-        ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
-        
-        // Get mip levels
-        textureMipLevels.Add((uint) Math.Floor(Math.Log2(Math.Max(loadedImage.Width, loadedImage.Height)) + 1));
-        
-        // Create the vulkan image and its view
-        CreateTextureImage((uint) loadedImage.Width, (uint) loadedImage.Height, colors, imageSize, loadedImage.Data);
-        CreateTextureImageView();
-        
-        // Get the ID of the descriptor set assigned to the texture
-        int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
-        return textureDescriptorSetLocation;
+        if (textureType == TextureType.Diffuse)
+        {
+            return CreateTextureImageResources(
+                loadedImage, ref diffuseTextureMipLevels, 
+                ref diffuseTextureImages, ref diffuseTextureImageViews, ref diffuseTextureImageMemories,
+                ref diffuseTextureDescriptorSets, textureType, colors);
+        }
+        if (textureType == TextureType.Specular)
+        {
+            return CreateTextureImageResources(
+                loadedImage, ref specularTextureMipLevels, 
+                ref specularTextureImages, ref specularTextureImageViews, ref specularTextureImageMemories,
+                ref specularTextureDescriptorSets, textureType, colors);
+        }
+
+        return -1;
     }
 
-    // public int CreateTexture(in IntPtr imageData, int imageWidth, int imageHeight, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
-    // {
-    //     ulong imageSize = (ulong) (imageWidth * imageHeight * GetColorChannelCount(colors));
-    //     
-    //     // Get mip levels
-    //     textureMipLevels.Add((uint) Math.Floor(Math.Log2(Math.Max(imageWidth, imageHeight)) + 1));
-    //     
-    //     // Create the vulkan image and its view
-    //
-    //     byte[] extractedImageData = new byte[10000];
-    //     Marshal.Copy(imageData, extractedImageData, 0, 10000);
-    //     
-    //     CreateTextureImage((uint) imageWidth, (uint) imageHeight, colors, imageSize, extractedImageData);
-    //     CreateTextureImageView();
-    //     
-    //     // Get the ID of the descriptor set assigned to the texture
-    //     int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
-    //     return textureDescriptorSetLocation;
-    // }
+    private int CreateTextureImageResources(
+        in ImageResult loadedImage, ref List<uint> textureMipLevelsList, 
+        ref List<VkImage> textureImagesList, ref List<VkImageView> textureImageViewsList, ref List<VkDeviceMemory> textureImageMemoriesList, 
+        ref List<VkDescriptorSet> textureDescriptorSetsList, in TextureType textureType, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    {
+        uint textureMipLevels = (uint)Math.Floor(Math.Log2(Math.Max(loadedImage.Width, loadedImage.Height)) + 1);
+        textureMipLevelsList.Add(textureMipLevels);
+        
+        ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
 
-    // public int CreateTexture(EmbeddedTexture assimpTexture)
-    // {
-    //     // Load image data in bytes
-    //     // byte[] fileData = File.ReadAllBytes($"{ fileName }");
-    //     // ImageResult loadedImage = ImageResult.FromMemory(fileData, colors);
-    //     byte[] textureData = assimpTexture.CompressedData;
-    //
-    //     // Calculate image size based on its size and color channels
-    //     // ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
-    //     ulong textureSize = (ulong) assimpTexture.CompressedDataSize;
-    //     
-    //     // Create the vulkan image and its view
-    //     CreateTextureImage(assimpTexture.Width, assimpTexture.Height, ColorComponents.RedGreenBlueAlpha, textureSize, textureData);
-    //     CreateTextureImageView();
-    //     
-    //     // Get the ID of the descriptor set assigned to the texture
-    //     int textureDescriptorSetLocation = CreateTextureDescriptorSet(textureImageViews.Last());
-    //     return textureDescriptorSetLocation;
-    // }
+        CreateTextureImage((uint) loadedImage.Width, (uint) loadedImage.Height, colors, imageSize, loadedImage.Data, ref textureMipLevelsList, ref textureImagesList, ref textureImageMemoriesList);
+        CreateTextureImageView(ref textureMipLevelsList, textureImagesList, ref textureImageViewsList);
 
-    private void CreateTextureImage(in uint imageWidth, in uint imageHeight, in ColorComponents colors, in ulong imageSize, in byte[] imageData)
+        return CreateTextureDescriptorSet(textureImageViewsList.Last(), ref textureDescriptorSetsList, textureType);
+    }
+
+    private void CreateTextureImage(in uint imageWidth, in uint imageHeight, in ColorComponents colors, in ulong imageSize, in byte[] imageData, ref List<uint> textureMipLevelsList, ref List<VkImage> textureImagesList, ref List<VkDeviceMemory> textureImageMemories)
     {
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -114,7 +106,7 @@ public unsafe partial class VulkanRenderer
 
         // Create the vulkan image
         VulkanUtilities.CreateImage(
-            imageWidth, imageHeight, textureMipLevels.Last(), VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
+            imageWidth, imageHeight, textureMipLevelsList.Last(), VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
             textureImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
             VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -124,7 +116,7 @@ public unsafe partial class VulkanRenderer
         // Transition its layout so that it can be used for copying
         VulkanUtilities.TransitionImageLayout(
             textureImage, textureImageFormat, 
-            VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipLevels.Last()
+            VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipLevelsList.Last()
         );
         
         // Copy the transitioned image to the staging buffer
@@ -135,7 +127,7 @@ public unsafe partial class VulkanRenderer
         // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
         
         // Add the texture image and its memory to the lists
-        textureImages.Add(textureImage);
+        textureImagesList.Add(textureImage);
         textureImageMemories.Add(textureImageMemory);
 
         // Destroy the staging buffer and free its memory
@@ -143,17 +135,17 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkFreeMemory(this.logicalDevice, stagingBufferMemory, null);
         
         // Generate mip maps for the current texture
-        VulkanUtilities.GenerateMipMaps(textureImage, textureImageFormat, imageWidth, imageHeight, textureMipLevels.Last());
+        VulkanUtilities.GenerateMipMaps(textureImage, textureImageFormat, imageWidth, imageHeight, textureMipLevelsList.Last());
     }
 
-    private void CreateTextureImageView()
+    private void CreateTextureImageView(ref List<uint> textureMipLevelsList, in List<VkImage> textureImagesList, ref List<VkImageView> textureImageViewsList)
     {
         // Create the image view using the proper image format
         VkImageView textureImageView;
-        VulkanUtilities.CreateImageView(textureImages.Last(), textureImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, textureMipLevels.Last(), out textureImageView);
+        VulkanUtilities.CreateImageView(textureImagesList.Last(), textureImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, textureMipLevelsList.Last(), out textureImageView);
         
         // Add the image view to the list
-        textureImageViews.Add(textureImageView);
+        textureImageViewsList.Add(textureImageView);
     }
 
     private void CreateTextureSampler(VkSamplerAddressMode samplerAddressMode = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_REPEAT, float maxAnisotropy = 100.0f, bool applyBilinearFiltering = true)

@@ -12,8 +12,18 @@ public struct UniformData
         
     /* Fragment Uniform Data */
     public Vector3 lightPosition;
-    public float lightIntensity;
+    public float _align1_;
+    
     public Vector3 lightColor;
+    public float _align2_;
+    
+    public Vector3 lightAmbient;
+    public float _align3_;
+    
+    public Vector3 lightDiffuse;
+    public float _align4_;
+    
+    public Vector3 lightSpecular;
 }
 
 public unsafe partial class VulkanRenderer

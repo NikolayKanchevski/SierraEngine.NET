@@ -5,9 +5,9 @@ namespace SierraEngine.Core;
 
 public static class World
 {
-    public static readonly List<Mesh> meshes = new List<Mesh>();
-    public static readonly List<GameObject> hierarchy = new List<GameObject>();
-
+    public static List<Mesh> meshes { get; private set; } = new List<Mesh>(); 
+    public static List<GameObject> hierarchy { get; private set; } = new List<GameObject>();
+    
     public static void PrintHierarchy()
     {
         foreach (GameObject gameObject in hierarchy)
