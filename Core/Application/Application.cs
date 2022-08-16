@@ -148,6 +148,14 @@ public class Application
         
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+        
+        // Screenshot positions:
+        // camera.transform.position = new Vector3(-5.6217723f, -2.8457499f, 10.456295f);
+        // camera.frontDirection = new Vector3(0.4579284f, 0.1376336f, -0.8782702f);
+        // directionalLight.transform.position = new Vector3(7.0500026f, -7.0500026f, 9.710688f);
+        // World.meshes[0].transform.position = new Vector3(1000f, 0.0f, 0.0f);
+        // World.meshes[4].transform.rotation = new Vector3(0.0f, 1 * 0.65f, 0.0f);
+        // World.meshes[5].transform.rotation = new Vector3(0.0f, 1 * 0.65f, 0.0f);
     }
 
     private void UpdateRenderer()

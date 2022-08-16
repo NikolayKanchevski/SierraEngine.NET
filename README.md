@@ -13,12 +13,13 @@ though the engine has only been tested on <b>Windows 10, 11</b> and <b>macOS Mon
 
 ## 🛠️ Building and Running the Engine
 
-Clone the repository in your IDE of choice (<i>Visual Studio</i>, <i>Rider</i>, etc.) Now, you will have to run a Python script what will configure the project for you. Obviously, this will require your machine to have <b><a href="https://www.python.org/downloads/">Python 3</a></b> installed, so make sure you have that. Navigate over to the folder where you cloned the repo and run the following command in the command promp or terminal:
+Clone the repository in your IDE of choice (<i>Visual Studio</i>, <i>Rider</i>, etc.) Now, you will have to run a Python script what will configure the project for you. Obviously, this will require your machine to have <b><a href="https://www.python.org/downloads/">Python 3</a></b> installed, so make sure you have that. Navigate over to the folder where you cloned the repo and run the following two commands in your command prompt or terminal:
 ```bat
-$ python3 Scripts/FirstTime.py
+$ cd Scripts/
+$ python3 UpdateProject.py --Release
 ```
 
-You can then proceed and run the program in your IDE. Make sure you are in <b>RELEASE</b> mode, because Debug mode will not be configured by the script, as it is only for the developers.
+You can then proceed and run the program in your IDE. Make sure you are in <b>RELEASE</b> mode, because Debug mode will not be configured by the script. However, if you are feeling like working on the project yourself, feel free to change the <i>--Release</i> argument with <i>--Debug</i>, which will configure it for Debug mode.
 
 <br>
 
@@ -80,6 +81,10 @@ MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chiefta
 What is that? The tank's lower plate is very dark... strange, right? Nope, not at all.  There is <a href="https://en.wikipedia.org/wiki/Shading#Directional_lighting">Directional Lighting</a> implemented, which, combined with <a href="https://en.wikipedia.org/wiki/Phong_shading#Phong_reflection_model">Phong Shading</a>, allows for pretty accurate results. The lighting is calculated based on the normals of each mesh's vertices and acts as a light source, emitting rays at a single direction - pretty much like the sun does. Its intensity and color can be changed at any time. Shadows, however, are yet to come... but will be added, for sure!
 
 ![ScreenShot](Screenshots/DirectionalLighting.jpg)
+
+However, our tank's light reflections do not look quite right... This is because we have not yet fully made use of the <b>Texture System</b>. We can use the model's specular maps to get a realistic result as shown:
+
+![ScreenShot](Screenshots/ImprovedDirectionalLighting.jpg)
 
 <br>
 
@@ -188,7 +193,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 5578</p>
+<p align="center" id="LinesCounter">Total lines of code: 5591</p>
 <p align="center" id="LastUpdated">Last updated: 16/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

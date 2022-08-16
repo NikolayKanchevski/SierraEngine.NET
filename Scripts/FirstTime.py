@@ -12,6 +12,8 @@ MODEL_DIRECTORY = "Core/Rendering/Models/"
 
 
 def Main():
+    print(ROOT_DIRECTORY + "bin/Release/")
+    return
     try:
         shutil.rmtree(ROOT_DIRECTORY + "bin/Release/")
     except:
