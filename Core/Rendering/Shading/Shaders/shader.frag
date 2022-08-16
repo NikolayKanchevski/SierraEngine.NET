@@ -4,25 +4,29 @@ layout(location = 0) in vec3 fromVert_Position;
 layout(location = 1) in vec3 fromVert_Normal;
 layout(location = 2) in vec2 fromVert_TextureCoordinates;
 
+struct DirectionalLight {
+        vec3 direction;
+        float intensity;
+
+        vec3 color;
+        float _align2_;
+
+        vec3 ambient;
+        float _align3_;
+
+        vec3 diffuse;
+        float _align4_;
+
+        vec3 specular;
+};
+
 layout(set = 0, binding = 0) uniform UniformBuffer {
         /* VERTEX DATA */
         mat4 view;
         mat4 projection;
 
         /* FRAGMENT DATA */
-        vec3 lightPosition;
-        float _align1_;
-
-        vec3 lightColor;
-        float _align2_;
-
-        vec3 lightAmbient;
-        float _align3_;
-
-        vec3 lightDiffuse;
-        float _align4_;
-
-        vec3 lightSpecular;
+        DirectionalLight directionalLight;
 } uniformBuffer;
 
 layout(push_constant) uniform PushConstant {
@@ -40,24 +44,30 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
         // Get the texture color
-        vec3 textureColor = uniformBuffer.lightColor * texture(diffuseSampler, fromVert_TextureCoordinates).rgb;
+        vec3 textureColor = uniformBuffer.directionalLight.color * texture(diffuseSampler, fromVert_TextureCoordinates).rgb;
+        
+        // Get ambient
+        vec3 ambient = uniformBuffer.directionalLight.ambient * textureColor * uniformBuffer.directionalLight.color * uniformBuffer.directionalLight.intensity;
+        
+        vec3 directionalLightResult = ambient;
+        if (uniformBuffer.directionalLight.intensity > 0) 
+        {
+                // Calculate required directions
+                vec3 normal = normalize(fromVert_Normal);
+                vec3 viewDirection = normalize(-fromVert_Position);
+                vec3 reflectionDirection = reflect(uniformBuffer.directionalLight.direction, normal);
 
-        // Calculate required directions
-        vec3 normal = normalize(fromVert_Normal);
-        vec3 lightDirection = normalize(uniformBuffer.lightPosition - fromVert_Position);
-        vec3 viewDirection = normalize(-fromVert_Position);
-        vec3 reflectionDirection = reflect(lightDirection, normal);
+                // Calculate diffuse and base specular values
+                const float DIFFUSE_STRENTH = (max(dot(normal, uniformBuffer.directionalLight.direction), 0.0));
+                const float SPECULAR_STRENGTH = pow(max(dot(viewDirection, reflectionDirection), 0.0), pushConstant.shininess);
 
-        // Calculate diffuse and base specular values
-        const float DIFFUSE_STRENTH = (max(dot(normal, lightDirection), 0.0));
-        const float SPECULAR_STRENGTH = pow(max(dot(viewDirection, reflectionDirection), 0.0), pushConstant.shininess);
+                // Calculate final light components
+                vec3 diffuse = uniformBuffer.directionalLight.diffuse * DIFFUSE_STRENTH * textureColor * uniformBuffer.directionalLight.color * uniformBuffer.directionalLight.intensity;
+                vec3 specular = uniformBuffer.directionalLight.specular * SPECULAR_STRENGTH * texture(specularSampler, fromVert_TextureCoordinates).rgb * uniformBuffer.directionalLight.color * uniformBuffer.directionalLight.intensity;
 
-        // Calculate final light components
-        vec3 ambient = uniformBuffer.lightAmbient * textureColor * uniformBuffer.lightColor;
-        vec3 diffuse = uniformBuffer.lightDiffuse * DIFFUSE_STRENTH * textureColor * uniformBuffer.lightColor;
-        vec3 specular = uniformBuffer.lightSpecular * SPECULAR_STRENGTH * texture(specularSampler, fromVert_TextureCoordinates).rgb * uniformBuffer.lightColor;
-
-        // Combine everything into a single color vector and send it
-        vec3 result = ambient + diffuse + specular;
-        outColor = vec4(result, 1.0);
+                // Combine everything into a single color vector and send it
+                directionalLightResult += diffuse + specular;
+        }
+        
+        outColor = vec4(directionalLightResult, 1.0);
 }

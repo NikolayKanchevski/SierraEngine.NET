@@ -4,6 +4,23 @@ using Evergine.Bindings.Vulkan;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
+public struct UniformDirectionalLight
+{
+    public Vector3 direction;
+    public float intensity;
+    
+    public Vector3 color;
+    public float _align2_;
+    
+    public Vector3 ambient;
+    public float _align3_;
+    
+    public Vector3 diffuse;
+    public float _align4_;
+    
+    public Vector3 specular;
+}
+
 public struct UniformData
 {
     /* Vertex Uniform Data */
@@ -11,19 +28,7 @@ public struct UniformData
     public Matrix4x4 projection;
         
     /* Fragment Uniform Data */
-    public Vector3 lightPosition;
-    public float _align1_;
-    
-    public Vector3 lightColor;
-    public float _align2_;
-    
-    public Vector3 lightAmbient;
-    public float _align3_;
-    
-    public Vector3 lightDiffuse;
-    public float _align4_;
-    
-    public Vector3 lightSpecular;
+    public UniformDirectionalLight directionalLight;
 }
 
 public unsafe partial class VulkanRenderer
