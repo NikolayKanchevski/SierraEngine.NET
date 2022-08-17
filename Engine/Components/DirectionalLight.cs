@@ -1,6 +1,4 @@
 using System.Numerics;
-using Evergine.Bindings.Vulkan;
-using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 
@@ -8,13 +6,11 @@ namespace SierraEngine.Engine.Components;
 
 public class DirectionalLight : Light
 {
-    public Transform transform = new Transform();
-    public float intensity;
     public Vector3 direction;
 
     public static implicit operator UniformDirectionalLight(DirectionalLight givenDirectionalLight)
     {
-        return new UniformDirectionalLight() with
+        return givenDirectionalLight.intensity > 0 ? new UniformDirectionalLight() with
         {
             intensity = givenDirectionalLight.intensity,
             direction = givenDirectionalLight.direction,
@@ -22,6 +18,6 @@ public class DirectionalLight : Light
             diffuse = givenDirectionalLight.diffuse,
             ambient = givenDirectionalLight.ambient,
             specular = givenDirectionalLight.specular
-        };
+        } : new UniformDirectionalLight();
     }
 }

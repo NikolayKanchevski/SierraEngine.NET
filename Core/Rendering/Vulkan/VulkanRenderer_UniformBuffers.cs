@@ -10,15 +10,34 @@ public struct UniformDirectionalLight
     public float intensity;
     
     public Vector3 color;
-    public float _align2_;
+    private readonly float _align2_;
     
     public Vector3 ambient;
-    public float _align3_;
+    private readonly float _align3_;
     
     public Vector3 diffuse;
-    public float _align4_;
+    private readonly float _align4_;
     
     public Vector3 specular;
+    private readonly float _align5_;
+}
+
+public struct UniformPointLight
+{
+    public Vector3 position;
+    private readonly float _align1_;
+
+    public Vector3 color;   
+    public float intensity;
+
+    public Vector3 ambient;
+    private readonly float _align2_;    
+    
+    public Vector3 diffuse;
+    public float linear;
+        
+    public Vector3 specular;
+    public float quadratic;
 }
 
 public struct UniformData
@@ -29,6 +48,7 @@ public struct UniformData
         
     /* Fragment Uniform Data */
     public UniformDirectionalLight directionalLight;
+    public UniformPointLight pointLight;
 }
 
 public unsafe partial class VulkanRenderer

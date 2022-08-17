@@ -156,7 +156,7 @@ public unsafe class Mesh : Component
     {
         // Update the model matrix per call
         Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(transform.position);
-        Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(transform.rotation.X) * Matrix4x4.CreateRotationY(transform.rotation.Y) * Matrix4x4.CreateRotationZ(transform.rotation.Z);
+        Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(Mathematics.ToRadians(transform.rotation.X)) * Matrix4x4.CreateRotationY(Mathematics.ToRadians(transform.rotation.Y)) * Matrix4x4.CreateRotationZ(Mathematics.ToRadians(transform.rotation.Z));
         Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(transform.scale);
         
         pushConstantData.modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
