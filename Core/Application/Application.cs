@@ -21,9 +21,7 @@ public class Application
     private const float CAMERA_LOOK_SPEED = 0.2f;
     private const float CAMERA_ZOOM_SPEED = 15.0f;
     private float yaw = -90.0f, pitch;
-
-    private bool lightDirectionSet;
-
+    
     private Vector2 lastCursorPosition;
     
     public Application(in Window givenWindow)
@@ -143,22 +141,15 @@ public class Application
         Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
         
         // Directional light
-        directionalLight.intensity = 0f;
-        // directionalLight.color = Vector3.One;
+        directionalLight.intensity = 3f;
+        directionalLight.color = Vector3.One;
         
-        // if (!lightDirectionSet)
-        // {
-        //     directionalLight.direction = Vector3.Normalize(lightPosition - Vector3.Zero);
-        //     directionalLight.transform.position = lightPosition;
-        //     lightDirectionSet = true;
-        // }
-        //
-        // directionalLight.ambient = new Vector3(0.05f);
-        // directionalLight.diffuse = new Vector3(0.5f);
-        // directionalLight.specular = new Vector3(0.25f);
+        directionalLight.ambient = new Vector3(0.005f);
+        directionalLight.diffuse = new Vector3(0.5f);
+        directionalLight.specular = new Vector3(0.5f);
         
         // Point light
-        pointLight.intensity = 3f;
+        pointLight.intensity = 1f;
         // pointLight.color = new Vector3(1.0f, 0.0f, 1.0f);
         // pointLight.color = new Vector3(
         //     (float) Math.Sin(Time.upTime * 2.0f),    

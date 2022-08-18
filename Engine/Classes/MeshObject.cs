@@ -94,7 +94,7 @@ public class MeshObject
                 this.meshes[i].SetTexture(TextureType.Specular, vulkanRenderer.CreateTexture(currentSpecularTexturePath, TextureType.Specular));
             }
 
-            this.meshes[i].material.shininess = model.Materials[currentAssimpMesh.MaterialIndex].Shininess;
+            this.meshes[i].material.shininess = model.Materials[currentAssimpMesh.MaterialIndex].Shininess / 512f;
 
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }
