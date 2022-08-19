@@ -18,12 +18,11 @@ public class Application
     private readonly PointLight pointLight = (new GameObject("Point Light").AddComponent(new PointLight()) as PointLight)!;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
-    private const float CAMERA_LOOK_SPEED = 0.2f;
+    private const float CAMERA_LOOK_SPEED = 60.0f;
     private const float CAMERA_ZOOM_SPEED = 30.0f;
     private float yaw = -90.0f, pitch;
 
     private bool cursorShown;
-    private Vector2 lastCursorPosition;
     
     public Application()
     {
@@ -39,7 +38,6 @@ public class Application
         VulkanRenderer vulkanRenderer = new VulkanRenderer(window);
         window.SetRenderer(ref vulkanRenderer);
         
-        lastCursorPosition = Cursor.cursorPosition;
         Cursor.SetCursorVisibility(cursorShown);
 
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
@@ -118,12 +116,8 @@ public class Application
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }
 
-        float xCursorOffset = (lastCursorPosition.X - Cursor.cursorPosition.X) * CAMERA_LOOK_SPEED;
-        float yCursorOffset = (lastCursorPosition.Y - Cursor.cursorPosition.Y) * CAMERA_LOOK_SPEED;
-        lastCursorPosition = Cursor.cursorPosition;
-
-        yaw += xCursorOffset;
-        pitch += yCursorOffset;
+        yaw += Cursor.GetHorizontalCursorOffset() * CAMERA_LOOK_SPEED * Time.deltaTime;
+        pitch += Cursor.GetVerticalCursorOffset() * CAMERA_LOOK_SPEED * Time.deltaTime;
 
         pitch = Mathematics.Clamp(pitch, -89.0f, 89.0f);
 
@@ -187,6 +181,8 @@ public class Application
 
     private void UpdateRenderer()
     {
+        // PROPERTY EDITOR
+        
         window.vulkanRenderer!.imGuiController.Update();
         
         window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
@@ -206,5 +202,6 @@ public class Application
     {
         Time.Update();
         Input.Update();
+        Cursor.Update();
     }
 }
