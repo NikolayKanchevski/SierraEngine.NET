@@ -65,7 +65,6 @@ public unsafe partial class VulkanRenderer
                 
                 // Show support message
                 VulkanDebugger.DisplaySuccess($"Vulkan is supported by your { SystemInformation.deviceModelName } running { SystemInformation.operatingSystemVersion } [Validation: { VALIDATION_ENABLED } | CPU: { SystemInformation.cpuModelName } | GPU: { SystemInformation.gpuModelName }]");
-                Console.WriteLine();
                 
                 break;
             }

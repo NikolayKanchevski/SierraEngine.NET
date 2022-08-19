@@ -29,7 +29,9 @@ public class MeshObject
         
         this.meshes = new Mesh[model.MeshCount];
         
-        Stopwatch stopwatch = Stopwatch.StartNew();
+        #if DEBUG
+            Stopwatch stopwatch = Stopwatch.StartNew();
+        #endif
         
         int idx = fileName.LastIndexOf('/');
         for (int i = 0; i < model.MeshCount; i++)
@@ -99,7 +101,11 @@ public class MeshObject
             this.meshes[i].meshName = currentAssimpMesh.Name;
         }
         
-        VulkanDebugger.DisplayInfo($"Total vertices count for the model [{fileName[(idx + 1)..]}] containing [{meshes.Length}] mesh(es): {verticesCount}. Time elapsed during model loading: {stopwatch.ElapsedMilliseconds}ms");
+        #if DEBUG
+            stopwatch.Stop();
+            VulkanDebugger.DisplayInfo($"Total vertices count for the model [{fileName[(idx + 1)..]}] containing [{meshes.Length}] mesh(es): {verticesCount}. Time elapsed during model loading: {stopwatch.ElapsedMilliseconds}ms");
+        #endif
+        
         model.Clear();
     } 
 }

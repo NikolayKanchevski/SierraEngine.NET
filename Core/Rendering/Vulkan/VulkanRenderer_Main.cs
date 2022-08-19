@@ -1,10 +1,8 @@
+using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using SierraEngine.Core.Application;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
-using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -95,6 +93,8 @@ public unsafe partial class VulkanRenderer
     
     private void Init()
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        
         CreateInstance();
         // CreateDebugMessenger();
         CreateWindowSurface();
@@ -130,7 +130,15 @@ public unsafe partial class VulkanRenderer
         CreateSynchronisation();
 
         CreateNullTextures();
+        
         CreateImGuiContext();
+        
+        stopwatch.Stop();
+        VulkanDebugger.DisplaySuccess($"Successfully started Vulkan! Initialization took { stopwatch.ElapsedMilliseconds }ms");
+        
+        #if DEBUG
+            VulkanRendererInfo.initializationTime += stopwatch.ElapsedMilliseconds;
+        #endif
         
         Start();
     }
@@ -140,7 +148,7 @@ public unsafe partial class VulkanRenderer
         Mesh mesh = new Mesh(vertices, indices);
         mesh.SetTexture(TextureType.Diffuse, CreateTexture("Textures/lamp.png", TextureType.Diffuse));
         
-        MeshObject model = MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
+        MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
     }
 
     public void Update()

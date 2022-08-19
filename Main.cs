@@ -27,10 +27,6 @@ public static class Program
         // World.PrintHierarchy();
         // return;
         
-        Window window = new Window("Hello, Vulkan!", true, true);
-        VulkanCore.glfwWindow = window.GetCoreWindow();
-        VulkanCore.window = window;
-        
         // if (OperatingSystem.IsWindows())
         // {
         //     using var stream = System.IO.File.OpenRead("C:/Users/Niki/RiderProjects/SierraEngine/Other/terminal_icon.png");
@@ -38,7 +34,7 @@ public static class Program
         //     window.SetIcon(image.Width, image.Height, image.Data);
         // }
 
-        Application application = new Application(window);
+        Application application = new Application();
         application.Start();
     }
 }

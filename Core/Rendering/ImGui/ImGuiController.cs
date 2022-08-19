@@ -17,7 +17,7 @@ public unsafe class ImGuiController
     private int windowHeight;
     private uint swapchainImageCount;
     private bool frameBegun;
-    private ulong _bufferMemoryAlignment = 256;
+    private ulong bufferMemoryAlignment = 256;
     private GlobalMemory frameRenderBuffers = null!;
 
     private VkDescriptorPool descriptorPool;
@@ -289,10 +289,10 @@ public unsafe class ImGuiController
         VkShaderModuleCreateInfo vertexShaderModuleCreateInfo = new VkShaderModuleCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            codeSize = (nuint) VERTEX_SHADER.Length * sizeof(uint)
+            codeSize = (nuint) vertexShader.Length * sizeof(uint)
         };
 
-        fixed (uint* vertexShaderPtr = VERTEX_SHADER)
+        fixed (uint* vertexShaderPtr = vertexShader)
         {
             vertexShaderModuleCreateInfo.pCode = vertexShaderPtr;
         } 
@@ -308,10 +308,10 @@ public unsafe class ImGuiController
         VkShaderModuleCreateInfo fragmentShaderModuleCreateInfo = new VkShaderModuleCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            codeSize = (nuint) FRAGMENT_SHADER.Length * sizeof(uint),
+            codeSize = (nuint) fragmentShader.Length * sizeof(uint),
         };
 
-        fixed (uint* fragmentShaderPtr = FRAGMENT_SHADER)
+        fixed (uint* fragmentShaderPtr = fragmentShader)
         {
             fragmentShaderModuleCreateInfo.pCode = fragmentShaderPtr;
         }
@@ -456,10 +456,8 @@ public unsafe class ImGuiController
             }
         }
         
-
         Marshal.FreeHGlobal((IntPtr) pipelineShaderStageCreateInfosPtr[0].pName);
         Marshal.FreeHGlobal((IntPtr) pipelineShaderStageCreateInfosPtr[1].pName);
-        
 
         // Initialise ImGui Vulkan adapter
         var io = ImGuiNET.ImGui.GetIO();
@@ -624,12 +622,77 @@ public unsafe class ImGuiController
         io.KeyMap[(int) ImGuiKey.Backspace] = (int) Key.Backspace;
         io.KeyMap[(int) ImGuiKey.Enter] = (int) Key.Enter;
         io.KeyMap[(int) ImGuiKey.Escape] = (int) Key.Escape;
+        
+        io.KeyMap[(int) ImGuiKey.LeftShift] = (int) Key.LeftShift;
+        io.KeyMap[(int) ImGuiKey.RightShift] = (int) Key.RightShift;
+        io.KeyMap[(int) ImGuiKey.LeftAlt] = (int) Key.LeftAlt;
+        io.KeyMap[(int) ImGuiKey.RightAlt] = (int) Key.RightAlt;
+        io.KeyMap[(int) ImGuiKey.CapsLock] = (int) Key.CapsLock;
+        io.KeyMap[(int) ImGuiKey.LeftSuper] = (int) Key.LeftSuper;
+        
+        io.KeyMap[(int) ImGuiKey.Equal] = (int) Key.Equal;
+        io.KeyMap[(int) ImGuiKey.Minus] = (int) Key.Minus;
+        
+        io.KeyMap[(int) ImGuiKey.LeftBracket] = (int) Key.LeftBracket;
+        io.KeyMap[(int) ImGuiKey.RightBracket] = (int) Key.RightBracket;
+        io.KeyMap[(int) ImGuiKey.Semicolon] = (int) Key.RightBracket;
+        
+        io.KeyMap[(int) ImGuiKey.Apostrophe] = (int) Key.Apostrophe;
+        io.KeyMap[(int) ImGuiKey.Slash] = (int) Key.Slash;
+        io.KeyMap[(int) ImGuiKey.Backslash] = (int) Key.Backslash;
+        io.KeyMap[(int) ImGuiKey.Comma] = (int) Key.Comma;
+        io.KeyMap[(int) ImGuiKey.Period] = (int) Key.Period;
+        
         io.KeyMap[(int) ImGuiKey.A] = (int) Key.A;
+        io.KeyMap[(int) ImGuiKey.B] = (int) Key.B;
         io.KeyMap[(int) ImGuiKey.C] = (int) Key.C;
+        io.KeyMap[(int) ImGuiKey.D] = (int) Key.D;
+        io.KeyMap[(int) ImGuiKey.E] = (int) Key.E;
+        io.KeyMap[(int) ImGuiKey.F] = (int) Key.F;
+        io.KeyMap[(int) ImGuiKey.G] = (int) Key.G;
+        io.KeyMap[(int) ImGuiKey.H] = (int) Key.H;
+        io.KeyMap[(int) ImGuiKey.I] = (int) Key.I;
+        io.KeyMap[(int) ImGuiKey.J] = (int) Key.J;
+        io.KeyMap[(int) ImGuiKey.K] = (int) Key.K;
+        io.KeyMap[(int) ImGuiKey.L] = (int) Key.L;
+        io.KeyMap[(int) ImGuiKey.M] = (int) Key.M;
+        io.KeyMap[(int) ImGuiKey.N] = (int) Key.N;
+        io.KeyMap[(int) ImGuiKey.O] = (int) Key.O;
+        io.KeyMap[(int) ImGuiKey.P] = (int) Key.P;
+        io.KeyMap[(int) ImGuiKey.Q] = (int) Key.Q;
+        io.KeyMap[(int) ImGuiKey.R] = (int) Key.R;
+        io.KeyMap[(int) ImGuiKey.S] = (int) Key.S;
+        io.KeyMap[(int) ImGuiKey.T] = (int) Key.T;
+        io.KeyMap[(int) ImGuiKey.U] = (int) Key.U;
         io.KeyMap[(int) ImGuiKey.V] = (int) Key.V;
+        io.KeyMap[(int) ImGuiKey.W] = (int) Key.W;
         io.KeyMap[(int) ImGuiKey.X] = (int) Key.X;
         io.KeyMap[(int) ImGuiKey.Y] = (int) Key.Y;
         io.KeyMap[(int) ImGuiKey.Z] = (int) Key.Z;
+        
+        io.KeyMap[(int) ImGuiKey.Keypad0] = (int) Key.Keypad0;
+        io.KeyMap[(int) ImGuiKey.Keypad1] = (int) Key.Keypad1;
+        io.KeyMap[(int) ImGuiKey.Keypad2] = (int) Key.Keypad2;
+        io.KeyMap[(int) ImGuiKey.Keypad3] = (int) Key.Keypad3;
+        io.KeyMap[(int) ImGuiKey.Keypad4] = (int) Key.Keypad4;
+        io.KeyMap[(int) ImGuiKey.Keypad5] = (int) Key.Keypad5;
+        io.KeyMap[(int) ImGuiKey.Keypad6] = (int) Key.Keypad6;
+        io.KeyMap[(int) ImGuiKey.Keypad7] = (int) Key.Keypad7;
+        io.KeyMap[(int) ImGuiKey.Keypad8] = (int) Key.Keypad8;
+        io.KeyMap[(int) ImGuiKey.Keypad9] = (int) Key.Keypad9;
+        
+        io.KeyMap[(int) ImGuiKey.F1] = (int) Key.F1;
+        io.KeyMap[(int) ImGuiKey.F2] = (int) Key.F2;
+        io.KeyMap[(int) ImGuiKey.F3] = (int) Key.F3;
+        io.KeyMap[(int) ImGuiKey.F4] = (int) Key.F4;
+        io.KeyMap[(int) ImGuiKey.F5] = (int) Key.F5;
+        io.KeyMap[(int) ImGuiKey.F6] = (int) Key.F6;
+        io.KeyMap[(int) ImGuiKey.F7] = (int) Key.F7;
+        io.KeyMap[(int) ImGuiKey.F8] = (int) Key.F8;
+        io.KeyMap[(int) ImGuiKey.F9] = (int) Key.F9;
+        io.KeyMap[(int) ImGuiKey.F10] = (int) Key.F10;
+        io.KeyMap[(int) ImGuiKey.F11] = (int) Key.F11;
+        io.KeyMap[(int) ImGuiKey.F12] = (int) Key.F12;
     }
     
     private void SetPerFrameImGuiData()
@@ -638,13 +701,11 @@ public unsafe class ImGuiController
         io.DisplaySize = new Vector2(windowWidth, windowHeight);
 
         if (windowWidth > 0 && windowHeight > 0)
-            // io.DisplayFramebufferScale = new Vector2(_view.FramebufferSize.X / windowWidth,
-            //     _view.FramebufferSize.Y / windowHeight);
-        
+        {
             io.DisplayFramebufferScale = new Vector2(VulkanCore.swapchainExtent.width / (float) windowWidth,
                 VulkanCore.swapchainExtent.height / (float) windowHeight);
-            
-
+        }
+        
         io.DeltaTime = Time.deltaTime; // DeltaTime is in seconds.
     }
     
@@ -678,49 +739,51 @@ public unsafe class ImGuiController
     
     private void UpdateImGuiInput()
     {
-        var io = ImGuiNET.ImGui.GetIO();
-
-        // var mouseState = _input.Mice[0].CaptureState();
-        // var keyboardState = _input.Keyboards[0];
-        //
-        // io.MouseDown[0] = mouseState.IsButtonPressed(MouseButton.Left);
-        // io.MouseDown[1] = mouseState.IsButtonPressed(MouseButton.Right);
-        // io.MouseDown[2] = mouseState.IsButtonPressed(MouseButton.Middle);
-        //
-        // var point = new Point((int) mouseState.Position.X, (int) mouseState.Position.Y);
-        // io.MousePos = new Vector2(point.X, point.Y);
-        //
-        // var wheel = mouseState.GetScrollWheels()[0];
-        // io.MouseWheel = wheel.Y;
-        // io.MouseWheelH = wheel.X;
-
-        // foreach (Key key in Enum.GetValues(typeof(Key)))
-        // {
-        //     if (key == Key.Unknown) continue;
-        //     io.KeysDown[(int) key] = keyboardState.IsKeyPressed(key);
-        // }
-        //
-        // foreach (var c in _pressedChars) io.AddInputCharacter(c);
-        //
-        // _pressedChars.Clear();
-
-        io.MouseDown[0] = Input.GetKeyHeld(Key.J);
-        io.MouseDown[1] = Input.GetKeyPressed(Key.K);
-        io.MouseDown[2] = Input.GetKeyPressed(Key.L);
+        ImGuiIOPtr io = ImGuiNET.ImGui.GetIO();
+        
+        for (int i = 256; i <= 314; i++)
+        {
+            io.KeysDown[i] = Input.GetKeyHeld((Key) i);
+        }
+        
+        for (int i = 340; i <= 348; i++)
+        {
+            io.KeysDown[i] = Input.GetKeyHeld((Key) i);
+        }
+        
+        io.KeysDown[65] = Input.GetKeyHeld((Key) 65);
+        io.KeysDown[67] = Input.GetKeyHeld((Key) 67);
+        io.KeysDown[86] = Input.GetKeyHeld((Key) 86);
+        io.KeysDown[88] = Input.GetKeyHeld((Key) 88);
+        io.KeysDown[89] = Input.GetKeyHeld((Key) 89);
+        io.KeysDown[90] = Input.GetKeyHeld((Key) 90);
+        
+        io.MouseDown[0] = Input.GetMouseButtonHeld(MouseButton.Left);
+        io.MouseDown[1] = Input.GetMouseButtonHeld(MouseButton.Right);
+        io.MouseDown[2] = Input.GetMouseButtonHeld(MouseButton.Middle);
+        io.MouseDown[3] = Input.GetMouseButtonHeld(MouseButton.Button4);
+        io.MouseDown[4] = Input.GetMouseButtonHeld(MouseButton.Button5);
+        
+        io.MouseWheel = Input.GetVerticalMouseScroll();
+        io.MouseWheelH = Input.GetHorizontalMouseScroll();
 
         io.MousePos = Cursor.GetGlfwCursorPosition();
         
-        io.KeyCtrl = Input.GetKeyPressed(Key.LeftControl) || Input.GetKeyPressed(Key.RightControl);
-        io.KeyAlt = Input.GetKeyPressed(Key.LeftAlt) || Input.GetKeyPressed(Key.RightAlt);
-        io.KeyShift = Input.GetKeyPressed(Key.LeftShift) || Input.GetKeyPressed(Key.RightShift);
-        io.KeySuper = Input.GetKeyPressed(Key.LeftSuper) || Input.GetKeyPressed(Key.RightSuper);
+        io.KeyCtrl = Input.GetKeyHeld(Key.LeftControl) || Input.GetKeyHeld(Key.RightControl);
+        io.KeyAlt = Input.GetKeyHeld(Key.LeftAlt) || Input.GetKeyHeld(Key.RightAlt);
+        io.KeyShift = Input.GetKeyHeld(Key.LeftShift) || Input.GetKeyHeld(Key.RightShift);
+        io.KeySuper = Input.GetKeyHeld(Key.LeftSuper) || Input.GetKeyPressed(Key.RightSuper);
+        
+        foreach (int key in Input.pressedKeys)
+        {
+            io.AddInputCharactersUTF8(Input.GetKeyName((Key) key, io.KeyShift));
+        }
+        
+        Input.pressedKeys.Clear();
     }
     
     public void CleanUp()
     {
-        // _view.Resize -= WindowResized;
-        // _keyboard.KeyChar -= OnKeyChar;
-        
         for (uint n = 0; n < mainWindowRenderBuffers.count; n++)
         {
             VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, mainWindowRenderBuffers.frameRenderBuffers[n].vertexBuffer, null);
@@ -748,9 +811,6 @@ public unsafe class ImGuiController
     {
         ImGuiNET.ImGui.NewFrame();
         frameBegun = true;
-        // _keyboard = _input.Keyboards[0];
-        // _view.Resize += WindowResized;
-        // _keyboard.KeyChar += OnKeyChar;
     }
     
     private void RenderImDrawData(in ImDrawDataPtr drawDataPtr, in VkCommandBuffer commandBuffer,
@@ -777,15 +837,15 @@ public unsafe class ImGuiController
         var drawData = *drawDataPtr.NativePtr;
 
         // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-        var fb_width = (int) (drawData.DisplaySize.X * drawData.FramebufferScale.X);
-        var fb_height = (int) (drawData.DisplaySize.Y * drawData.FramebufferScale.Y);
-        if (fb_width <= 0 || fb_height <= 0) return;
+        var fbWidth = (int) (drawData.DisplaySize.X * drawData.FramebufferScale.X);
+        var fbHeight = (int) (drawData.DisplaySize.Y * drawData.FramebufferScale.Y);
+        if (fbWidth <= 0 || fbHeight <= 0) return;
         
         // Allocate array to store enough vertex/index buffers
         if (mainWindowRenderBuffers.frameRenderBuffers == null)
         {
             mainWindowRenderBuffers.index = 0;
-            mainWindowRenderBuffers.count = (uint) swapchainImageCount;
+            mainWindowRenderBuffers.count = swapchainImageCount;
             frameRenderBuffers =
                 GlobalMemory.Allocate(sizeof(FrameRenderBuffer) * (int) mainWindowRenderBuffers.count);
             mainWindowRenderBuffers.frameRenderBuffers = frameRenderBuffers.AsPtr<FrameRenderBuffer>();
@@ -807,31 +867,31 @@ public unsafe class ImGuiController
         if (drawData.TotalVtxCount > 0)
         {
             // Create or resize the vertex/index buffers
-            var vertex_size = (ulong) drawData.TotalVtxCount * (ulong) sizeof(ImDrawVert);
-            var index_size = (ulong) drawData.TotalIdxCount * sizeof(ushort);
-            if (frameRenderBuffer.vertexBuffer.Handle == default || frameRenderBuffer.vertexBufferSize < vertex_size)
+            var vertexSize = (ulong) drawData.TotalVtxCount * (ulong) sizeof(ImDrawVert);
+            var indexSize = (ulong) drawData.TotalIdxCount * sizeof(ushort);
+            if (frameRenderBuffer.vertexBuffer.Handle == default || frameRenderBuffer.vertexBufferSize < vertexSize)
                 CreateOrResizeBuffer(ref frameRenderBuffer.vertexBuffer, ref frameRenderBuffer.vertexBufferMemory,
-                    ref frameRenderBuffer.vertexBufferSize, vertex_size, VkBufferUsageFlags.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-            if (frameRenderBuffer.indexBuffer.Handle == default || frameRenderBuffer.indexBufferSize < index_size)
+                    ref frameRenderBuffer.vertexBufferSize, vertexSize, VkBufferUsageFlags.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+            if (frameRenderBuffer.indexBuffer.Handle == default || frameRenderBuffer.indexBufferSize < indexSize)
                 CreateOrResizeBuffer(ref frameRenderBuffer.indexBuffer, ref frameRenderBuffer.indexBufferMemory,
-                    ref frameRenderBuffer.indexBufferSize, index_size, VkBufferUsageFlags.VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+                    ref frameRenderBuffer.indexBufferSize, indexSize, VkBufferUsageFlags.VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
             // Upload vertex/index data into a single contiguous GPU buffer
-            ImDrawVert* vtx_dst = null;
-            ushort* idx_dst = null;
+            ImDrawVert* vtxDst = null;
+            ushort* idxDst = null;
             if (VulkanNative.vkMapMemory(VulkanCore.logicalDevice, frameRenderBuffer.vertexBufferMemory, 0, frameRenderBuffer.vertexBufferSize, 0,
-                    (void**) &vtx_dst) != VkResult.VK_SUCCESS) throw new Exception("Unable to map device memory");
+                    (void**) &vtxDst) != VkResult.VK_SUCCESS) throw new Exception("Unable to map device memory");
             if (VulkanNative.vkMapMemory(VulkanCore.logicalDevice, frameRenderBuffer.indexBufferMemory, 0, frameRenderBuffer.indexBufferSize, 0,
-                    (void**) &idx_dst) != VkResult.VK_SUCCESS) throw new Exception("Unable to map device memory");
+                    (void**) &idxDst) != VkResult.VK_SUCCESS) throw new Exception("Unable to map device memory");
             for (var n = 0; n < drawData.CmdListsCount; n++)
             {
-                var cmd_list = drawData.CmdLists[n];
-                Unsafe.CopyBlock(vtx_dst, cmd_list->VtxBuffer.Data.ToPointer(),
-                    (uint) cmd_list->VtxBuffer.Size * (uint) sizeof(ImDrawVert));
-                Unsafe.CopyBlock(idx_dst, cmd_list->IdxBuffer.Data.ToPointer(),
-                    (uint) cmd_list->IdxBuffer.Size * sizeof(ushort));
-                vtx_dst += cmd_list->VtxBuffer.Size;
-                idx_dst += cmd_list->IdxBuffer.Size;
+                var cmdList = drawData.CmdLists[n];
+                Unsafe.CopyBlock(vtxDst, cmdList->VtxBuffer.Data.ToPointer(),
+                    (uint) cmdList->VtxBuffer.Size * (uint) sizeof(ImDrawVert));
+                Unsafe.CopyBlock(idxDst, cmdList->IdxBuffer.Data.ToPointer(),
+                    (uint) cmdList->IdxBuffer.Size * sizeof(ushort));
+                vtxDst += cmdList->VtxBuffer.Size;
+                idxDst += cmdList->IdxBuffer.Size;
             }
             
             VkMappedMemoryRange* mappedMemoryRange = stackalloc VkMappedMemoryRange[2];
@@ -841,7 +901,7 @@ public unsafe class ImGuiController
             mappedMemoryRange[0].size = UInt64.MaxValue;
             mappedMemoryRange[1].sType = VkStructureType.VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
             mappedMemoryRange[1].memory = frameRenderBuffer.indexBufferMemory;
-            mappedMemoryRange[1].size = UInt64.MaxValue;;
+            mappedMemoryRange[1].size = UInt64.MaxValue;
             
             if (VulkanNative.vkFlushMappedMemoryRanges(VulkanCore.logicalDevice, 2, mappedMemoryRange) != VkResult.VK_SUCCESS)
                 throw new Exception("Unable to flush memory to device");
@@ -859,19 +919,19 @@ public unsafe class ImGuiController
         // Bind Vertex And Index Buffer:
         if (drawData.TotalVtxCount > 0)
         {
-            VkBuffer* vertex_buffers = stackalloc VkBuffer[] { frameRenderBuffer.vertexBuffer };
-            ulong vertex_offset = 0;
-            VulkanNative.vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertex_buffers, (ulong*) Unsafe.AsPointer(ref vertex_offset));
+            VkBuffer* vertexBuffers = stackalloc VkBuffer[] { frameRenderBuffer.vertexBuffer };
+            ulong currentVertexOffset = 0;
+            VulkanNative.vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, (ulong*) Unsafe.AsPointer(ref currentVertexOffset));
             VulkanNative.vkCmdBindIndexBuffer(commandBuffer, frameRenderBuffer.indexBuffer, 0,
-                sizeof(ushort) == 2 ? VkIndexType.VK_INDEX_TYPE_UINT16 : VkIndexType.VK_INDEX_TYPE_UINT32);
+                VkIndexType.VK_INDEX_TYPE_UINT16);
         }
 
         // Setup viewport:
         VkViewport viewport;
         viewport.x = 0;
         viewport.y = 0;
-        viewport.width = fb_width;
-        viewport.height = fb_height;
+        viewport.width = fbWidth;
+        viewport.height = fbHeight;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         VulkanNative.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -901,10 +961,10 @@ public unsafe class ImGuiController
         var indexOffset = 0;
         for (var n = 0; n < drawData.CmdListsCount; n++)
         {
-            ref var cmd_list = ref drawData.CmdLists[n];
-            for (var cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+            ref var cmdList = ref drawData.CmdLists[n];
+            for (var cmdI = 0; cmdI < cmdList->CmdBuffer.Size; cmdI++)
             {
-                ref var pcmd = ref cmd_list->CmdBuffer.Ref<ImDrawCmd>(cmd_i);
+                ref var pcmd = ref cmdList->CmdBuffer.Ref<ImDrawCmd>(cmdI);
 
                 // Project scissor/clipping rectangles into framebuffer space
                 Vector4 clipRect;
@@ -913,7 +973,7 @@ public unsafe class ImGuiController
                 clipRect.Z = (pcmd.ClipRect.Z - clipOff.X) * clipScale.X;
                 clipRect.W = (pcmd.ClipRect.W - clipOff.Y) * clipScale.Y;
 
-                if (clipRect.X < fb_width && clipRect.Y < fb_height && clipRect.Z >= 0.0f && clipRect.W >= 0.0f)
+                if (clipRect.X < fbWidth && clipRect.Y < fbHeight && clipRect.Z >= 0.0f && clipRect.W >= 0.0f)
                 {
                     // Negative offsets are illegal for vkCmdSetScissor
                     if (clipRect.X < 0.0f)
@@ -935,28 +995,21 @@ public unsafe class ImGuiController
                 }
             }
 
-            indexOffset += cmd_list->IdxBuffer.Size;
-            vertexOffset += cmd_list->VtxBuffer.Size;
+            indexOffset += cmdList->IdxBuffer.Size;
+            vertexOffset += cmdList->VtxBuffer.Size;
         }
 
         VulkanNative.vkCmdEndRenderPass(commandBuffer);
     }
     
+    // ReSharper disable once RedundantAssignment
     private void CreateOrResizeBuffer(ref VkBuffer deviceBuffer, ref VkDeviceMemory deviceBufferMemory, ref ulong bufferSize,
         ulong newSize, VkBufferUsageFlags usage)
     {
         if (deviceBuffer.Handle != default) VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, deviceBuffer, default);
         if (deviceBufferMemory.Handle != default) VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, deviceBufferMemory, default);
 
-        ulong sizeAlignedVertexBuffer = ((newSize - 1) / _bufferMemoryAlignment + 1) * _bufferMemoryAlignment;
-
-        VkBufferCreateInfo bufferCreateInfo = new VkBufferCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            size = sizeAlignedVertexBuffer,
-            usage = usage,
-            sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE
-        };
+        ulong sizeAlignedVertexBuffer = ((newSize - 1) / bufferMemoryAlignment + 1) * bufferMemoryAlignment;
 
         VulkanUtilities.CreateBuffer(
             sizeAlignedVertexBuffer, usage, 
@@ -970,7 +1023,7 @@ public unsafe class ImGuiController
         bufferSize = memoryRequirements.size;
     }
     
-    private readonly uint[] VERTEX_SHADER =
+    private readonly uint[] vertexShader =
     {
         0x07230203, 0x00010000, 0x00080001, 0x0000002e, 0x00000000, 0x00020011, 0x00000001, 0x0006000b,
         0x00000001, 0x4c534c47, 0x6474732e, 0x3035342e, 0x00000000, 0x0003000e, 0x00000000, 0x00000001,
@@ -1015,7 +1068,7 @@ public unsafe class ImGuiController
         0x0000002d, 0x0000002c, 0x000100fd, 0x00010038
     };
 
-    private readonly uint[] FRAGMENT_SHADER =
+    private readonly uint[] fragmentShader =
     {
         0x07230203, 0x00010000, 0x00080001, 0x0000001e, 0x00000000, 0x00020011, 0x00000001, 0x0006000b,
         0x00000001, 0x4c534c47, 0x6474732e, 0x3035342e, 0x00000000, 0x0003000e, 0x00000000, 0x00000001,

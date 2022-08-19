@@ -24,14 +24,6 @@ public static class SystemInformation
     /// </summary>
     public static string operatingSystemVersion { get; private set; } = null!;
     
-    
-    #if UNIX
-    /// <summary>
-    /// Holds the kernel version of the device. Only available on Unix based operating systems (MacOS, Linux).
-    /// </summary>
-    public static string kernelVersion { get; private set; } = null!;
-    #endif
-    
     /// <summary>
     /// Model name of the current CPU used by the program.
     /// </summary>
@@ -156,10 +148,6 @@ public static class SystemInformation
         // Get operating system and kernel names
         operatingSystemVersion = "MacOS " + CommandLine.ExecuteAndRead("awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | awk -F 'macOS ' '{print $NF}' | awk '{print substr($0, 0, length($0)-1)}'");
         
-        #if UNIX
-        kernelVersion = CommandLine.ExecuteAndRead("system_profiler SPSoftwareDataType | grep \"Kernel Version\"", true);
-        #endif
-        
         // Retrieve the CPU model or chip name if the device uses Apple Silicon
         cpuModelName = CommandLine.ExecuteAndRead("sysctl -a | grep brand", true);
         cpuManufacturer = cpuModelName.Contains("Intel") ? "Intel" : "Apple";
@@ -181,9 +169,6 @@ public static class SystemInformation
     public new static string ToString()
     {
         return $"Operating System Version: { operatingSystemVersion }\n" +
-               #if UNIX
-                $"Kernel Version: { kernelVersion }\n" +
-               #endif
                $"CPU Model: { cpuModelName }\n" +
                $"CPU Manufacturer: { cpuManufacturer }\n" +
                $"Total RAM: { ramMemorySize }\n" +

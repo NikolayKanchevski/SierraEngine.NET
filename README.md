@@ -110,7 +110,7 @@ There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, wh
 
 ## 🔘 User Interface
 
-<i>The UI is in a very unstable state right now. Currently working on improving it a lot, though!</i>
+<i>The UI is ready, but no screenshots are taken yet to show it off.</i>
 
 <br>
 
@@ -200,7 +200,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 6328</p>
+<p align="center" id="LinesCounter">Total lines of code: 6562</p>
 <p align="center" id="LastUpdated">Last updated: 19/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

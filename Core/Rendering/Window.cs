@@ -1,10 +1,8 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Engine;
 using SierraEngine.Engine.Classes;
-using Cursor = Glfw.Cursor;
 
 namespace SierraEngine.Core.Rendering;
 
@@ -27,6 +25,8 @@ public class Window
     private readonly WindowSizeDelegate resizeCallbackDelegate = WindowResizeCallback;
     private readonly KeyDelegate keyCallbackDelegate = Input.KeyboardKeyCallback;
     private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
+    private readonly MouseButtonDelegate buttonCallbackDelegate = Input.MouseButtonCallback;
+    private readonly ScrollDelegate scrollCallbackDelegate = Input.MouseScrollCallback;
     
     /* -- REFERENCES TO PRIVATE FIELDS -- */
     
@@ -129,7 +129,7 @@ public class Window
     /// <param name="title">What the title / name of the window should be.</param>
     /// <param name="resizable">Whether the window is going to be resizable or not.</param>
     /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
-    public Window(int width, int height, string title, bool maximised = false, bool resizable = false, bool requireFocus = false)
+    public Window(string title, int width, int height, bool resizable = false, bool requireFocus = false)
     {
         this.width = width;
         this.height = height;
@@ -138,11 +138,6 @@ public class Window
         this.requireFocus = requireFocus;
 
         InitWindow();
-
-        if (maximised)
-        {
-            Glfw3.MaximizeWindow(glfwWindow);
-        }
     }
     
     /// <summary>
@@ -161,6 +156,10 @@ public class Window
         
         this.width = 800;
         this.height = 600;
+        
+        #if DEBUG
+            Stopwatch stopwatch = Stopwatch.StartNew();
+        #endif
 
         InitWindow();
 
@@ -173,6 +172,12 @@ public class Window
             this.width = xSize;
             this.height = ySize;
         }
+        
+        #if DEBUG
+            stopwatch.Stop();
+            VulkanDebugger.DisplaySuccess($"Window [\"{ title }\"] successfully created! Initialization took: { stopwatch.ElapsedMilliseconds }ms");
+            VulkanRendererInfo.initializationTime += stopwatch.ElapsedMilliseconds;
+        #endif
     }
     
     private void InitWindow()
@@ -225,6 +230,10 @@ public class Window
         Glfw3.SetKeyCallback(glfwWindow, keyCallbackDelegate);
 
         Glfw3.SetCursorPosCallback(glfwWindow, cursorCallbackDelegate);
+
+        Glfw3.SetMouseButtonPosCallback(glfwWindow, buttonCallbackDelegate);
+
+        Glfw3.SetScrollCallback(glfwWindow, scrollCallbackDelegate);
     }
     
     /* -- INTERNAL HELPER METHODS -- */

@@ -19,14 +19,17 @@ public class Application
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.2f;
-    private const float CAMERA_ZOOM_SPEED = 15.0f;
+    private const float CAMERA_ZOOM_SPEED = 30.0f;
     private float yaw = -90.0f, pitch;
-    
+
+    private bool cursorShown;
     private Vector2 lastCursorPosition;
     
-    public Application(in Window givenWindow)
+    public Application()
     {
-        this.window = givenWindow;
+        window = new Window("Hello, Vulkan!", true, true, true);
+        VulkanCore.glfwWindow = window.GetCoreWindow();
+        VulkanCore.window = window;
     }
     
     public void Start()
@@ -37,7 +40,7 @@ public class Application
         window.SetRenderer(ref vulkanRenderer);
         
         lastCursorPosition = Cursor.cursorPosition;
-        // Cursor.HideCursor();
+        Cursor.SetCursorVisibility(cursorShown);
 
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
         directionalLight.direction = Vector3.Normalize(camera.transform.position - Vector3.Zero);
@@ -65,21 +68,23 @@ public class Application
         UpdateRenderer();
         
         UpdateUI();
-
+        
         window.SetTitle($"Sierra Engine | FPS: { Time.FPS.ToString().PadLeft(4, '0') } | GPU Draw Time: { VulkanRendererInfo.drawTime.ToString("n9") }ms");
     }
     
     private void HandleCameraMovement()
     {
-        if (Input.GetKeyHeld(Key.Minus)) 
+        if (Input.GetKeyPressed(Key.Escape))
         {
-            camera.fov += CAMERA_ZOOM_SPEED * camera.fov / 7 * Time.deltaTime;
+            cursorShown = !cursorShown;
+            Cursor.SetCursorVisibility(cursorShown);
         }
-        if (Input.GetKeyHeld(Key.Equal)) 
-        {
-            camera.fov -= CAMERA_ZOOM_SPEED * camera.fov / 7 * Time.deltaTime;
-        }
-        else if (Input.GetKeyHeld(Key.Tab)) 
+        
+        if (cursorShown) return;
+        
+        camera.fov -= Input.GetVerticalMouseScroll() * CAMERA_ZOOM_SPEED * Time.deltaTime;
+
+        if (Input.GetKeyHeld(Key.Tab)) 
         {
             camera.fov = 45.0f;
         }
@@ -200,5 +205,6 @@ public class Application
     private void UpdateClasses()
     {
         Time.Update();
+        Input.Update();
     }
 }
