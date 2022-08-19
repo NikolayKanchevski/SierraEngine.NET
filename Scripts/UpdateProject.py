@@ -49,12 +49,18 @@ def Main():
         print("Error occured!")
         return
 
+    if FIRST_TIME:
+        CreateDirectories(OUTPUT_DIRECTORY)
+
+    CopyFiles(OUTPUT_DIRECTORY)
+    CompileShaders(OUTPUT_DIRECTORY)
+
     print("Success!")
 
 
 def CreateDirectories(OUTPUT_DIRECTORY):
-    os.makedirs(OUTPUT_DIRECTORY)
-    os.makedirs(OUTPUT_DIRECTORY + "Shaders")
+    os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
+    os.makedirs(OUTPUT_DIRECTORY + "Shaders", exist_ok=True)
 
 
 def CopyFiles(OUTPUT_DIRECTORY):
@@ -76,9 +82,12 @@ def CompileShaders(OUTPUT_DIRECTORY):
         CompileUnixShaders(OUTPUT_DIRECTORY)
 
 
-def CompileWindowsShaders():
-    command = ROOT_DIRECTORY + f"{ ROOT_DIRECTORY }Core/Rendering/Shading/Compilers/glslc.exe { ROOT_DIRECTORY }Core/Rendering/Shading/Shaders/shader.vert -o { OUTPUT_DIRECTORY }Shaders/shader.vert.spv\n"
-    command+= ROOT_DIRECTORY + f"{ ROOT_DIRECTORY }Core/Rendering/Shading/Compilers/glslc.exe { ROOT_DIRECTORY }Core/Rendering/Shading/Shaders/shader.frag -o { OUTPUT_DIRECTORY }Shaders/shader.frag.spv"
+def CompileWindowsShaders(OUTPUT_DIRECTORY):
+    command = f"..\Core\Rendering\Shading\Compilers\glslc.exe { ROOT_DIRECTORY }Core\Rendering\Shading\Shaders\shader.vert -o { OUTPUT_DIRECTORY }Shaders\shader.vert.spv"
+
+    os.system(command)
+
+    command = f"..\Core\Rendering\Shading\Compilers\glslc.exe { ROOT_DIRECTORY }Core\Rendering\Shading\Shaders\shader.frag -o { OUTPUT_DIRECTORY }Shaders\shader.frag.spv"
 
     os.system(command)
 
