@@ -49,6 +49,12 @@ public static class Cursor
         else HideCursor();
     }
 
+    public static Vector2 GetGlfwCursorPosition()
+    {
+        Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double x, out double y);
+        return new Vector2((float)x, (float)y);
+    }
+
     public static void Start()
     {
         Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double cursorX, out double cursorY);
@@ -57,7 +63,6 @@ public static class Cursor
     
     public static void CursorPositionCallback(IntPtr glfwWindow, double xPosition, double yPosition)
     {
-        
         yPosition = Math.Abs(yPosition - VulkanCore.window.height);
         
         cursorPosition = new Vector2((float) xPosition, (float) yPosition);

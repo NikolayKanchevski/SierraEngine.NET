@@ -37,7 +37,7 @@ public class Application
         window.SetRenderer(ref vulkanRenderer);
         
         lastCursorPosition = Cursor.cursorPosition;
-        Cursor.HideCursor();
+        // Cursor.HideCursor();
 
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
         directionalLight.direction = Vector3.Normalize(camera.transform.position - Vector3.Zero);
@@ -61,8 +61,10 @@ public class Application
         HandleCameraMovement();
 
         UpdateObjects();
-        
+
         UpdateRenderer();
+        
+        UpdateUI();
 
         window.SetTitle($"Sierra Engine | FPS: { Time.FPS.ToString().PadLeft(4, '0') } | GPU Draw Time: { VulkanRendererInfo.drawTime.ToString("n9") }ms");
     }
@@ -141,7 +143,7 @@ public class Application
         Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
         
         // Directional light
-        directionalLight.intensity = 3f;
+        directionalLight.intensity = 0f;
         directionalLight.color = Vector3.One;
         
         directionalLight.ambient = new Vector3(0.005f);
@@ -149,7 +151,7 @@ public class Application
         directionalLight.specular = new Vector3(0.5f);
         
         // Point light
-        pointLight.intensity = 1f;
+        pointLight.intensity = 3f;
         // pointLight.color = new Vector3(1.0f, 0.0f, 1.0f);
         // pointLight.color = new Vector3(
         //     (float) Math.Sin(Time.upTime * 2.0f),    
@@ -173,8 +175,15 @@ public class Application
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
     }
 
+    private void UpdateUI()
+    {
+        ImGuiNET.ImGui.ShowDemoWindow();
+    }
+
     private void UpdateRenderer()
     {
+        window.vulkanRenderer!.imGuiController.Update();
+        
         window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
         window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
         window.vulkanRenderer!.uniformData.projection.M11 *= -1;

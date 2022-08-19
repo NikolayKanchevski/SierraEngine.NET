@@ -120,6 +120,8 @@ public unsafe partial class VulkanRenderer
         CreateDepthBufferImage();
         CreateColorBufferImage();
         CreateFrameBuffers();
+        
+        imGuiController.ResizeImGui();
     }
 
     private void DestroySwapchainObjects()

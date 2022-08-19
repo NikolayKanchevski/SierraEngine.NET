@@ -13,12 +13,12 @@
         <PackageReference Include="Evergine.Bindings.Vulkan" Version="2022.5.1.4" />
         <PackageReference Include="glfw-sharp" Version="0.2.14" />
         <PackageReference Include="ImGui.NET" Version="1.87.3" />
+        <PackageReference Include="Silk.NET.Core" Version="2.16.0" />
         <PackageReference Include="StbImageSharp" Version="2.27.8" />
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Core\Dynamic Link Libraries\Unix" />
-        <Folder Include="Core\Rendering\ImGui\Shaders" />
         <Folder Include="Core\Rendering\Models" />
         <Folder Include="Core\Rendering\Shading\Compilers" />
         <Folder Include="Core\Rendering\Shading\Shaders\Compiled" />

@@ -162,7 +162,6 @@ public unsafe partial class VulkanRenderer
             descriptorSetsPtr[0] = uniformDescriptorSets[currentFrame];
             descriptorSetsPtr[1] = diffuseTextureDescriptorSets[mesh.diffuseTextureID];
             descriptorSetsPtr[2] = specularTextureDescriptorSets[mesh.specularTextureID];
-            // Console.WriteLine(diffuseTextureDescriptorSets.Count + "  " + specularTextureDescriptorSets.Count);
             
             VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 3, descriptorSetsPtr, 0, null);
 
@@ -172,6 +171,8 @@ public unsafe partial class VulkanRenderer
 
         // End the render pass
         VulkanNative.vkCmdEndRenderPass(givenCommandBuffer);
+
+        imGuiController.Render(givenCommandBuffer, swapchainFrameBuffers[imageIndex], swapchainExtent);
         
         // End GPU timer
         VulkanNative.vkCmdWriteTimestamp(givenCommandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, drawTimeQueryPool, imageIndex * 2 + 1);

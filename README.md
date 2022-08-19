@@ -108,6 +108,12 @@ There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, wh
 
 <br>
 
+## 🔘 User Interface
+
+<i>The UI is in a very unstable state right now. Currently working on improving it a lot, though!</i>
+
+<br>
+
 ## 👍 Ease of Use
 
 The program is packed with numerous useful classes. Let's say you wanted to maximize the window. This is how you would do it:
@@ -158,7 +164,7 @@ There are many other features planned. Some of them are:
 
 <p>
     <ul>
-        <li><a href="https://en.wikipedia.org/wiki/User_interface">UI</a>
+        <li><strike><a href="https://en.wikipedia.org/wiki/User_interface">UI</a></strike>
         <li><a href="https://en.wikipedia.org/wiki/Video_post-processing">Post-Processing</a></li>
         <li><a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a></li>
         <li><a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)">Multi-Threading 😥</a></li>
@@ -180,6 +186,7 @@ There are many other features planned. Some of them are:
         <li><a href="https://github.com/glfw/glfw">GLFW</a> - For creating window interface and connecting it to the <b>Vulkan</b> renderer.</li>
         <li><a href="https://github.com/assimp/assimp">Assimp</a> - For the loading of all kinds of 3D model formats (.obj, .fbx, .dae, etc.).</li>
         <li><a href="https://github.com/nothings/stb">Stb</a> - For loading image data from all kinds of image formats (.jpg, .png, etc.).</li>
+        <li><a href="https://github.com/ocornut/imgui">ImGui</a> - For the user interface implemented.</li>
         <li><a href="https://ih1.redbubble.net/image.528192883.5730/st,small,845x845-pad,1000x1000,f8f8f8.u9.jpg">My Brain</a> - There is not much left of it, actually...</li>
     </ul>
     <br>
@@ -193,7 +200,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 5591</p>
-<p align="center" id="LastUpdated">Last updated: 16/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 6328</p>
+<p align="center" id="LastUpdated">Last updated: 19/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

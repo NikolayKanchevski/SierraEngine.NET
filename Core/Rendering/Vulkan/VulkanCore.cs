@@ -11,4 +11,5 @@ public static class VulkanCore
     public static VkExtent2D swapchainExtent; 
     public static VkCommandPool commandPool;
     public static VkQueue graphicsQueue;
+    public static uint graphicsFamilyIndex;
 }

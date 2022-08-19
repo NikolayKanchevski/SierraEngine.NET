@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine;
@@ -83,7 +84,7 @@ public class Window
     /// <summary>
     /// Checks whether the window is maximised (uses the whole screen).
     /// </summary>
-    public bool maximised => Convert.ToBoolean(Glfw3.GetWindowAttrib(glfwWindow, WindowAttribute.Maximized));
+    public bool maximized => Convert.ToBoolean(Glfw3.GetWindowAttrib(glfwWindow, WindowAttribute.Maximized));
 
     /// <summary>
     /// Checks whether the window is focused (is the one handling input currently).
@@ -141,6 +142,36 @@ public class Window
         if (maximised)
         {
             Glfw3.MaximizeWindow(glfwWindow);
+        }
+    }
+    
+    /// <summary>
+    /// Creates a new window without the need of setting its size. It will automatically be 800x600 or,
+    /// if maximized, as big as it can be on your display.
+    /// </summary>
+    /// <param name="title">What the title / name of the window should be.</param>
+    /// <param name="maximized">A bool indicating whether the window should use all the space on your screen and start maximized.</param>
+    /// <param name="resizable">Whether the window is going to be resizable or not.</param>
+    /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
+    public Window(string title, bool maximized = false, bool resizable = false, bool requireFocus = false)
+    {
+        this.title = title;
+        this.resizable = resizable;
+        this.requireFocus = requireFocus;
+        
+        this.width = 800;
+        this.height = 600;
+
+        InitWindow();
+
+        if (maximized)
+        {
+            Glfw3.MaximizeWindow(glfwWindow);
+
+            Glfw3.GetWindowSize(glfwWindow, out var xSize, out var ySize);
+        
+            this.width = xSize;
+            this.height = ySize;
         }
     }
     

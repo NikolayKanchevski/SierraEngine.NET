@@ -1,3 +1,4 @@
+using System.Numerics;
 using Evergine.Bindings.Vulkan;
 using Glfw;
 using SierraEngine.Engine.Classes;
@@ -62,7 +63,6 @@ public unsafe partial class VulkanRenderer
     
     private void Draw()
     {
-        
         // Create a pointer to the needed fences
         VkFence* fencesPtr = stackalloc VkFence[] { frameBeingRenderedFences[currentFrame] };
         

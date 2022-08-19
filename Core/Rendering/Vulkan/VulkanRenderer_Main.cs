@@ -96,7 +96,7 @@ public unsafe partial class VulkanRenderer
     private void Init()
     {
         CreateInstance();
-        CreateDebugMessenger();
+        // CreateDebugMessenger();
         CreateWindowSurface();
         
         GetPhysicalDevice();
@@ -126,11 +126,11 @@ public unsafe partial class VulkanRenderer
         
         CreateDescriptorPool();
         CreateUniformDescriptorSets();
-        CreateImGuiContext();
 
         CreateSynchronisation();
 
         CreateNullTextures();
+        CreateImGuiContext();
         
         Start();
     }
@@ -151,6 +151,8 @@ public unsafe partial class VulkanRenderer
     public void CleanUp()
     {
         VulkanNative.vkDeviceWaitIdle(logicalDevice);
+        
+        imGuiController.CleanUp();
 
         DestroySwapchainObjects();
         

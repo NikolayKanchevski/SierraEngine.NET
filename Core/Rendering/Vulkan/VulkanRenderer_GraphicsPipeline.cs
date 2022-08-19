@@ -234,7 +234,7 @@ public unsafe partial class VulkanRenderer
             basePipelineHandle = VkPipeline.Null,
             basePipelineIndex = -1
         };
-
+        
         // Create the graphics pipeline
         fixed (VkPipeline* graphicsPipelinePtr = &graphicsPipeline)
         {
@@ -243,6 +243,9 @@ public unsafe partial class VulkanRenderer
                 VulkanDebugger.ThrowError("Failed to create graphics pipeline");
             }
         }
+        
+        Marshal.FreeHGlobal((IntPtr) vertShaderStageInfo.pName);
+        Marshal.FreeHGlobal((IntPtr) fragShaderStageInfo.pName);
 
         // Destroy the made shader modules
         VulkanNative.vkDestroyShaderModule(this.logicalDevice, vertShaderModule, null);

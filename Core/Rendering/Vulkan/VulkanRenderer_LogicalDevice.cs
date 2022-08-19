@@ -90,6 +90,9 @@ public unsafe partial class VulkanRenderer
         
         // Assign the EngineCore's logical device
         VulkanCore.logicalDevice = logicalDevice;
+
+        // Assign the EngineCore's graphics family index
+        VulkanCore.graphicsFamilyIndex = queueFamilyIndices.graphicsFamily.Value;
         
         // Retrieve graphics queue
         fixed (VkQueue* graphicsQueuePtr = &graphicsQueue)
