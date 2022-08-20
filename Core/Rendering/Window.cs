@@ -5,6 +5,7 @@ using Evergine.Bindings.Vulkan;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
+using Cursor = Glfw.Cursor;
 
 namespace SierraEngine.Core.Rendering;
 
@@ -37,11 +38,20 @@ public class Window
     /// Checks whether the window is maximised (uses the whole screen).
     /// </summary>
     public bool maximized { get; private set; }
+    
+    /// <summary>
+    /// Returns the current opacity of the window.
+    /// </summary>
+    public float opacity { get; private set;  }
 
     /// <summary>
     /// Checks whether the window is focused (is the one handling input currently).
     /// </summary>
     public bool focused { get; private set; } = true;
+    /// <summary>
+    /// Checks whether the window is hidden from the user.
+    /// </summary>
+    public bool hidden { get; private set; } = true;
 
     /// <summary>
     /// Returns the name of the current monitor used by this window.
@@ -90,6 +100,35 @@ public class Window
         Glfw3.SetWindowTitle(glfwWindow, newTitle);
     }
 
+
+    /// <summary>
+    /// Shows the window after startup, or manually hiding it. See <see cref="Hide"/>
+    /// </summary>
+    public void Show()
+    {
+        this.hidden = false;
+        Glfw3.ShowWindow(glfwWindow);
+    }
+
+    /// <summary>
+    /// Hides the window completely from the user. Removes it from the task bar and is not visible.
+    /// </summary>
+    public void Hide()
+    {
+        this.hidden = true;
+        Glfw3.HideWindow(glfwWindow);
+    }
+
+    /// <summary>
+    /// Sets the transparency (opacity) of the window
+    /// </summary>
+    /// <param name="opacity">How transparent the window should become (from 0.0f to 1.0f).</param>
+    public void SetOpacity(in float opacity)
+    {
+        this.opacity = opacity;
+        Glfw3.SetWindowOpacity(glfwWindow, opacity);
+    }
+
     /// <summary>
     /// Sets the icon of the window. Works only on Windows.
     /// </summary>
@@ -122,7 +161,7 @@ public class Window
         
         if (requireFocus && !focused) return;
         
-        if (minimized) return;
+        if (minimized || hidden) return;
         
         vulkanRenderer?.Update();
     }
@@ -238,10 +277,14 @@ public class Window
     {
         Glfw3.WindowHint(WindowAttribute.Resizable, Convert.ToInt32(resizable));
         Glfw3.WindowHint(WindowAttribute.ClientApi, 0);
+        Glfw3.WindowHint(WindowAttribute.Visible, 0);
 
         glfwWindow = Glfw3.CreateWindow(width, height, title, MonitorHandle.Zero, IntPtr.Zero);
         Glfw3.SetWindowPos(glfwWindow, (int) position.X, (int) position.Y);
         
+        VulkanCore.glfwWindow = glfwWindow;
+        VulkanCore.window = this;
+
         selfPointerHandle = GCHandle.Alloc(this);
         IntPtr selfPointer = (IntPtr) selfPointerHandle;
         Glfw3.SetWindowUserPointer(glfwWindow, selfPointer);
@@ -271,6 +314,8 @@ public class Window
         windowObject.vulkanRenderer.frameBufferResized = true;
         windowObject.vulkanRenderer.Update();
         windowObject.vulkanRenderer.Update();
+
+        SierraEngine.Engine.Classes.Cursor.ResetCursorOffset();
     }
 
     private static void WindowFocusCallback(IntPtr focusedWindow, bool focused)
@@ -279,6 +324,8 @@ public class Window
 
         windowObject.focused = focused;
         windowObject.minimized = false;
+
+        SierraEngine.Engine.Classes.Cursor.ResetCursorOffset();
     }
 
     private static void WindowMinimizeCallback(IntPtr minimizedWindow, bool minimized)
@@ -286,6 +333,8 @@ public class Window
         GetGlfwWindowParentClass(minimizedWindow, out var windowObject);
 
         windowObject.minimized = minimized;
+
+        SierraEngine.Engine.Classes.Cursor.ResetCursorOffset();
     }
 
     private static void WindowMaximizeCallback(IntPtr maximizedWindow, bool maximized)
@@ -294,6 +343,8 @@ public class Window
 
         windowObject.minimized = !maximized;
         windowObject.maximized = maximized;
+
+        SierraEngine.Engine.Classes.Cursor.ResetCursorOffset();
     }
 
     /* -- INTERNAL METHODS -- */
@@ -305,6 +356,8 @@ public class Window
         Glfw3.SetWindowSizeCallback(glfwWindow, resizeCallbackDelegate);
         
         Glfw3.SetWindowFocusCallback(glfwWindow, focusCallback);
+
+        Glfw3.SetWindowRefreshCallback(glfwWindow, window => WindowFocusCallback(window, true));
         
         Glfw3.SetWindowIconifyCallback(glfwWindow, minimizeCallback);
 

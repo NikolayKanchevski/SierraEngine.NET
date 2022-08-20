@@ -30,7 +30,7 @@ public static class Cursor
         
         CursorPositionCallback(VulkanCore.glfwWindow, newPosition.X, newPosition.Y);
         
-        cursorOffset = Vector2.Zero;
+        ResetCursorOffset();
     }
     
     public static void SetCursorPositionNormalized(in Vector2 newPosition)
@@ -67,6 +67,11 @@ public static class Cursor
         else HideCursor();
     }
 
+    public static void ResetCursorOffset()
+    {
+        cursorOffset = Vector2.Zero;
+    }
+
     public static Vector2 GetGlfwCursorPosition()
     {
         Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double x, out double y);
@@ -86,8 +91,8 @@ public static class Cursor
             cursorPositionSet = false;
             return;
         }
-        
-        cursorOffset = Vector2.Zero;
+
+        ResetCursorOffset();
     }
 
     public static void CursorPositionCallback(IntPtr glfwWindow, double xPosition, double yPosition)

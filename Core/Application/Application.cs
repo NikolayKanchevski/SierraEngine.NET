@@ -19,25 +19,24 @@ public class Application
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 60.0f;
-    private const float CAMERA_ZOOM_SPEED = 30.0f;
+    private const float CAMERA_ZOOM_SPEED = 3000.0f;
     private float yaw = -90.0f, pitch;
 
     private bool cursorShown;
     
     public Application()
     {
-        window = new Window("Hello, Vulkan!",  1080, 1080, true, true);
-        VulkanCore.glfwWindow = window.GetCoreWindow();
-        Console.WriteLine(window.monitorName);
-        VulkanCore.window = window;
+        window = new Window("Hello, Vulkan!",  true, true);
+        
+        VulkanRenderer vulkanRenderer = new VulkanRenderer(window);
+        window.SetRenderer(ref vulkanRenderer);
+        
+        window.Show();
     }
     
     public void Start()
     {
         StartClasses();
-        
-        VulkanRenderer vulkanRenderer = new VulkanRenderer(window);
-        window.SetRenderer(ref vulkanRenderer);
         
         Cursor.SetCursorVisibility(cursorShown);
 

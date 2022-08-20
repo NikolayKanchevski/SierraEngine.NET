@@ -105,7 +105,7 @@ public unsafe partial class VulkanRenderer
 
     private void RecreateSwapchainObjects()
     {
-        while (window.minimized)
+        while (window.minimized || !window.focused || window.width == 0)
         {
             Glfw3.WaitEvents();
         }
