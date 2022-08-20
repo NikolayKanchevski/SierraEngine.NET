@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
+using Evergine.Bindings.Vulkan;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
@@ -9,12 +11,49 @@ namespace SierraEngine.Core.Rendering;
 /// <summary>A class to create windows on the screen. Wraps around a "core" GLFW window and extends its abilities.</summary>
 public class Window
 {
+    /// <summary>
+    /// Returns the width of the window.
+    /// </summary>
     public int width { get; private set; }
+    /// <summary>
+    /// Returns the height of the window.
+    /// </summary>
     public int height { get; private set; }
+    /// <summary>
+    /// Returns the title displayed at the top of the window.
+    /// </summary>
     public string title { get; private set; }
-    public VulkanRenderer? vulkanRenderer { get; private set; }
+    /// <summary>
+    /// Checks whether the window is closed.
+    /// </summary>
+    public bool closed => Glfw3.WindowShouldClose(glfwWindow);
+
+    /// <summary>
+    /// Checks whether the window is minimised and is not shown.
+    /// </summary>
+    public bool minimized { get; private set; }
+
+    /// <summary>
+    /// Checks whether the window is maximised (uses the whole screen).
+    /// </summary>
+    public bool maximized { get; private set; }
+
+    /// <summary>
+    /// Checks whether the window is focused (is the one handling input currently).
+    /// </summary>
+    public bool focused { get; private set; } = true;
+
+    /// <summary>
+    /// Returns the name of the current monitor used by this window.
+    /// </summary>
+    public string monitorName { get; private set; } = "Null";
     
+    public VulkanRenderer? vulkanRenderer { get; private set; }
+    private readonly Vector2 position;
+
     private IntPtr glfwWindow;
+    private Vector4 monitorWorkArea;
+    private MonitorHandle monitor;
     
     private readonly bool resizable;
     private readonly bool requireFocus;
@@ -23,6 +62,9 @@ public class Window
 
     private readonly ErrorDelegate glfwErrorDelegate = GlfwErrorCallback;
     private readonly WindowSizeDelegate resizeCallbackDelegate = WindowResizeCallback;
+    private readonly WindowBooleanDelegate focusCallback = WindowFocusCallback;
+    private readonly WindowBooleanDelegate minimizeCallback = WindowMinimizeCallback;
+    private readonly WindowBooleanDelegate maximizeCallback = WindowMaximizeCallback;
     private readonly KeyDelegate keyCallbackDelegate = Input.KeyboardKeyCallback;
     private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
     private readonly MouseButtonDelegate buttonCallbackDelegate = Input.MouseButtonCallback;
@@ -68,28 +110,6 @@ public class Window
     {
         this.vulkanRenderer = renderer;
     }
-    
-    /* -- GETTER PROPERTIES / METHODS -- */
-
-    /// <summary>
-    /// Checks whether the window is closed.
-    /// </summary>
-    public bool closed => Glfw3.WindowShouldClose(glfwWindow);
-
-    /// <summary>
-    /// Checks whether the window is minimised and is not shown.
-    /// </summary>
-    public bool minimised => width == 0 || height == 0;
-
-    /// <summary>
-    /// Checks whether the window is maximised (uses the whole screen).
-    /// </summary>
-    public bool maximized => Convert.ToBoolean(Glfw3.GetWindowAttrib(glfwWindow, WindowAttribute.Maximized));
-
-    /// <summary>
-    /// Checks whether the window is focused (is the one handling input currently).
-    /// </summary>
-    public bool focused => Convert.ToBoolean(Glfw3.GetWindowAttrib(glfwWindow, WindowAttribute.Focused));
 
     /* -- EXTERNAL METHODS -- */
 
@@ -100,9 +120,9 @@ public class Window
     {
         Glfw3.PollEvents();
         
-        // if (requireFocus && !focused) return;
-        //
-        // if (minimised) return;
+        if (requireFocus && !focused) return;
+        
+        if (minimized) return;
         
         vulkanRenderer?.Update();
     }
@@ -131,13 +151,29 @@ public class Window
     /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
     public Window(string title, int width, int height, bool resizable = false, bool requireFocus = false)
     {
+        Glfw3.Init();
+
+        #if DEBUG
+            Stopwatch stopwatch = Stopwatch.StartNew();
+        #endif
+        
+        RetrieveMonitorData();
+        
         this.width = width;
         this.height = height;
         this.title = title;
         this.resizable = resizable;
         this.requireFocus = requireFocus;
 
+        this.position = new Vector2((monitorWorkArea.Z - width) / 2, (monitorWorkArea.W - height) / 2);
+
         InitWindow();
+        
+        #if DEBUG
+            stopwatch.Stop();
+            VulkanDebugger.DisplaySuccess($"Window [\"{ title }\"] successfully created! Initialization took: { stopwatch.ElapsedMilliseconds }ms");
+            VulkanRendererInfo.initializationTime += stopwatch.ElapsedMilliseconds;
+        #endif
     }
     
     /// <summary>
@@ -150,27 +186,36 @@ public class Window
     /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
     public Window(string title, bool maximized = false, bool resizable = false, bool requireFocus = false)
     {
+        Glfw3.Init();
+        
+        #if DEBUG
+            Stopwatch stopwatch = Stopwatch.StartNew();
+        #endif
+        
+        RetrieveMonitorData();
+        
         this.title = title;
         this.resizable = resizable;
         this.requireFocus = requireFocus;
         
         this.width = 800;
         this.height = 600;
-        
-        #if DEBUG
-            Stopwatch stopwatch = Stopwatch.StartNew();
-        #endif
+
+        this.position = new Vector2((monitorWorkArea.Z - width) / 2, (monitorWorkArea.W - height) / 2);
+
+        if (maximized)
+        {
+            this.position = Vector2.Zero;
+            
+            this.width = (int) monitorWorkArea.Z;
+            this.height = (int) monitorWorkArea.W;
+        }
 
         InitWindow();
 
         if (maximized)
         {
             Glfw3.MaximizeWindow(glfwWindow);
-
-            Glfw3.GetWindowSize(glfwWindow, out var xSize, out var ySize);
-        
-            this.width = xSize;
-            this.height = ySize;
         }
         
         #if DEBUG
@@ -179,15 +224,23 @@ public class Window
             VulkanRendererInfo.initializationTime += stopwatch.ElapsedMilliseconds;
         #endif
     }
+
+    private void RetrieveMonitorData()
+    {
+        this.monitor = Glfw3.GetPrimaryMonitor();
+        Glfw3.GetMonitorWorkarea(monitor.RawHandle, out var x, out var y, out var monitorWidth, out var monitorHeight);
+        
+        this.monitorWorkArea = new Vector4(x, y, monitorWidth, monitorHeight);
+        this.monitorName = Glfw3.GetMonitorName(monitor).ToString();
+    }
     
     private void InitWindow()
     {
-        Glfw3.Init();
-        
         Glfw3.WindowHint(WindowAttribute.Resizable, Convert.ToInt32(resizable));
         Glfw3.WindowHint(WindowAttribute.ClientApi, 0);
 
         glfwWindow = Glfw3.CreateWindow(width, height, title, MonitorHandle.Zero, IntPtr.Zero);
+        Glfw3.SetWindowPos(glfwWindow, (int) position.X, (int) position.Y);
         
         selfPointerHandle = GCHandle.Alloc(this);
         IntPtr selfPointer = (IntPtr) selfPointerHandle;
@@ -217,6 +270,30 @@ public class Window
         
         windowObject.vulkanRenderer.frameBufferResized = true;
         windowObject.vulkanRenderer.Update();
+        windowObject.vulkanRenderer.Update();
+    }
+
+    private static void WindowFocusCallback(IntPtr focusedWindow, bool focused)
+    {
+        GetGlfwWindowParentClass(focusedWindow, out var windowObject);
+
+        windowObject.focused = focused;
+        windowObject.minimized = false;
+    }
+
+    private static void WindowMinimizeCallback(IntPtr minimizedWindow, bool minimized)
+    {
+        GetGlfwWindowParentClass(minimizedWindow, out var windowObject);
+
+        windowObject.minimized = minimized;
+    }
+
+    private static void WindowMaximizeCallback(IntPtr maximizedWindow, bool maximized)
+    {
+        GetGlfwWindowParentClass(maximizedWindow, out var windowObject);
+
+        windowObject.minimized = !maximized;
+        windowObject.maximized = maximized;
     }
 
     /* -- INTERNAL METHODS -- */
@@ -227,6 +304,12 @@ public class Window
         
         Glfw3.SetWindowSizeCallback(glfwWindow, resizeCallbackDelegate);
         
+        Glfw3.SetWindowFocusCallback(glfwWindow, focusCallback);
+        
+        Glfw3.SetWindowIconifyCallback(glfwWindow, minimizeCallback);
+
+        Glfw3.SetWindowMaximizeCallback(glfwWindow, maximizeCallback);
+
         Glfw3.SetKeyCallback(glfwWindow, keyCallbackDelegate);
 
         Glfw3.SetCursorPosCallback(glfwWindow, cursorCallbackDelegate);

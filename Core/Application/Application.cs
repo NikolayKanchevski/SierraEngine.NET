@@ -26,8 +26,9 @@ public class Application
     
     public Application()
     {
-        window = new Window("Hello, Vulkan!", 1920, 1080, true, true);
+        window = new Window("Hello, Vulkan!",  1080, 1080, true, true);
         VulkanCore.glfwWindow = window.GetCoreWindow();
+        Console.WriteLine(window.monitorName);
         VulkanCore.window = window;
     }
     

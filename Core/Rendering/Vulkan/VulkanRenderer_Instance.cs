@@ -15,14 +15,14 @@ public unsafe partial class VulkanRenderer
     
 #if DEBUG
     private const bool VALIDATION_ENABLED = true;
-#else
-    private const bool VALIDATION_ENABLED = false; 
-#endif
-
+    
     private readonly string[] validationLayers = new string[]
     {
         "VK_LAYER_KHRONOS_validation"
     };
+#else
+    private const bool VALIDATION_ENABLED = false; 
+#endif
     
     private void CreateInstance()
     {
@@ -65,8 +65,7 @@ public unsafe partial class VulkanRenderer
         };
 
         // If validation is enabled get and pass validation layers to the instance creation info
-        if (VALIDATION_ENABLED)
-        {
+        #if DEBUG
             if (!ValidationLayersSupported(in validationLayers))
             {
                 VulkanDebugger.ThrowWarning("Validation layers requested, but not available. Returning");
@@ -82,7 +81,7 @@ public unsafe partial class VulkanRenderer
                 instanceCreateInfo.enabledLayerCount = (uint) validationLayers.Length;
                 instanceCreateInfo.ppEnabledLayerNames = (byte**) layers;
             }
-        }
+        #endif
         
         // Create instance
         fixed (VkInstance* instancePtr = &instance)

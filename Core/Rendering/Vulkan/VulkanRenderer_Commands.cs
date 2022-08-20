@@ -169,10 +169,10 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);
         }
 
+        imGuiController.Render(givenCommandBuffer, swapchainFrameBuffers[imageIndex], swapchainExtent);
+
         // End the render pass
         VulkanNative.vkCmdEndRenderPass(givenCommandBuffer);
-
-        imGuiController.Render(givenCommandBuffer, swapchainFrameBuffers[imageIndex], swapchainExtent);
         
         // End GPU timer
         VulkanNative.vkCmdWriteTimestamp(givenCommandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, drawTimeQueryPool, imageIndex * 2 + 1);

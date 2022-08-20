@@ -17,12 +17,11 @@ public unsafe class ImGuiController
     private int windowHeight;
     private uint swapchainImageCount;
     private bool frameBegun;
-    private ulong bufferMemoryAlignment = 256;
+    private const ulong BUFFER_MEMORY_ALIGNMENT = 256;
     private GlobalMemory frameRenderBuffers = null!;
 
     private VkDescriptorPool descriptorPool;
-    private VkSampleCountFlags msaaSampleCount;
-    private VkRenderPass renderPass;
+    private readonly VkSampleCountFlags msaaSampleCount;
     private VkSampler fontSampler;
     private VkDescriptorSetLayout descriptorSetLayout;
     private VkDescriptorSet descriptorSet;
@@ -36,7 +35,7 @@ public unsafe class ImGuiController
     
     private WindowRenderBuffers mainWindowRenderBuffers;
     
-    public ImGuiController(in Window window, in uint swapchainImageCount, in VkFormat swapchainImageFormat, in VkFormat depthBufferFormat, in VkSampleCountFlags sampleCountFlags)
+    public ImGuiController(in Window window, ref VkRenderPass renderPass, in uint swapchainImageCount, in VkSampleCountFlags sampleCountFlags)
     {
         this.msaaSampleCount = sampleCountFlags;
         
@@ -53,7 +52,7 @@ public unsafe class ImGuiController
         // io.BackendFlags |= ImGuiBackendFlags.RendererHasViewports;
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
         
-        Init(in window, swapchainImageCount, swapchainImageFormat, depthBufferFormat);
+        Init(in window, ref renderPass, swapchainImageCount);
 
         SetKeyMappings();
 
@@ -62,15 +61,16 @@ public unsafe class ImGuiController
         BeginFrame();
     }
 
-    private void Init(in Window window, in uint swapChainImageCount, in VkFormat swapchainImageFormat, in VkFormat depthBufferFormat)
+    private void Init(in Window window, ref VkRenderPass renderPass, in uint swapChainImageCount)
     {
-        // this.view = view;
-        // _input = input;
         windowWidth = window.width;
         windowHeight = window.height;
         swapchainImageCount = swapChainImageCount;
 
-        if (swapchainImageCount < 2) throw new Exception("Swapchain image count must be >= 2");
+        if (swapchainImageCount < 2)
+        {
+            VulkanDebugger.ThrowError("Swapchain image count must be >= 2");
+        }
 
         // Set default style
         ImGuiNET.ImGui.StyleColorsDark();
@@ -95,103 +95,6 @@ public unsafe class ImGuiController
             if (VulkanNative.vkCreateDescriptorPool(VulkanCore.logicalDevice, &descriptorPoolCreateInfo, null, descriptorPoolPtr) != VkResult.VK_SUCCESS)
             {
                 VulkanDebugger.ThrowError("Failed to create ImGui descriptor pool");
-            }
-        }
-        
-        VkAttachmentDescription colorAttachment = new VkAttachmentDescription()
-        {
-            format = swapchainImageFormat,
-            samples = msaaSampleCount,
-            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_LOAD,
-            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_STORE,
-            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, 
-            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-        };
-
-        VkAttachmentReference colorAttachmentReference = new VkAttachmentReference()
-        {
-            attachment = 0,
-            layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-        };
-
-        VkAttachmentDescription depthAttachment = new VkAttachmentDescription()
-        {
-            format = depthBufferFormat,
-            samples = msaaSampleCount,
-            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_LOAD,
-            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
-            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        };
-        
-        VkAttachmentReference depthAttachmentReference = new VkAttachmentReference()
-        {
-            attachment = 1,
-            layout = VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        };
-        
-        VkAttachmentDescription colorAttachmentResolve = new VkAttachmentDescription()
-        {
-            format = swapchainImageFormat,
-            samples = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
-            loadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            storeOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_STORE,
-            stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
-            finalLayout = VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-        };
-
-        VkAttachmentReference colorAttachmentResolveReference = new VkAttachmentReference()
-        {
-            attachment = 2,
-            layout = VkImageLayout.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-        };
-
-        VkAttachmentReference* resolveAttachmentReferencesPtr = stackalloc VkAttachmentReference[] { colorAttachmentResolveReference };
-
-        VkAttachmentReference* attachmentReferences = stackalloc VkAttachmentReference[] { colorAttachmentReference };
-
-        VkSubpassDescription subpassDescription = new VkSubpassDescription()
-        {
-            pipelineBindPoint = VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS,
-            colorAttachmentCount = 1,
-            pColorAttachments = attachmentReferences,
-            pDepthStencilAttachment = &depthAttachmentReference,
-            pResolveAttachments = resolveAttachmentReferencesPtr
-        };
-        
-        VkAttachmentDescription* attachmentDescriptionsPtr = stackalloc VkAttachmentDescription[] { colorAttachment, depthAttachment, colorAttachmentResolve };
-
-        VkSubpassDependency subpassDependency = new VkSubpassDependency()
-        {
-            srcSubpass = ~0U,
-            dstSubpass = 0,
-            srcStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            srcAccessMask = 0,
-            dstStageMask = VkPipelineStageFlags.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            dstAccessMask = VkAccessFlags.VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlags.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
-        };
-
-        VkRenderPassCreateInfo renderPassCreateInfo = new VkRenderPassCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-            attachmentCount = 3,
-            pAttachments = attachmentDescriptionsPtr,
-            subpassCount = 1,
-            pSubpasses = &subpassDescription,
-            dependencyCount = 1,
-            pDependencies = &subpassDependency
-        };
-
-        fixed (VkRenderPass* renderPassPtr = &renderPass)
-        {
-            if (VulkanNative.vkCreateRenderPass(VulkanCore.logicalDevice, &renderPassCreateInfo, null, renderPassPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create ImGui render pass");
             }
         }
 
@@ -498,14 +401,11 @@ public unsafe class ImGuiController
         };
 
         VulkanNative.vkUpdateDescriptorSets(VulkanCore.logicalDevice, 1, &writeDescriptorSet, 0, null);
-        
-        VkBuffer uploadBuffer;
-        VkDeviceMemory uploadBufferMemory;
-        
+
         VulkanUtilities.CreateBuffer(
             uploadSize, VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 
-            out uploadBuffer, out uploadBufferMemory);
+            out var uploadBuffer, out var uploadBufferMemory);
 
         void* data;
         VulkanNative.vkMapMemory(VulkanCore.logicalDevice, uploadBufferMemory, 0, uploadSize, 0, &data);
@@ -727,7 +627,7 @@ public unsafe class ImGuiController
         {
             frameBegun = false;
             ImGuiNET.ImGui.Render();
-            RenderImDrawData(ImGuiNET.ImGui.GetDrawData(), commandBuffer, framebuffer, swapChainExtent);
+            RenderImDrawData(ImGuiNET.ImGui.GetDrawData(), commandBuffer);
         }
     }
 
@@ -802,7 +702,6 @@ public unsafe class ImGuiController
         VulkanNative.vkDestroyPipelineLayout(VulkanCore.logicalDevice, graphicsPipelineLayout, default);
         VulkanNative.vkDestroyPipeline(VulkanCore.logicalDevice, graphicsPipeline, default);
         VulkanNative.vkDestroyDescriptorPool(VulkanCore.logicalDevice, descriptorPool, default);
-        VulkanNative.vkDestroyRenderPass(VulkanCore.logicalDevice, renderPass, default);
 
         ImGuiNET.ImGui.DestroyContext();
     }
@@ -813,27 +712,8 @@ public unsafe class ImGuiController
         frameBegun = true;
     }
     
-    private void RenderImDrawData(in ImDrawDataPtr drawDataPtr, in VkCommandBuffer commandBuffer,
-        in VkFramebuffer framebuffer, in VkExtent2D swapchainExtent)
+    private void RenderImDrawData(in ImDrawDataPtr drawDataPtr, in VkCommandBuffer commandBuffer)
     {
-        var framebufferWidth = (int) (drawDataPtr.DisplaySize.X * drawDataPtr.FramebufferScale.X);
-        var framebufferHeight = (int) (drawDataPtr.DisplaySize.Y * drawDataPtr.FramebufferScale.Y);
-        if (framebufferWidth <= 0 || framebufferHeight <= 0) return;
-
-        VkRenderPassBeginInfo renderPassBeginInfo = new VkRenderPassBeginInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            renderPass = renderPass,
-            framebuffer = framebuffer,
-            renderArea = new VkRect2D()
-            {
-                extent = swapchainExtent
-            },
-            clearValueCount = 0
-        };
-        
-        VulkanNative.vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
-        
         var drawData = *drawDataPtr.NativePtr;
 
         // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
@@ -879,10 +759,10 @@ public unsafe class ImGuiController
             // Upload vertex/index data into a single contiguous GPU buffer
             ImDrawVert* vtxDst = null;
             ushort* idxDst = null;
-            if (VulkanNative.vkMapMemory(VulkanCore.logicalDevice, frameRenderBuffer.vertexBufferMemory, 0, frameRenderBuffer.vertexBufferSize, 0,
-                    (void**) &vtxDst) != VkResult.VK_SUCCESS) throw new Exception("Unable to map device memory");
-            if (VulkanNative.vkMapMemory(VulkanCore.logicalDevice, frameRenderBuffer.indexBufferMemory, 0, frameRenderBuffer.indexBufferSize, 0,
-                    (void**) &idxDst) != VkResult.VK_SUCCESS) throw new Exception("Unable to map device memory");
+
+            VulkanNative.vkMapMemory(VulkanCore.logicalDevice, frameRenderBuffer.vertexBufferMemory, 0, frameRenderBuffer.vertexBufferSize, 0, (void**) &vtxDst);
+            VulkanNative.vkMapMemory(VulkanCore.logicalDevice, frameRenderBuffer.indexBufferMemory, 0, frameRenderBuffer.indexBufferSize, 0, (void**) &idxDst);
+            
             for (var n = 0; n < drawData.CmdListsCount; n++)
             {
                 var cmdList = drawData.CmdLists[n];
@@ -902,9 +782,12 @@ public unsafe class ImGuiController
             mappedMemoryRange[1].sType = VkStructureType.VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
             mappedMemoryRange[1].memory = frameRenderBuffer.indexBufferMemory;
             mappedMemoryRange[1].size = UInt64.MaxValue;
-            
+
             if (VulkanNative.vkFlushMappedMemoryRanges(VulkanCore.logicalDevice, 2, mappedMemoryRange) != VkResult.VK_SUCCESS)
-                throw new Exception("Unable to flush memory to device");
+            {
+                VulkanDebugger.ThrowError("Unable to flush memory to device");
+            }
+            
             VulkanNative.vkUnmapMemory(VulkanCore.logicalDevice, frameRenderBuffer.vertexBufferMemory);
             VulkanNative.vkUnmapMemory(VulkanCore.logicalDevice, frameRenderBuffer.indexBufferMemory);
         }
@@ -937,7 +820,7 @@ public unsafe class ImGuiController
         VulkanNative.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
         // Setup scale and translation:
-        // Our visible imgui space lies from draw_data.DisplayPps (top left) to draw_data.DisplayPos+data_data.DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
+        // Our visible ImGui space lies from draw_data.DisplayPps (top left) to draw_data.DisplayPos+data_data.DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
         float* scale = stackalloc float[2];
         scale[0] = 2.0f / drawData.DisplaySize.X;
         scale[1] = 2.0f / drawData.DisplaySize.Y;
@@ -964,14 +847,14 @@ public unsafe class ImGuiController
             ref var cmdList = ref drawData.CmdLists[n];
             for (var cmdI = 0; cmdI < cmdList->CmdBuffer.Size; cmdI++)
             {
-                ref var pcmd = ref cmdList->CmdBuffer.Ref<ImDrawCmd>(cmdI);
+                ref var imGuiDrawCommand = ref cmdList->CmdBuffer.Ref<ImDrawCmd>(cmdI);
 
                 // Project scissor/clipping rectangles into framebuffer space
                 Vector4 clipRect;
-                clipRect.X = (pcmd.ClipRect.X - clipOff.X) * clipScale.X;
-                clipRect.Y = (pcmd.ClipRect.Y - clipOff.Y) * clipScale.Y;
-                clipRect.Z = (pcmd.ClipRect.Z - clipOff.X) * clipScale.X;
-                clipRect.W = (pcmd.ClipRect.W - clipOff.Y) * clipScale.Y;
+                clipRect.X = (imGuiDrawCommand.ClipRect.X - clipOff.X) * clipScale.X;
+                clipRect.Y = (imGuiDrawCommand.ClipRect.Y - clipOff.Y) * clipScale.Y;
+                clipRect.Z = (imGuiDrawCommand.ClipRect.Z - clipOff.X) * clipScale.X;
+                clipRect.W = (imGuiDrawCommand.ClipRect.W - clipOff.Y) * clipScale.Y;
 
                 if (clipRect.X < fbWidth && clipRect.Y < fbHeight && clipRect.Z >= 0.0f && clipRect.W >= 0.0f)
                 {
@@ -990,16 +873,14 @@ public unsafe class ImGuiController
                     VulkanNative.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
                     // Draw
-                    VulkanNative.vkCmdDrawIndexed(commandBuffer, pcmd.ElemCount, 1, pcmd.IdxOffset + (uint) indexOffset,
-                        (int) pcmd.VtxOffset + vertexOffset, 0);
+                    VulkanNative.vkCmdDrawIndexed(commandBuffer, imGuiDrawCommand.ElemCount, 1, imGuiDrawCommand.IdxOffset + (uint) indexOffset,
+                        (int) imGuiDrawCommand.VtxOffset + vertexOffset, 0);
                 }
             }
 
             indexOffset += cmdList->IdxBuffer.Size;
             vertexOffset += cmdList->VtxBuffer.Size;
         }
-
-        VulkanNative.vkCmdEndRenderPass(commandBuffer);
     }
     
     // ReSharper disable once RedundantAssignment
@@ -1009,7 +890,7 @@ public unsafe class ImGuiController
         if (deviceBuffer.Handle != default) VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, deviceBuffer, default);
         if (deviceBufferMemory.Handle != default) VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, deviceBufferMemory, default);
 
-        ulong sizeAlignedVertexBuffer = ((newSize - 1) / bufferMemoryAlignment + 1) * bufferMemoryAlignment;
+        ulong sizeAlignedVertexBuffer = ((newSize - 1) / BUFFER_MEMORY_ALIGNMENT + 1) * BUFFER_MEMORY_ALIGNMENT;
 
         VulkanUtilities.CreateBuffer(
             sizeAlignedVertexBuffer, usage, 

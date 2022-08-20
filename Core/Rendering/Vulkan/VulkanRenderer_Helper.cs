@@ -269,11 +269,11 @@ public unsafe partial class VulkanRenderer
     private VkExtent2D ChooseSwapchainExtent(in VkSurfaceCapabilitiesKHR givenCapabilities)
     {
         // Check to see if the extent is already configured
-        if (givenCapabilities.currentExtent.width != uint.MaxValue)
-        {
-            // If so just return it
-            return givenCapabilities.currentExtent;
-        }
+        // if (givenCapabilities.currentExtent.width != uint.MaxValue)
+        // {
+        //     // If so just return it
+        //     return givenCapabilities.currentExtent;
+        // }
 
         // Otherwise get the settings for it manually by finding out the width and height for it
         
