@@ -59,7 +59,6 @@ def Main():
 
 
 def CreateDirectories(OUTPUT_DIRECTORY):
-    os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
     os.makedirs(OUTPUT_DIRECTORY + "Shaders", exist_ok=True)
 
 

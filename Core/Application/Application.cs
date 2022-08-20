@@ -26,7 +26,7 @@ public class Application
     
     public Application()
     {
-        window = new Window("Hello, Vulkan!", true, true, true);
+        window = new Window("Hello, Vulkan!", 1920, 1080, true, true);
         VulkanCore.glfwWindow = window.GetCoreWindow();
         VulkanCore.window = window;
     }
