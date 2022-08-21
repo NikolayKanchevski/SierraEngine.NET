@@ -37,9 +37,9 @@ someObject.transform.scale = new Vector3(10.0f, 0.0f, -5.0f);    // Changes the 
 You could, for example, put a tank in your world and make its turret rotate like so:
 
 ```c#
-float upTimeCos = (float) Math.Cos(Time.upTime);    // The cosine of the time since the program started
-turretObject.transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
-gunObject.transform.rotation = new Vector3(0.0f, upTimeCos * 0.65f, 0.0f);
+float upTimeSin = (float) Math.Sin(Time.upTime);    // The sine of the time since the program started
+turretObject.transform.rotation = new Vector3(0.0f, upTimeSin * 45.0f, 0.0f);
+gunObject.transform.rotation = new Vector3(0.0f, upTimeSin * 45.0f, 0.0f);
 ```
 <br>
 
@@ -169,10 +169,10 @@ There are many other features planned. Some of them are:
 <p>
     <ul>
         <li><strike><a href="https://en.wikipedia.org/wiki/User_interface">UI</a></strike>
+        <li><strike><a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a></strike></li>
+        <li><strike>Performance Monitoring</strike></li>
         <li><a href="https://en.wikipedia.org/wiki/Video_post-processing">Post-Processing</a></li>
-        <li><a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a></li>
         <li><a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)">Multi-Threading 😥</a></li>
-        <li>Performance Monitoring</li>
         <li>Camera System</li>
     </ul>
 </p>
@@ -204,7 +204,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 6838</p>
+<p align="center" id="LinesCounter">Total lines of code: 6837</p>
 <p align="center" id="LastUpdated">Last updated: 21/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

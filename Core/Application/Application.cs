@@ -1,6 +1,5 @@
 using System.Numerics;
 using Glfw;
-using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
