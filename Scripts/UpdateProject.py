@@ -11,6 +11,7 @@ OUTPUT_DIRECTORY = ""
 DLL_DIRECTORY = ROOT_DIRECTORY + "Core/Dynamic Link Libraries/Windows/"
 TEXTURE_DIRECTORY = ROOT_DIRECTORY + "Core/Rendering/Textures/"
 MODEL_DIRECTORY = ROOT_DIRECTORY + "Core/Rendering/Models/"
+FONT_DIRECTORY = ROOT_DIRECTORY + "Core/Rendering/Fonts/"
 # FIRST_TIME = False
 
 
@@ -60,6 +61,7 @@ def Main():
 
 def CreateDirectories(OUTPUT_DIRECTORY):
     os.makedirs(OUTPUT_DIRECTORY + "Shaders", exist_ok=True)
+    os.makedirs(OUTPUT_DIRECTORY + "Fonts", exist_ok=True)
 
 
 def CopyFiles(OUTPUT_DIRECTORY):
@@ -70,6 +72,7 @@ def CopyFiles(OUTPUT_DIRECTORY):
 
     CopyFolder(TEXTURE_DIRECTORY, OUTPUT_DIRECTORY + "Textures/")
     CopyFolder(MODEL_DIRECTORY, OUTPUT_DIRECTORY + "Models/")
+    CopyFolder(FONT_DIRECTORY, OUTPUT_DIRECTORY + "Fonts/")
 
 
 

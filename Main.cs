@@ -36,5 +36,7 @@ public static class Program
 
         Application application = new Application();
         application.Start();
+        
+        // World.PrintHierarchy();
     }
 }

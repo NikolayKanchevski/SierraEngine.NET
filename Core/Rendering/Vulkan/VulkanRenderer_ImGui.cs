@@ -1,6 +1,4 @@
-using System.Diagnostics;
-using ImGuiNET;
-using SierraEngine.Core.Rendering.ImGui;
+using SierraEngine.Core.Rendering.UI;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 

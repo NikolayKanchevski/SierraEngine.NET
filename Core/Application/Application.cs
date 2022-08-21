@@ -13,6 +13,7 @@ namespace SierraEngine.Core.Application;
 public class Application
 {
     private readonly Window window;
+    private readonly UserInterface ui = new UserInterface();
 
     private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
     private readonly DirectionalLight directionalLight = (new GameObject("Directional Light").AddComponent(new DirectionalLight()) as DirectionalLight)!;
@@ -27,7 +28,7 @@ public class Application
     
     public Application()
     {
-        window = new Window("Hello, Vulkan!",  true, true);
+        window = new Window("Sierra Engine v1.0.0", true, true);
         
         VulkanRenderer vulkanRenderer = new VulkanRenderer(window);
         window.SetRenderer(ref vulkanRenderer);
@@ -66,10 +67,8 @@ public class Application
         UpdateObjects();
 
         UpdateRenderer();
-        
-        UpdateUI();
-        
-        window.SetTitle($"Sierra Engine | FPS: { Time.FPS.ToString().PadLeft(4, '0') } | GPU Draw Time: { VulkanRendererInfo.drawTime.ToString("n9") }ms");
+
+        ui.Update(window);
     }
     
     private void HandleCameraMovement()
@@ -175,33 +174,9 @@ public class Application
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
     }
-
-    private const float RENDERER_INFO_PADDING = 10.0f;
     
-    private void UpdateUI()
-    {
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | 
-                                       ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav | 
-                                       ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
-
-        ImGui.SetNextWindowPos(new Vector2(window.width - RENDERER_INFO_PADDING, RENDERER_INFO_PADDING), ImGuiCond.Always, new Vector2(1, 0));
-        
-        if (ImGui.Begin("Renderer Information", windowFlags))
-        {
-            ImGui.Text($"CPU Frame rate: { Time.FPS.ToString().PadLeft(4, '0') } FPS");
-            ImGui.Text($"GPU Draw Time: { VulkanRendererInfo.drawTime:n9} ms");
-            ImGui.Separator();
-            ImGui.Text($"Total meshes being drawn: { VulkanRendererInfo.meshesDrawn }");
-            ImGui.Text($"Total vertices in scene: { VulkanRendererInfo.verticesDrawn }");
-        }
-        
-        ImGui.End();
-    }
-
     private void UpdateRenderer()
     {
-        // PROPERTY EDITOR
-        
         window.vulkanRenderer!.imGuiController.Update();
         
         window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);

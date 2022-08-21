@@ -17,29 +17,38 @@ public class GameObject
     public Vector3 position => transform.position;
     public Vector3 rotation => transform.rotation;
     public Vector3 scale => transform.scale;
+    public bool selected;
 
+    public readonly int ID;
     private readonly List<Component> components = new List<Component>();
 
     public GameObject()
     {
+        this.ID = World.hierarchy.Count;
         World.hierarchy.Add(this);
     }
 
     public GameObject(in string name)
     {
         this.name = name;
+        this.ID = World.hierarchy.Count;
+        
         World.hierarchy.Add(this);
     }
 
     public GameObject(GameObject parent)
     {
         SetParent(parent);
+        this.ID = World.hierarchy.Count;
+        
         World.hierarchy.Add(this);
     }
 
     public GameObject(in string name, GameObject parent)
     {
         this.name = name;
+        this.ID = World.hierarchy.Count;
+        
         SetParent(parent);
         World.hierarchy.Add(this);
     }

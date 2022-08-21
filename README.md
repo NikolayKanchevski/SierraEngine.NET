@@ -110,7 +110,11 @@ There is also <a href="https://en.wikipedia.org/wiki/Mipmap">Mip Mapping</a>, wh
 
 ## 🔘 User Interface
 
-<i>The UI is ready, but no screenshots are taken yet to show it off.</i>
+Seeing things drawn to our screen is great. But being able to interract with them is a whole new level of fun! With the help of the implemented UI system's elements (such as <i>sliders</i>, <i>buttons</i>, <i>trees</i>, <i>etc.</i>), the user is able to manipulate stuff in the game scene. Here is a simple demo of it:
+
+![Screenshot](Screenshots/UserInterface.jpg)
+
+The UI of the application will be extended greatly to provide easy access to the game engine's core. This is only a test of the system.
 
 <br>
 
@@ -200,7 +204,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 6562</p>
-<p align="center" id="LastUpdated">Last updated: 19/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 6838</p>
+<p align="center" id="LastUpdated">Last updated: 21/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

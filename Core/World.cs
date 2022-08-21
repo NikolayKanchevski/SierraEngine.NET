@@ -7,6 +7,7 @@ public static class World
 {
     public static List<Mesh> meshes { get; private set; } = new List<Mesh>(); 
     public static List<GameObject> hierarchy { get; private set; } = new List<GameObject>();
+    public static GameObject? selectedGameObject;
     
     public static void PrintHierarchy()
     {

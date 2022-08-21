@@ -9,7 +9,7 @@ using SierraEngine.Engine.Classes;
 using Silk.NET.Core.Native;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
 
-namespace SierraEngine.Core.Rendering.ImGui;
+namespace SierraEngine.Core.Rendering.UI;
 
 public unsafe class ImGuiController
 {
@@ -40,12 +40,13 @@ public unsafe class ImGuiController
     {
         this.msaaSampleCount = sampleCountFlags;
         
-        var context = ImGuiNET.ImGui.CreateContext();
-        ImGuiNET.ImGui.SetCurrentContext(context);
+        var context = ImGui.CreateContext();
+        ImGui.SetCurrentContext(context);
 
         // Use the default font
-        var io = ImGuiNET.ImGui.GetIO();
-        io.Fonts.AddFontDefault();
+        var io = ImGui.GetIO();
+        io.Fonts.AddFontFromFileTTF("Fonts/Ruda-Bold.ttf", 12f);        
+        
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         // io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
         //
@@ -55,6 +56,8 @@ public unsafe class ImGuiController
         
         Init(in window, ref renderPass, swapchainImageCount);
 
+        SetThemeColors();
+        
         SetKeyMappings();
 
         SetPerFrameImGuiData();
@@ -74,7 +77,7 @@ public unsafe class ImGuiController
         }
 
         // Set default style
-        ImGuiNET.ImGui.StyleColorsDark();
+        ImGui.StyleColorsDark();
 
         // Create the descriptor pool for ImGui
         VkDescriptorPoolSize descriptorPoolSize = new VkDescriptorPoolSize() with
@@ -364,7 +367,7 @@ public unsafe class ImGuiController
         Marshal.FreeHGlobal((IntPtr) pipelineShaderStageCreateInfosPtr[1].pName);
 
         // Initialise ImGui Vulkan adapter
-        var io = ImGuiNET.ImGui.GetIO();
+        var io = ImGui.GetIO();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
         io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height);
         var uploadSize = (ulong) (width * height * 4 * sizeof(byte));
@@ -509,7 +512,7 @@ public unsafe class ImGuiController
 
     private void SetKeyMappings()
     {
-        var io = ImGuiNET.ImGui.GetIO();
+        var io = ImGui.GetIO();
         io.KeyMap[(int) ImGuiKey.Tab] = (int) Key.Tab;
         io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Key.Left;
         io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Key.Right;
@@ -598,7 +601,7 @@ public unsafe class ImGuiController
     
     private void SetPerFrameImGuiData()
     {
-        var io = ImGuiNET.ImGui.GetIO();
+        var io = ImGui.GetIO();
         io.DisplaySize = new Vector2(windowWidth, windowHeight);
 
         if (windowWidth > 0 && windowHeight > 0)
@@ -609,17 +612,75 @@ public unsafe class ImGuiController
         
         io.DeltaTime = Time.deltaTime; // DeltaTime is in seconds.
     }
+
+    private void SetThemeColors()
+    {
+        ImGuiStylePtr style = ImGui.GetStyle();
+        
+        style.WindowRounding = 0.0f;
+        style.FrameRounding = 4.0f;
+        style.ScrollbarRounding = 4.0f;
+        
+        style.Colors[(int) ImGuiCol.Text]                   = new Vector4(0.95f, 0.96f, 0.98f, 1.00f);
+        style.Colors[(int) ImGuiCol.TextDisabled]           = new Vector4(0.36f, 0.42f, 0.47f, 1.00f);
+        style.Colors[(int) ImGuiCol.WindowBg]               = new Vector4(0.11f, 0.15f, 0.17f, 1.00f);
+        style.Colors[(int) ImGuiCol.ChildBg]                = new Vector4(0.15f, 0.18f, 0.22f, 1.00f);
+        style.Colors[(int) ImGuiCol.PopupBg]                = new Vector4(0.08f, 0.08f, 0.08f, 0.94f);
+        style.Colors[(int) ImGuiCol.Border]                 = new Vector4(0.08f, 0.10f, 0.12f, 1.00f);
+        style.Colors[(int) ImGuiCol.BorderShadow]           = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+        style.Colors[(int) ImGuiCol.FrameBg]                = new Vector4(0.20f, 0.25f, 0.29f, 1.00f);
+        style.Colors[(int) ImGuiCol.FrameBgHovered]         = new Vector4(0.12f, 0.20f, 0.28f, 1.00f);
+        style.Colors[(int) ImGuiCol.FrameBgActive]          = new Vector4(0.09f, 0.12f, 0.14f, 1.00f);
+        style.Colors[(int) ImGuiCol.TitleBg]                = new Vector4(0.09f, 0.12f, 0.14f, 0.65f);
+        style.Colors[(int) ImGuiCol.TitleBgActive]          = new Vector4(0.08f, 0.10f, 0.12f, 1.00f);
+        style.Colors[(int) ImGuiCol.TitleBgCollapsed]       = new Vector4(0.00f, 0.00f, 0.00f, 0.51f);
+        style.Colors[(int) ImGuiCol.MenuBarBg]              = new Vector4(0.15f, 0.18f, 0.22f, 1.00f);
+        style.Colors[(int) ImGuiCol.ScrollbarBg]            = new Vector4(0.02f, 0.02f, 0.02f, 0.39f);
+        style.Colors[(int) ImGuiCol.ScrollbarGrab]          = new Vector4(0.20f, 0.25f, 0.29f, 1.00f);
+        style.Colors[(int) ImGuiCol.ScrollbarGrabHovered]   = new Vector4(0.18f, 0.22f, 0.25f, 1.00f);
+        style.Colors[(int) ImGuiCol.ScrollbarGrabActive]    = new Vector4(0.09f, 0.21f, 0.31f, 1.00f);
+        style.Colors[(int) ImGuiCol.CheckMark]              = new Vector4(0.28f, 0.56f, 1.00f, 1.00f);
+        style.Colors[(int) ImGuiCol.SliderGrab]             = new Vector4(0.28f, 0.56f, 1.00f, 1.00f);
+        style.Colors[(int) ImGuiCol.SliderGrabActive]       = new Vector4(0.37f, 0.61f, 1.00f, 1.00f);
+        style.Colors[(int) ImGuiCol.Button]                 = new Vector4(0.20f, 0.25f, 0.29f, 1.00f);
+        style.Colors[(int) ImGuiCol.ButtonHovered]          = new Vector4(0.28f, 0.56f, 1.00f, 1.00f);
+        style.Colors[(int) ImGuiCol.ButtonActive]           = new Vector4(0.06f, 0.53f, 0.98f, 1.00f);
+        style.Colors[(int) ImGuiCol.Header]                 = new Vector4(0.20f, 0.25f, 0.29f, 0.55f);
+        style.Colors[(int) ImGuiCol.HeaderHovered]          = new Vector4(0.26f, 0.59f, 0.98f, 0.80f);
+        style.Colors[(int) ImGuiCol.HeaderActive]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
+        style.Colors[(int) ImGuiCol.Separator]              = new Vector4(0.20f, 0.25f, 0.29f, 1.00f);
+        style.Colors[(int) ImGuiCol.SeparatorHovered]       = new Vector4(0.10f, 0.40f, 0.75f, 0.78f);
+        style.Colors[(int) ImGuiCol.SeparatorActive]        = new Vector4(0.10f, 0.40f, 0.75f, 1.00f);
+        style.Colors[(int) ImGuiCol.ResizeGrip]             = new Vector4(0.26f, 0.59f, 0.98f, 0.25f);
+        style.Colors[(int) ImGuiCol.ResizeGripHovered]      = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
+        style.Colors[(int) ImGuiCol.ResizeGripActive]       = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
+        style.Colors[(int) ImGuiCol.Tab]                    = new Vector4(0.11f, 0.15f, 0.17f, 1.00f);
+        style.Colors[(int) ImGuiCol.TabHovered]             = new Vector4(0.26f, 0.59f, 0.98f, 0.80f);
+        style.Colors[(int) ImGuiCol.TabActive]              = new Vector4(0.20f, 0.25f, 0.29f, 1.00f);
+        style.Colors[(int) ImGuiCol.TabUnfocused]           = new Vector4(0.11f, 0.15f, 0.17f, 1.00f);
+        style.Colors[(int) ImGuiCol.TabUnfocusedActive]     = new Vector4(0.11f, 0.15f, 0.17f, 1.00f);
+        style.Colors[(int) ImGuiCol.PlotLines]              = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
+        style.Colors[(int) ImGuiCol.PlotLinesHovered]       = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
+        style.Colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
+        style.Colors[(int) ImGuiCol.PlotHistogramHovered]   = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
+        style.Colors[(int) ImGuiCol.TextSelectedBg]         = new Vector4(0.26f, 0.59f, 0.98f, 0.35f);
+        style.Colors[(int) ImGuiCol.DragDropTarget]          = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
+        style.Colors[(int) ImGuiCol.NavHighlight]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
+        style.Colors[(int) ImGuiCol.NavWindowingHighlight]  = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
+        style.Colors[(int) ImGuiCol.NavWindowingDimBg]      = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
+        style.Colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+    }
     
     
     public void Update()
     {
-        if (frameBegun) ImGuiNET.ImGui.Render();
+        if (frameBegun) ImGui.Render();
 
         SetPerFrameImGuiData();
         UpdateImGuiInput();
 
         frameBegun = true;
-        ImGuiNET.ImGui.NewFrame();
+        ImGui.NewFrame();
     }
     
     public void Render(in VkCommandBuffer commandBuffer, in VkFramebuffer framebuffer, in VkExtent2D swapChainExtent)
@@ -627,8 +688,8 @@ public unsafe class ImGuiController
         if (frameBegun)
         {
             frameBegun = false;
-            ImGuiNET.ImGui.Render();
-            RenderImDrawData(ImGuiNET.ImGui.GetDrawData(), commandBuffer);
+            ImGui.Render();
+            RenderImDrawData(ImGui.GetDrawData(), commandBuffer);
         }
     }
 
@@ -640,7 +701,7 @@ public unsafe class ImGuiController
     
     private void UpdateImGuiInput()
     {
-        ImGuiIOPtr io = ImGuiNET.ImGui.GetIO();
+        ImGuiIOPtr io = ImGui.GetIO();
         
         for (int i = 256; i <= 314; i++)
         {
@@ -704,12 +765,12 @@ public unsafe class ImGuiController
         VulkanNative.vkDestroyPipeline(VulkanCore.logicalDevice, graphicsPipeline, default);
         VulkanNative.vkDestroyDescriptorPool(VulkanCore.logicalDevice, descriptorPool, default);
 
-        ImGuiNET.ImGui.DestroyContext();
+        ImGui.DestroyContext();
     }
     
     private void BeginFrame()
     {
-        ImGuiNET.ImGui.NewFrame();
+        ImGui.NewFrame();
         frameBegun = true;
     }
     
