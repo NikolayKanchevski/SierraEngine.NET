@@ -289,6 +289,9 @@ public class Window
         IntPtr selfPointer = (IntPtr) selfPointerHandle;
         Glfw3.SetWindowUserPointer(glfwWindow, selfPointer);
 
+        Glfw3.GetFramebufferSize(glfwWindow, out var actualSizeX, out var actualSizeY);
+        this.height = actualSizeY / 2;
+
         SetCallbacks();
     }
 

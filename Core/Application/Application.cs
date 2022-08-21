@@ -1,5 +1,6 @@
 using System.Numerics;
 using Glfw;
+using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
@@ -22,7 +23,7 @@ public class Application
     private const float CAMERA_ZOOM_SPEED = 3000.0f;
     private float yaw = -90.0f, pitch;
 
-    private bool cursorShown;
+    private bool cursorShown = true;
     
     public Application()
     {
@@ -41,6 +42,7 @@ public class Application
         Cursor.SetCursorVisibility(cursorShown);
 
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
+        pointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
         directionalLight.direction = Vector3.Normalize(camera.transform.position - Vector3.Zero);
 
         while (!window.closed)
@@ -158,7 +160,7 @@ public class Application
         //     (float) Math.Sin(Time.upTime * 1.3f) 
         // );
 
-        pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
+        // pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
         pointLight.linear = 0.09f;
         pointLight.quadratic = 0.032f;
         
@@ -174,9 +176,26 @@ public class Application
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
     }
 
+    private const float RENDERER_INFO_PADDING = 10.0f;
+    
     private void UpdateUI()
     {
-        ImGuiNET.ImGui.ShowDemoWindow();
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | 
+                                       ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav | 
+                                       ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+
+        ImGui.SetNextWindowPos(new Vector2(window.width - RENDERER_INFO_PADDING, RENDERER_INFO_PADDING), ImGuiCond.Always, new Vector2(1, 0));
+        
+        if (ImGui.Begin("Renderer Information", windowFlags))
+        {
+            ImGui.Text($"CPU Frame rate: { Time.FPS.ToString().PadLeft(4, '0') } FPS");
+            ImGui.Text($"GPU Draw Time: { VulkanRendererInfo.drawTime:n9} ms");
+            ImGui.Separator();
+            ImGui.Text($"Total meshes being drawn: { VulkanRendererInfo.meshesDrawn }");
+            ImGui.Text($"Total vertices in scene: { VulkanRendererInfo.verticesDrawn }");
+        }
+        
+        ImGui.End();
     }
 
     private void UpdateRenderer()

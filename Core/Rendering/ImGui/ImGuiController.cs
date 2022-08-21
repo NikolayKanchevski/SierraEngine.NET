@@ -15,6 +15,7 @@ public unsafe class ImGuiController
 {
     private int windowWidth;
     private int windowHeight;
+    private int verticesDrawn = 0;
     private uint swapchainImageCount;
     private bool frameBegun;
     private const ulong BUFFER_MEMORY_ALIGNMENT = 256;
@@ -261,7 +262,7 @@ public unsafe class ImGuiController
         attributeDescriptionsPtr[2].binding = vertexInputBindingDescription.binding;
         attributeDescriptionsPtr[2].format = VkFormat.VK_FORMAT_R8G8B8_UNORM;
         attributeDescriptionsPtr[2].offset = (uint) Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.col));
-
+        
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -715,8 +716,9 @@ public unsafe class ImGuiController
     private void RenderImDrawData(in ImDrawDataPtr drawDataPtr, in VkCommandBuffer commandBuffer)
     {
         var drawData = *drawDataPtr.NativePtr;
+        VulkanRendererInfo.verticesDrawn -= verticesDrawn;
 
-        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+            // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
         var fbWidth = (int) (drawData.DisplaySize.X * drawData.FramebufferScale.X);
         var fbHeight = (int) (drawData.DisplaySize.Y * drawData.FramebufferScale.Y);
         if (fbWidth <= 0 || fbHeight <= 0) return;
@@ -881,6 +883,9 @@ public unsafe class ImGuiController
             indexOffset += cmdList->IdxBuffer.Size;
             vertexOffset += cmdList->VtxBuffer.Size;
         }
+
+        verticesDrawn = (int) frameRenderBuffer.vertexBufferSize / 3 / sizeof(Vector3);
+        VulkanRendererInfo.verticesDrawn += verticesDrawn;
     }
     
     // ReSharper disable once RedundantAssignment
@@ -900,7 +905,7 @@ public unsafe class ImGuiController
 
         VkMemoryRequirements memoryRequirements;
         VulkanNative.vkGetBufferMemoryRequirements(VulkanCore.logicalDevice, deviceBuffer, &memoryRequirements);
-
+        
         bufferSize = memoryRequirements.size;
     }
     

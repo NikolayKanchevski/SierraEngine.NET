@@ -40,6 +40,7 @@ public unsafe class Mesh : Component
         
         // Add the mesh to the world
         World.meshes.Add(this);
+        VulkanRendererInfo.meshesDrawn++;
         VulkanRendererInfo.verticesDrawn += (int) verticesCount;
     }
 
@@ -55,6 +56,7 @@ public unsafe class Mesh : Component
         
         // Add the mesh to the world
         World.meshes.Add(this);
+        VulkanRendererInfo.meshesDrawn++;
         VulkanRendererInfo.verticesDrawn += (int) verticesCount;
     }
 
@@ -178,6 +180,7 @@ public unsafe class Mesh : Component
 
     public override void Destroy()
     {
+        VulkanRendererInfo.meshesDrawn--;
         VulkanRendererInfo.verticesDrawn -= (int) this.verticesCount;
         
         DestroyBuffers();
