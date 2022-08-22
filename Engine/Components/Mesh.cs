@@ -8,9 +8,6 @@ namespace SierraEngine.Engine.Components;
 
 public unsafe class Mesh : Component
 {
-    public string meshName = "None";
-    public new Transform transform = new Transform();
-
     public Material material;
     
     public uint verticesCount { get; private set; }

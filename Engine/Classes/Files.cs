@@ -4,6 +4,12 @@ namespace SierraEngine.Engine.Classes;
 
 public static class Files
 {
+    public static string TrimPath(in string filePath)
+    {
+        int index = filePath.LastIndexOf('/') + 1;
+        return filePath[index..];
+    }
+    
     public static string FindInSubdirectories(in string directory, string fileName)
     {
         string fileExtension = fileName[fileName.IndexOf(".", StringComparison.Ordinal)..];

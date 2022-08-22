@@ -11,76 +11,6 @@ public unsafe partial class VulkanRenderer
     #region VARIABLES
     
     private readonly Window window;
-        
-    private readonly Vertex[] vertices = new Vertex[]
-    {
-        new Vertex()
-        {
-            position = new Vector3(-1.0f, -1.0f, -1.0f),
-            normal = new Vector3(0, 0, 1),
-            // color = new Vector3(1.0f, 0.0f, 0.0f),
-            textureCoordinates = new Vector2(0.0f, 0.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(1.0f, -1.0f, -1.0f),
-            normal = new Vector3(1, 0, 0),
-            // color = new Vector3(1.0f, 1.0f, 0.0f),
-            textureCoordinates = new Vector2(1.0f, 0.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(1.0f, 1.0f, -1.0f),
-            normal = new Vector3(0, 0, -1),
-            // color = new Vector3(1.0f, 1.0f, 1.0f),
-            textureCoordinates = new Vector2(1.0f, 1.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(-1.0f, 1.0f, -1.0f),
-            normal = new Vector3(-1, 0, 0),
-            // color = new Vector3(0.0f, 1.0f, 1.0f),
-            textureCoordinates = new Vector2(0.0f, 1.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(-1.0f, -1.0f, 1.0f),
-            normal = new Vector3(0, 1, 0),
-            // color = new Vector3(1.0f, 0.0f, 0.0f),
-            textureCoordinates = new Vector2(0.0f, 0.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(1.0f, -1.0f, 1.0f),
-            // color = new Vector3(1.0f, 1.0f, 0.0f),
-            normal = new Vector3(0, -1, 0),
-            textureCoordinates = new Vector2(1.0f, 0.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(1.0f, 1.0f, 1.0f),
-            normal = new Vector3(0, 0, 1),
-            // color = new Vector3(1.0f, 1.0f, 1.0f),
-            textureCoordinates = new Vector2(1.0f, 1.0f)
-        },
-        new Vertex()
-        {
-            position = new Vector3(-1.0f, 1.0f, 1.0f),
-            normal = new Vector3(1, 0, 0),
-            // color = new Vector3(0.0f, 1.0f, 1.0f),
-            textureCoordinates = new Vector2(0.0f, 1.0f)
-        }
-    };
-
-    private readonly UInt32[] indices = new UInt32[]
-    {
-        0, 1, 3, 3, 1, 2,
-        1, 5, 2, 2, 5, 6,
-        5, 4, 6, 6, 4, 7,
-        4, 0, 7, 7, 0, 3,
-        3, 2, 7, 7, 2, 6,
-        4, 5, 0, 0, 5, 1
-    };
 
     #endregion
     
@@ -145,10 +75,7 @@ public unsafe partial class VulkanRenderer
 
     private void Start()
     {
-        Mesh mesh = new Mesh(vertices, indices);
-        mesh.SetTexture(TextureType.Diffuse, CreateTexture("Textures/lamp.png", TextureType.Diffuse));
         
-        MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", this);
     }
 
     public void Update()

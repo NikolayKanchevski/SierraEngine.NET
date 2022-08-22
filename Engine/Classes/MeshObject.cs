@@ -9,103 +9,125 @@ namespace SierraEngine.Engine.Classes;
 
 public class MeshObject
 {
-    public readonly Mesh[] meshes;
-    public readonly uint verticesCount;
+    public GameObject rootGameObject { get; private set; }= null!;
+    
+    public int vertexCount { get; private set; }
     public readonly string modelLocation;
+    
+    private readonly Mesh[] meshes;
+    private readonly string modelName;
 
-    private readonly string[] diffuseTextureFileNames = null!;
-    private readonly string[] specularTextureFileNames = null!;
+    private readonly Scene model;
+
+    private string[] diffuseTextureFileNames = null!;
+    private string[] specularTextureFileNames = null!;
     
     public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
     {
         return new MeshObject(fileName, vulkanRenderer);
     }
     
-    private MeshObject(string fileName, VulkanRenderer vulkanRenderer)
+    private MeshObject(string filePath, VulkanRenderer vulkanRenderer)
     {
-        this.modelLocation = Directory.GetCurrentDirectory() + "/" + fileName;
-
-        Scene model = new AssimpContext().ImportFile(fileName);
-        
+        this.model = new AssimpContext().ImportFile(filePath);
         this.meshes = new Mesh[model.MeshCount];
         
         #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
         #endif
         
-        int idx = fileName.LastIndexOf('/');
-        for (int i = 0; i < model.MeshCount; i++)
-        {
-            Assimp.Mesh currentAssimpMesh = model.Meshes[i];
-
-            Vertex[] vertices = new Vertex[currentAssimpMesh.VertexCount];
-            UInt32[] indices = currentAssimpMesh.GetUnsignedIndices();
-            
-            verticesCount += (uint) currentAssimpMesh.VertexCount;
+        int startIdx = filePath.LastIndexOf('/');
+        modelName = filePath[(startIdx + 1)..];
         
-            for (int j = 0; j < currentAssimpMesh.VertexCount; j++)
-            {
-                vertices[j].position = currentAssimpMesh.Vertices[j].ToVector3();
-                vertices[j].position.Y *= -1;
-                
-                vertices[j].normal = currentAssimpMesh.HasNormals ? currentAssimpMesh.Normals[j].ToVector3() : Vector3.Zero;
-                vertices[j].normal.Y *= -1;
-                
-                vertices[j].textureCoordinates = currentAssimpMesh.HasTextureCoords(0) ? currentAssimpMesh.TextureCoordinateChannels[0][j].ToVector2() : Vector2.Zero;
-                vertices[j].textureCoordinates.Y *= -1;
-            }
-            
-            if (model.HasMaterials)
-            {
-                diffuseTextureFileNames = new string[model.MaterialCount];
-                specularTextureFileNames = new string[model.MaterialCount];
+        this.modelLocation = Directory.GetCurrentDirectory() + "/" + filePath[..startIdx];
         
-                for (int j = 0; j < model.MaterialCount; j++)
-                {
-                    if (model.Materials[j].GetMaterialTexture(Assimp.TextureType.Diffuse, 0, out TextureSlot diffuseTextureSlot))
-                    {
-                        int diffusePathIdx = diffuseTextureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal) + 1;
-                        diffuseTextureFileNames[j] = diffuseTextureSlot.FilePath[diffusePathIdx..];
-                    }
-                    
-                    if (model.Materials[j].GetMaterialTexture(Assimp.TextureType.Specular, 0, out TextureSlot specularTextureSlot))
-                    {
-                        int specularPathIdx = specularTextureSlot.FilePath.LastIndexOf("/", StringComparison.Ordinal) + 1;
-                        specularTextureFileNames[j] = specularTextureSlot.FilePath[specularPathIdx..]; 
-                    }
-                }
-            }
-            else
-            {
-                VulkanDebugger.ThrowError($"No textures/materials found in {fileName}");
-            }
-
-            string currentDiffuseTexturePath = Files.FindInSubdirectories(fileName[..idx] + "/", diffuseTextureFileNames[currentAssimpMesh.MaterialIndex]);
-
-            this.meshes[i] = new Mesh(vertices, indices);
-
-            if (currentDiffuseTexturePath != null && currentDiffuseTexturePath.Trim() != "")
-            {
-                this.meshes[i].SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture(currentDiffuseTexturePath, TextureType.Diffuse));
-            }
-
-            string currentSpecularTexturePath = Files.FindInSubdirectories(fileName[..idx] + "/", specularTextureFileNames[currentAssimpMesh.MaterialIndex]);
-
-            if (currentSpecularTexturePath != null && currentSpecularTexturePath.Trim() != "")
-            {
-                this.meshes[i].SetTexture(TextureType.Specular, vulkanRenderer.CreateTexture(currentSpecularTexturePath, TextureType.Specular));
-            }
-
-            this.meshes[i].material.shininess = model.Materials[currentAssimpMesh.MaterialIndex].Shininess / 512f;
-
-            this.meshes[i].meshName = currentAssimpMesh.Name;
-        }
+        int endIdx = modelName.LastIndexOf('.');
+        modelName = modelName[..(endIdx)];
+        
+        ListDeeperNode(model.RootNode, vulkanRenderer);
+        
         
         #if DEBUG
             stopwatch.Stop();
-            VulkanDebugger.DisplayInfo($"Total vertices count for the model [{fileName[(idx + 1)..]}] containing [{meshes.Length}] mesh(es): {verticesCount}. Time elapsed during model loading: {stopwatch.ElapsedMilliseconds}ms");
+            VulkanDebugger.DisplayInfo($"Total vertices count for the model [{ modelName }] containing [{ meshes.Length }] mesh(es): { vertexCount }. Time elapsed during model loading: { stopwatch.ElapsedMilliseconds }ms");
         #endif
-        
+
         model.Clear();
-    } 
+    }
+
+    private void ListDeeperNode(in Node node, VulkanRenderer vulkanRenderer, in GameObject parentObject = null!, in bool firstTime = true)
+    {
+        GameObject nodeGameObject = new GameObject(firstTime ? modelName : node.Name);
+        if (firstTime) rootGameObject = nodeGameObject;
+        
+        if (parentObject != null) nodeGameObject.SetParent(parentObject);
+        
+        if (model.HasMaterials) LoadAssimpMeshTextures();
+        
+        for (int i = 0; i < node.MeshCount; i++)
+        {
+            Assimp.Mesh currentAssimpMesh = model.Meshes[node.MeshIndices[i]];
+
+            Mesh mesh = LoadAssimpMesh(currentAssimpMesh);
+            mesh.material.shininess = model.Materials[currentAssimpMesh.MaterialIndex].Shininess / 512f;
+
+            Assimp.Material currentAssimpMaterial = model.Materials[currentAssimpMesh.MaterialIndex];
+            if (currentAssimpMaterial.HasTextureDiffuse)
+            {
+                string diffuseTexturePath = Files.FindInSubdirectories(modelLocation, diffuseTextureFileNames[currentAssimpMesh.MaterialIndex]);
+                mesh.SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture(diffuseTexturePath, TextureType.Diffuse));
+            }
+            if (currentAssimpMaterial.HasTextureSpecular)
+            {
+                string specularTexturePath = Files.FindInSubdirectories(modelLocation, specularTextureFileNames[currentAssimpMesh.MaterialIndex]);
+                mesh.SetTexture(TextureType.Specular, vulkanRenderer.CreateTexture(specularTexturePath, TextureType.Specular));
+            }
+            
+            nodeGameObject.AddComponent(mesh);
+        }
+         
+        for (int i = 0; i < node.ChildCount; i++)
+        {
+            ListDeeperNode(node.Children[i], vulkanRenderer, nodeGameObject, false);
+        }
+    }
+
+    private Mesh LoadAssimpMesh(in Assimp.Mesh assimpMesh)
+    {
+        Vertex[] meshVertices = new Vertex[assimpMesh.VertexCount];
+        for (int j = 0; j < meshVertices.Length; j++)
+        {
+            meshVertices[j].position = assimpMesh.Vertices[j].ToVector3();
+            meshVertices[j].position.Y *= -1;
+                
+            meshVertices[j].normal = assimpMesh.HasNormals ? assimpMesh.Normals[j].ToVector3() : Vector3.Zero;
+            meshVertices[j].normal.Y *= -1;
+                
+            meshVertices[j].textureCoordinates = assimpMesh.HasTextureCoords(0) ? assimpMesh.TextureCoordinateChannels[0][j].ToVector2() : Vector2.Zero;
+            meshVertices[j].textureCoordinates.Y *= -1;
+        }
+
+        this.vertexCount = meshVertices.Length;
+        
+        return new Mesh(meshVertices, assimpMesh.GetUnsignedIndices());   
+    }
+
+    private void LoadAssimpMeshTextures()
+    {
+        if (!model.HasMaterials) return;
+
+        diffuseTextureFileNames = new string[model.MaterialCount];
+        specularTextureFileNames = new string[model.MaterialCount];
+        
+        for (int i = 0; i < model.MaterialCount; i++)
+        {
+            Assimp.Material assimpMaterial = model.Materials[i];
+            
+            if (assimpMaterial.GetMaterialTexture(Assimp.TextureType.Diffuse, 0, out var diffuseTextureSlot))
+                diffuseTextureFileNames[i] = Files.TrimPath(diffuseTextureSlot.FilePath);
+            
+            if (assimpMaterial.GetMaterialTexture(Assimp.TextureType.Specular, 0, out var specularTextureSlot))
+                specularTextureFileNames[i] = Files.TrimPath(specularTextureSlot.FilePath);
+        }
+    }
 }

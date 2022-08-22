@@ -8,6 +8,7 @@ public unsafe partial class VulkanRenderer
 {
     private VkPhysicalDevice physicalDevice;
     private VkPhysicalDeviceProperties physicalDeviceProperties;
+    private VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     private VkPhysicalDeviceFeatures physicalDeviceFeatures;
     private QueueFamilyIndices queueFamilyIndices;
     
@@ -50,7 +51,12 @@ public unsafe partial class VulkanRenderer
                 VkPhysicalDeviceProperties deviceProperties;
                 VulkanNative.vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
                 this.physicalDeviceProperties = deviceProperties;
-
+                
+                // Retrieve the GPU's memory properties
+                VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
+                VulkanNative.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
+                this.physicalDeviceMemoryProperties = deviceMemoryProperties;
+                
                 // Retrieve the GPU's features
                 VkPhysicalDeviceFeatures deviceFeatures;
                 VulkanNative.vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
@@ -65,7 +71,7 @@ public unsafe partial class VulkanRenderer
                 
                 // Show support message
                 VulkanDebugger.DisplaySuccess($"Vulkan is supported by your { SystemInformation.deviceModelName } running { SystemInformation.operatingSystemVersion } [Validation: { VALIDATION_ENABLED } | CPU: { SystemInformation.cpuModelName } | GPU: { SystemInformation.gpuModelName }]");
-                
+
                 break;
             }
         }

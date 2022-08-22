@@ -16,7 +16,7 @@ public class Application
 
     private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
     private readonly DirectionalLight directionalLight = (new GameObject("Directional Light").AddComponent(new DirectionalLight()) as DirectionalLight)!;
-    private readonly PointLight pointLight = (new GameObject("Point Light").AddComponent(new PointLight()) as PointLight)!;
+    private readonly PointLight pointLight;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 60.0f;
@@ -27,35 +27,60 @@ public class Application
     
     public Application()
     {
+        // Create window
         window = new Window("Sierra Engine v1.0.0", true, true);
         
+        // Create Vulkan renderer and assign it to the window
         VulkanRenderer vulkanRenderer = new VulkanRenderer(window);
         window.SetRenderer(ref vulkanRenderer);
         
+        // Show the created window
         window.Show();
+        
+        // Create a new game object for the point light
+        GameObject pointLightObject = new GameObject("Point Light");
+        
+        // Add a textured cube to the point light object so that we can see where in the world it is
+        Mesh pointLightMesh = (pointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
+        pointLightMesh.SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse));
+        
+        // Add the point light component to the object
+        pointLight = (pointLightObject.AddComponent(new PointLight()) as PointLight)!;
+        
+        // Load a tank model in the scene
+        MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", vulkanRenderer);
     }
     
     public void Start()
     {
+        // Start utility classes
         StartClasses();
         
+        // Set the visibility of the cursor
         Cursor.SetCursorVisibility(cursorShown);
 
+        // Set initial values for the lighting and camera
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
         pointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
         directionalLight.direction = Vector3.Normalize(camera.transform.position - Vector3.Zero);
-
+        
+        // Loop until the window is closed
         while (!window.closed)
         {
+            // Update utility classes
             UpdateClasses();
             
+            // Update the game logic
             Update();
             
+            // Update the window and its renderer
             window.Update();
         }
         
+        // Once closed destroy the window
         window.Destroy();
         
+        // Terminate the windowing system
         Glfw3.Terminate();
     }
 
@@ -72,23 +97,29 @@ public class Application
     
     private void HandleCameraMovement()
     {
+        // If escape is pressed toggle mouse visibility
         if (Input.GetKeyPressed(Key.Escape))
         {
             cursorShown = !cursorShown;
             Cursor.SetCursorVisibility(cursorShown);
         }
         
+        // If the cursor is shown do not do any camera movement
         if (cursorShown) return;
         
+        // Increase the FOV based on mouse scroll input
         camera.fov -= Input.GetVerticalMouseScroll() * CAMERA_ZOOM_SPEED * Time.deltaTime;
 
+        // If tab is pressed reset the FOV to 45.0f
         if (Input.GetKeyHeld(Key.Tab)) 
         {
             camera.fov = 45.0f;
         }
         
+        // Clamp the FOV so it doesn't get less than 5.0f and bigger than 90.0f
         camera.fov = Mathematics.Clamp(camera.fov, 5.0f, 90.0f);
 
+        // Move the camera based on held keys
         if (Input.GetKeyHeld(Key.W))
         {
             camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
@@ -116,11 +147,14 @@ public class Application
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }
 
+        // Rotate the camera based on mouse movement
         yaw += Cursor.GetHorizontalCursorOffset() * CAMERA_LOOK_SPEED * Time.deltaTime;
         pitch += Cursor.GetVerticalCursorOffset() * CAMERA_LOOK_SPEED * Time.deltaTime;
 
+        // Clamp the pitch
         pitch = Mathematics.Clamp(pitch, -89.0f, 89.0f);
 
+        // Calculate new camera front direction
         Vector3 newCameraFrontDirection;
         newCameraFrontDirection.X = (float) (Math.Cos(Mathematics.ToRadians(yaw)) * Math.Cos(Mathematics.ToRadians(pitch)));
         newCameraFrontDirection.Y = (float) (Math.Sin(Mathematics.ToRadians(pitch)));
@@ -130,16 +164,17 @@ public class Application
 
     private void UpdateObjects()
     {
-        float upTimeCos = (float) Math.Cos(Time.upTime);
+        // Calculate some example values to be used for animations
+        // float upTimeCos = (float) Math.Cos(Time.upTime);
         float upTimeSin = (float) Math.Sin(Time.upTime);
         
         // Light data calculation
-        const float RADIUS = 12.0f;
-        float lightX = upTimeSin * RADIUS;
-        float lightY = -3f;
-        float lightZ = upTimeCos * RADIUS;
+        // const float RADIUS = 12.0f;
+        // float lightX = upTimeSin * RADIUS;
+        // float lightY = -3f;
+        // float lightZ = upTimeCos * RADIUS;
         
-        Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
+        // Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
         
         // Directional light
         directionalLight.intensity = 0f;
@@ -197,4 +232,66 @@ public class Application
         Input.Update();
         Cursor.Update();
     }
+    
+    private readonly Vertex[] cubeVertices = new Vertex[]
+    {
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, -1.0f, -1.0f),
+            normal = new Vector3(0, 0, 1),
+            textureCoordinates = new Vector2(0.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, -1.0f, -1.0f),
+            normal = new Vector3(1, 0, 0),
+            textureCoordinates = new Vector2(1.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, 1.0f, -1.0f),
+            normal = new Vector3(0, 0, -1),
+            textureCoordinates = new Vector2(1.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, 1.0f, -1.0f),
+            normal = new Vector3(-1, 0, 0),
+            textureCoordinates = new Vector2(0.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, -1.0f, 1.0f),
+            normal = new Vector3(0, 1, 0),
+            textureCoordinates = new Vector2(0.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, -1.0f, 1.0f),
+            normal = new Vector3(0, -1, 0),
+            textureCoordinates = new Vector2(1.0f, 0.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(1.0f, 1.0f, 1.0f),
+            normal = new Vector3(0, 0, 1),
+            textureCoordinates = new Vector2(1.0f, 1.0f)
+        },
+        new Vertex()
+        {
+            position = new Vector3(-1.0f, 1.0f, 1.0f),
+            normal = new Vector3(1, 0, 0),
+            textureCoordinates = new Vector2(0.0f, 1.0f)
+        }
+    };
+
+    private readonly UInt32[] cubeIndices = new UInt32[]
+    {
+        0, 1, 3, 3, 1, 2,
+        1, 5, 2, 2, 5, 6,
+        5, 4, 6, 6, 4, 7,
+        4, 0, 7, 7, 0, 3,
+        3, 2, 7, 7, 2, 6,
+        4, 5, 0, 0, 5, 1
+    };
 }
