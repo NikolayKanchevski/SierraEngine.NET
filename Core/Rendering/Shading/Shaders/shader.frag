@@ -105,8 +105,8 @@ vec3 CalculateDirectionalLight(DirectionalLight directionalLight) {
         const float specularStrength = pow(max(dot(viewDirection, reflectionDirection), 0.0), max(pushConstant.shininess * 512, 1.0));
         
         const vec3 ambient = directionalLight.ambient * textureColor;
-        const vec3 diffuse = directionalLight.diffuse * textureColor * diffuseStrength;
-        const vec3 specular = directionalLight.specular * specularColor * specularStrength;
+        const vec3 diffuse = directionalLight.diffuse * textureColor * diffuseStrength * directionalLight.color * directionalLight.intensity;
+        const vec3 specular = directionalLight.specular * specularColor * specularStrength * directionalLight.color * directionalLight.intensity;
         
         return (ambient + diffuse + specular);
 } 
@@ -122,8 +122,8 @@ vec3 CalculatePointLight(PointLight pointLight) {
 
         // Calculate final light components
         vec3 ambient = pointLight.ambient * textureColor;
-        vec3 diffuse = pointLight.diffuse * textureColor * diffuseStrength;
-        vec3 specular = pointLight.specular * specularColor * specularStrength;
+        vec3 diffuse = pointLight.diffuse * textureColor * diffuseStrength * pointLight.color * pointLight.intensity;
+        vec3 specular = pointLight.specular * specularColor * specularStrength * pointLight.color * pointLight.intensity;
         
         const float distance = length(pointLight.position - fromVert_Position);
         const float attenuation = 1.0 / (1.0f + pointLight.linear * distance + pointLight.quadratic * (distance * distance));

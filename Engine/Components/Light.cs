@@ -4,10 +4,10 @@ namespace SierraEngine.Engine.Components;
 
 public class Light : Component
 {
-    public Vector3 color;
-    public float intensity;
+    public Vector3 color = Vector3.One;
+    public float intensity = 1.0f;
     
-    public Vector3 ambient;
-    public Vector3 diffuse;
-    public Vector3 specular;
+    public Vector3 ambient = Vector3.One;
+    public Vector3 diffuse = Vector3.One;
+    public Vector3 specular = Vector3.One;
 }

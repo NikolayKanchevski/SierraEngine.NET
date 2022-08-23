@@ -1,5 +1,6 @@
 using System.Numerics;
 using Glfw;
+using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
@@ -19,8 +20,8 @@ public class Application
     private readonly PointLight pointLight;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
-    private const float CAMERA_LOOK_SPEED = 60.0f;
-    private const float CAMERA_ZOOM_SPEED = 3000.0f;
+    private const float CAMERA_LOOK_SPEED = 0.1f;
+    private const float CAMERA_ZOOM_SPEED = 30.0f;
     private float yaw = -90.0f, pitch;
 
     private bool cursorShown = true;
@@ -52,10 +53,7 @@ public class Application
     }
     
     public void Start()
-    {
-        // Start utility classes
-        StartClasses();
-        
+    {   
         // Set the visibility of the cursor
         Cursor.SetCursorVisibility(cursorShown);
 
@@ -90,9 +88,9 @@ public class Application
 
         UpdateObjects();
 
-        UpdateRenderer();
+        UpdateUI();
 
-        ui.Update(window);
+        UpdateRenderer();
     }
     
     private void HandleCameraMovement()
@@ -108,7 +106,7 @@ public class Application
         if (cursorShown) return;
         
         // Increase the FOV based on mouse scroll input
-        camera.fov -= Input.GetVerticalMouseScroll() * CAMERA_ZOOM_SPEED * Time.deltaTime;
+        camera.fov -= Input.GetVerticalMouseScroll() * CAMERA_ZOOM_SPEED;
 
         // If tab is pressed reset the FOV to 45.0f
         if (Input.GetKeyHeld(Key.Tab)) 
@@ -148,8 +146,8 @@ public class Application
         }
 
         // Rotate the camera based on mouse movement
-        yaw += Cursor.GetHorizontalCursorOffset() * CAMERA_LOOK_SPEED * Time.deltaTime;
-        pitch += Cursor.GetVerticalCursorOffset() * CAMERA_LOOK_SPEED * Time.deltaTime;
+        yaw += Cursor.GetHorizontalCursorOffset() * CAMERA_LOOK_SPEED;
+        pitch += Cursor.GetVerticalCursorOffset() * CAMERA_LOOK_SPEED;
 
         // Clamp the pitch
         pitch = Mathematics.Clamp(pitch, -89.0f, 89.0f);
@@ -167,23 +165,12 @@ public class Application
         // Calculate some example values to be used for animations
         float upTimeSin = (float) Math.Sin(Time.upTime);
         
-        // Directional light
-        directionalLight.intensity = 1f;
-        directionalLight.color = Vector3.One;
-        
+        // Directional light settings
         directionalLight.ambient = new Vector3(0.005f);
         directionalLight.diffuse = new Vector3(0.5f);
         directionalLight.specular = new Vector3(0.5f);
-        
-        // Point light
-        pointLight.intensity = 1f;
-        pointLight.color = Vector3.One;
-        // pointLight.color = new Vector3(
-        //     (float) Math.Sin(Time.upTime * 2.0f),    
-        //     (float) Math.Sin(Time.upTime * 0.7f),    
-        //     (float) Math.Sin(Time.upTime * 1.3f) 
-        // );
 
+        // Point light settings
         pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
         pointLight.linear = 0.09f;
         pointLight.quadratic = 0.032f;
@@ -199,22 +186,34 @@ public class Application
         World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
     }
+
+    private void UpdateUI()
+    {
+        // Update the UI handler
+        window.vulkanRenderer!.imGuiController.Update();
+
+        // Draw the static UI
+        ui.Update(window);
+
+        // Draw the application-specific UI
+        if (ImGui.Begin("Lighting Sliders", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize))
+        {
+            ImGui.SliderFloat("Directional Intensity", ref directionalLight.intensity, 0f, 100f);
+            ImGui.SliderFloat3("Directional Color", ref directionalLight.color, 0f, 1f);
+            ImGui.SliderFloat("Point Intensity", ref pointLight.intensity, 0f, 100f);
+            ImGui.SliderFloat3("Point Color", ref pointLight.color, 0f, 1f);
+            ImGui.End();
+        }
+    }
     
     private void UpdateRenderer()
     {
-        window.vulkanRenderer!.imGuiController.Update();
-        
         window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
         window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
         window.vulkanRenderer!.uniformData.projection.M11 *= -1;
 
         window.vulkanRenderer!.uniformData.directionalLight = directionalLight;
         window.vulkanRenderer!.uniformData.pointLight = pointLight;
-    }
-
-    private void StartClasses()
-    {
-        Cursor.Start();
     }
 
     private void UpdateClasses()

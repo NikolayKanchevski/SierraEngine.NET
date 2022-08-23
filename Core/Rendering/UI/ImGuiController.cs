@@ -620,7 +620,8 @@ public unsafe class ImGuiController
         style.WindowRounding = 0.0f;
         style.FrameRounding = 4.0f;
         style.ScrollbarRounding = 4.0f;
-        
+        style.GrabRounding = 4.0f;
+
         style.Colors[(int) ImGuiCol.Text]                   = new Vector4(0.95f, 0.96f, 0.98f, 1.00f);
         style.Colors[(int) ImGuiCol.TextDisabled]           = new Vector4(0.36f, 0.42f, 0.47f, 1.00f);
         style.Colors[(int) ImGuiCol.WindowBg]               = new Vector4(0.11f, 0.15f, 0.17f, 1.00f);

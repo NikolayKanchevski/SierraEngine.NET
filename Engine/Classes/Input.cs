@@ -84,8 +84,11 @@ public static class Input
             }
             else
             {
-                string shiftedKey = $"{ keyName }";
-                if (shiftCharacters.TryGetValue(keyName, out shiftedKey!)) return shiftedKey;
+                if (shiftCharacters.TryGetValue(keyName, out var shiftedKey))
+                {
+                    return shiftedKey;
+                }
+                
                 else return keyName;
             }
         }
