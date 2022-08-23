@@ -10,7 +10,7 @@ public class PointLight : Light
     
     public static implicit operator UniformPointLight(PointLight givenPointLight)
     {
-        return givenPointLight.intensity > 0 ? new UniformPointLight() with
+        return givenPointLight.intensity > 0f ? new UniformPointLight() with
         {
             position = givenPointLight.transform.position,
             color = givenPointLight.color,

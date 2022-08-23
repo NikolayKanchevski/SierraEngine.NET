@@ -4,8 +4,6 @@ namespace SierraEngine.Engine.Components;
 
 public class Light : Component
 {
-    public Transform transform = new Transform();
-
     public Vector3 color;
     public float intensity;
     

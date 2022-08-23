@@ -10,7 +10,7 @@ public class DirectionalLight : Light
 
     public static implicit operator UniformDirectionalLight(DirectionalLight givenDirectionalLight)
     {
-        return givenDirectionalLight.intensity > 0 ? new UniformDirectionalLight() with
+        return givenDirectionalLight.intensity > 0f ? new UniformDirectionalLight() with
         {
             intensity = givenDirectionalLight.intensity,
             direction = givenDirectionalLight.direction,

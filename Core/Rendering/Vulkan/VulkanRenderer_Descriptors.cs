@@ -102,49 +102,6 @@ public unsafe partial class VulkanRenderer
                 VulkanDebugger.ThrowError("Failed to create uniform descriptor pool");
             }
         }
-        
-        #region ImGui Pool
-        // VkDescriptorPoolSize* imGuiPoolSizes = stackalloc VkDescriptorPoolSize[11];
-        // imGuiPoolSizes[0].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_SAMPLER;
-        // imGuiPoolSizes[0].descriptorCount = 1000;
-        // imGuiPoolSizes[1].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        // imGuiPoolSizes[1].descriptorCount = 1000;
-        // imGuiPoolSizes[2].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        // imGuiPoolSizes[2].descriptorCount = 1000;
-        // imGuiPoolSizes[3].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        // imGuiPoolSizes[3].descriptorCount = 1000;
-        // imGuiPoolSizes[4].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-        // imGuiPoolSizes[4].descriptorCount = 1000;
-        // imGuiPoolSizes[5].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-        // imGuiPoolSizes[5].descriptorCount = 1000;
-        // imGuiPoolSizes[6].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        // imGuiPoolSizes[6].descriptorCount = 1000;
-        // imGuiPoolSizes[7].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        // imGuiPoolSizes[7].descriptorCount = 1000;
-        // imGuiPoolSizes[8].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        // imGuiPoolSizes[8].descriptorCount = 1000;
-        // imGuiPoolSizes[9].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-        // imGuiPoolSizes[9].descriptorCount = 1000;
-        // imGuiPoolSizes[10].type = VkDescriptorType.VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-        // imGuiPoolSizes[10].descriptorCount = 1000;
-        //
-        // VkDescriptorPoolCreateInfo imGuiDescriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
-        // {
-        //     sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        //     flags = VkDescriptorPoolCreateFlags.VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
-        //     maxSets = 1000,
-        //     poolSizeCount = 11,
-        //     pPoolSizes = imGuiPoolSizes
-        // };
-        //
-        // fixed (VkDescriptorPool* imGuiDescriptorPoolPtr = &imGuiDescriptorPool)
-        // {
-        //     if (VulkanNative.vkCreateDescriptorPool(this.logicalDevice, &imGuiDescriptorPoolCreateInfo, null, imGuiDescriptorPoolPtr) != VkResult.VK_SUCCESS)
-        //     {
-        //         VulkanDebugger.ThrowError("Failed to create ImGui descriptor pool");
-        //     }
-        // }
-        #endregion
     }
 
     private void CreateUniformDescriptorSets()

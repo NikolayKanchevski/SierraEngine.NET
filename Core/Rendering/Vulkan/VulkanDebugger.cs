@@ -1,3 +1,5 @@
+using Evergine.Bindings.Vulkan;
+
 namespace SierraEngine.Core.Rendering.Vulkan;
 
 public static class VulkanDebugger
@@ -66,6 +68,14 @@ public static class VulkanDebugger
         if (DEBUG_MODE)
         {
             Environment.Exit(-1);
+        }
+    }
+
+    public static void CheckResults(in VkResult result, in string errorMessage)
+    {
+        if (result != VkResult.VK_SUCCESS && result != VkResult.VK_SUBOPTIMAL_KHR)
+        {
+            ThrowError(errorMessage + $". Error code: { result.ToString() }");
         }
     }
 }

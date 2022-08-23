@@ -62,7 +62,7 @@ public class Application
         // Set initial values for the lighting and camera
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
         pointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
-        directionalLight.direction = Vector3.Normalize(camera.transform.position - Vector3.Zero);
+        directionalLight.direction = Vector3.Normalize(new Vector3(1.0f, -1.0f, 0.0f) - Vector3.Zero);
         
         // Loop until the window is closed
         while (!window.closed)
@@ -165,19 +165,10 @@ public class Application
     private void UpdateObjects()
     {
         // Calculate some example values to be used for animations
-        // float upTimeCos = (float) Math.Cos(Time.upTime);
         float upTimeSin = (float) Math.Sin(Time.upTime);
         
-        // Light data calculation
-        // const float RADIUS = 12.0f;
-        // float lightX = upTimeSin * RADIUS;
-        // float lightY = -3f;
-        // float lightZ = upTimeCos * RADIUS;
-        
-        // Vector3 lightPosition = new Vector3(lightX, lightY, lightZ);
-        
         // Directional light
-        directionalLight.intensity = 0f;
+        directionalLight.intensity = 1f;
         directionalLight.color = Vector3.One;
         
         directionalLight.ambient = new Vector3(0.005f);
@@ -185,15 +176,15 @@ public class Application
         directionalLight.specular = new Vector3(0.5f);
         
         // Point light
-        pointLight.intensity = 3f;
-        // pointLight.color = new Vector3(1.0f, 0.0f, 1.0f);
+        pointLight.intensity = 1f;
+        pointLight.color = Vector3.One;
         // pointLight.color = new Vector3(
         //     (float) Math.Sin(Time.upTime * 2.0f),    
         //     (float) Math.Sin(Time.upTime * 0.7f),    
         //     (float) Math.Sin(Time.upTime * 1.3f) 
         // );
 
-        // pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
+        pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
         pointLight.linear = 0.09f;
         pointLight.quadratic = 0.032f;
         
