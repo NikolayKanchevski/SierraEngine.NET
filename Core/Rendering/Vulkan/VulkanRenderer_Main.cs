@@ -118,8 +118,8 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
         }
         
-        VulkanNative.vkDestroyDescriptorPool(this.logicalDevice, this.descriptorPool, null);
-        VulkanNative.vkDestroyDescriptorSetLayout(this.logicalDevice, this.descriptorSetLayout, null);
+        descriptorPool.CleanUp();
+        descriptorSetLayout.CleanUp();
         
         foreach (Mesh mesh in World.meshes)
         {

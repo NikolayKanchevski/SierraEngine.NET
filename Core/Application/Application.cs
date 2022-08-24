@@ -61,6 +61,7 @@ public class Application
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
         pointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
         directionalLight.direction = Vector3.Normalize(new Vector3(1.0f, -1.0f, 0.0f) - Vector3.Zero);
+        directionalLight.intensity = 0.0f;
         
         // Loop until the window is closed
         while (!window.closed)
@@ -198,9 +199,9 @@ public class Application
         // Draw the application-specific UI
         if (ImGui.Begin("Lighting Sliders", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize))
         {
-            ImGui.SliderFloat("Directional Intensity", ref directionalLight.intensity, 0f, 100f);
+            ImGui.SliderFloat("Directional Intensity", ref directionalLight.intensity, 0f, 10f);
             ImGui.SliderFloat3("Directional Color", ref directionalLight.color, 0f, 1f);
-            ImGui.SliderFloat("Point Intensity", ref pointLight.intensity, 0f, 100f);
+            ImGui.SliderFloat("Point Intensity", ref pointLight.intensity, 0f, 10f);
             ImGui.SliderFloat3("Point Color", ref pointLight.color, 0f, 1f);
             ImGui.End();
         }

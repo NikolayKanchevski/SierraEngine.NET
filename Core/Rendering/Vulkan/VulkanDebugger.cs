@@ -71,11 +71,14 @@ public static class VulkanDebugger
         }
     }
 
-    public static void CheckResults(in VkResult result, in string errorMessage)
+    public static bool CheckResults(in VkResult result, in string errorMessage)
     {
-        if (result != VkResult.VK_SUCCESS && result != VkResult.VK_SUBOPTIMAL_KHR)
+        bool success = result == VkResult.VK_SUCCESS || result == VkResult.VK_SUBOPTIMAL_KHR;
+        if (!success)
         {
             ThrowError(errorMessage + $". Error code: { result.ToString() }");
         }
+
+        return success;
     }
 }

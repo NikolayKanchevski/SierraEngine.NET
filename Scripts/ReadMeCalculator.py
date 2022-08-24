@@ -31,6 +31,7 @@ def Main():
             pass
         linesOfCode += count + 1
 
+    print(f"\nTotal lines of code: { linesOfCode }.")
 
     newReadMeData = ""
     with open('README.md', 'r') as file:

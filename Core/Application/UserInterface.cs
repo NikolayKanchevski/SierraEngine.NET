@@ -33,13 +33,13 @@ public class UserInterface
 
     private void UpdateViewport()
     {
-        ImGuiWindowFlags viewportFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove  | ImGuiWindowFlags.NoCollapse |
+        const ImGuiWindowFlags VIEWPORT_FLAGS = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove  | ImGuiWindowFlags.NoCollapse |
                                          ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoTitleBar;
         
         ImGui.SetNextWindowPos(new Vector2(0.0f, 18.0f));
         ImGui.SetNextWindowSize(new Vector2(windowWidth / 2, windowHeight / 2), ImGuiCond.Always);
 
-        if (!ImGui.Begin("Main", viewportFlags))
+        if (!ImGui.Begin("Main", VIEWPORT_FLAGS))
         {
             ImGui.End();
             return;
@@ -63,12 +63,13 @@ public class UserInterface
 
     private void UpdateRendererInfoOverlay()
     {
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoFocusOnAppearing | 
-                                       ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+        const ImGuiWindowFlags WINDOW_FLAGS = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoFocusOnAppearing | 
+                                              ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoMove
+                                              | ImGuiWindowFlags.NoResize;
         
         ImGui.SetNextWindowPos(new Vector2(windowWidth - RENDERER_INFO_PADDING, RENDERER_INFO_PADDING), ImGuiCond.Always, new Vector2(1, 0));
         
-        if (ImGui.Begin("Renderer Information", windowFlags))
+        if (ImGui.Begin("Renderer Information", WINDOW_FLAGS))
         {
             ImGui.Text($"CPU Frame Time: { Time.FPS.ToString().PadLeft(4, '0') } FPS");
             ImGui.Text($"GPU Draw Time: { VulkanRendererInfo.drawTime:n6} ms");

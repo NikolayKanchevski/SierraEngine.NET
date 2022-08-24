@@ -162,19 +162,19 @@ and a <b>NVIDIA GeForce GTX 1070 TI</b> GPU.
 
 <br>
 
-## 🆕 What next?
+## 🆕 What's next?
 
 There are many other features planned. Some of them are:
 
 <p>
-    <ul>
-        <li><strike><a href="https://en.wikipedia.org/wiki/User_interface">UI</a></strike>
-        <li><strike><a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a></strike></li>
-        <li><strike>Performance Monitoring</strike></li>
-        <li><a href="https://en.wikipedia.org/wiki/Video_post-processing">Post-Processing</a></li>
-        <li><a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)">Multi-Threading 😥</a></li>
-        <li>Camera System</li>
-    </ul>
+
+- [x] <a href="https://en.wikipedia.org/wiki/User_interface">UI</a>
+- [x] <a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a>
+- [x] Performance Monitoring
+- [ ] <a href="https://en.wikipedia.org/wiki/Video_post-processing">Post-Processing</a>
+- [ ] <a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)">Multi-Threading 😥</a>
+- [ ] Camera System
+
 </p>
 
 <br>
@@ -204,7 +204,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 6837</p>
-<p align="center" id="LastUpdated">Last updated: 21/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 7043</p>
+<p align="center" id="LastUpdated">Last updated: 24/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

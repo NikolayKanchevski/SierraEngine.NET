@@ -46,8 +46,8 @@ def Main():
 
         CopyFiles(OUTPUT_DIRECTORY)
         CompileShaders(OUTPUT_DIRECTORY)
-    except:
-        print("Error occured!")
+    except Exception as exception:
+        print(f"Error occured! Exception: { exception }.")
         return
 
     if FIRST_TIME:
