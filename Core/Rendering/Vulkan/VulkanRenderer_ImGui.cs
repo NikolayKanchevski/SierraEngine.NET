@@ -8,6 +8,6 @@ public partial class VulkanRenderer
     
     private void CreateImGuiContext()
     {
-        imGuiController = new ImGuiController(in window,  ref this.renderPass,MAX_CONCURRENT_FRAMES, msaaSampleCount);
+        imGuiController = new ImGuiController(in window, ref this.renderPass,MAX_CONCURRENT_FRAMES, msaaSampleCount);
     }
 }

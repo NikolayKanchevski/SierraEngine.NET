@@ -15,7 +15,7 @@ public static unsafe class VulkanUtilities
 {
     public static byte* ToPointer(this string text)
     {
-        return (byte*)System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(text);
+        return (byte*) Marshal.StringToHGlobalAnsi(text);
     }
 
     public static uint Version(uint major, uint minor, uint patch)
@@ -213,7 +213,7 @@ public static unsafe class VulkanUtilities
         VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
     }
 
-    public static void CopyBuffer(in VkBuffer sourceBuffer, in VkBuffer destinationBuffer, ulong size)
+    private static void CopyBuffer(in VkBuffer sourceBuffer, in VkBuffer destinationBuffer, ulong size)
     {
         VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -225,57 +225,6 @@ public static unsafe class VulkanUtilities
         VulkanNative.vkCmdCopyBuffer(commandBuffer, sourceBuffer, destinationBuffer, 1, &copyRegion);
         
         EndSingleTimeCommands(commandBuffer);
-    }
-
-    public static void CreateImage(in uint width, in uint height, in uint mipLevels, VkSampleCountFlags sampleCountFlags, in VkFormat format, in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags, out VkImage image, out VkDeviceMemory imageMemory)
-    {
-        VkImageCreateInfo imageCreateInfo = new VkImageCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            imageType = VkImageType.VK_IMAGE_TYPE_2D,
-            extent = new VkExtent3D()
-            {
-                width = width,
-                height = height,
-                depth = 1
-            },
-            mipLevels = mipLevels,
-            arrayLayers = 1,
-            format = format,
-            tiling = imageTiling,
-            initialLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
-            usage = usageFlags,
-            samples = sampleCountFlags,
-            sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE
-        };
-        
-        fixed (VkImage* imagePtr = &image)
-        {
-            if (VulkanNative.vkCreateImage(VulkanCore.logicalDevice, &imageCreateInfo, null, imagePtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError($"Failed to create VkImage");
-            }    
-        }
-
-        VkMemoryRequirements imageMemoryRequirements;
-        VulkanNative.vkGetImageMemoryRequirements(VulkanCore.logicalDevice, image, &imageMemoryRequirements);
-
-        VkMemoryAllocateInfo imageMemoryAllocateInfo = new VkMemoryAllocateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            allocationSize = imageMemoryRequirements.size,
-            memoryTypeIndex = VulkanUtilities.FindMemoryTypeIndex(imageMemoryRequirements.memoryTypeBits, propertyFlags)
-        };
-
-        fixed (VkDeviceMemory* imageMemoryPtr = &imageMemory)
-        {
-            if (VulkanNative.vkAllocateMemory(VulkanCore.logicalDevice, &imageMemoryAllocateInfo, null, imageMemoryPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError($"Failed to allocate memory for image" );
-            }
-        }
-
-        VulkanNative.vkBindImageMemory(VulkanCore.logicalDevice, image, imageMemory, 0);
     }
 
     public static void CreateImageView(in VkImage image, VkFormat imageFormat, VkImageAspectFlags aspectFlags, in uint mipLevels, out VkImageView imageView)
@@ -337,90 +286,6 @@ public static unsafe class VulkanUtilities
         
         VulkanNative.vkCmdCopyBufferToImage(commandBuffer, sourceBuffer, image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
-        EndSingleTimeCommands(commandBuffer);
-    }
-
-    public static void TransitionImageLayout(in VkImage image, in VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, in uint mipLevels)
-    {
-        VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-        
-        VkImageMemoryBarrier imageMemoryBarrier = new VkImageMemoryBarrier()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            oldLayout = oldLayout,									// Layout to transition from
-            newLayout = newLayout,									// Layout to transition to
-            srcQueueFamilyIndex = ~0U,			                    // Queue family to transition from
-            dstQueueFamilyIndex = ~0U,			                    // Queue family to transition to
-            image = image,											// Image being accessed and modified as part of barrier
-            subresourceRange = new VkImageSubresourceRange()
-            {
-                baseMipLevel = 0,						                    // First mip level to start alterations on
-                levelCount = mipLevels,							                    // Number of mip levels to alter starting from baseMipLevel
-                baseArrayLayer = 0,						                    // First layer to start alterations on
-                layerCount = 1,							                    // Number of layers to alter starting from baseArrayLayer
-            }
-        };
-        
-        if (newLayout == VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
-        {
-            imageMemoryBarrier.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT;
-
-            if (format == VkFormat.VK_FORMAT_D32_SFLOAT_S8_UINT || format == VkFormat.VK_FORMAT_D24_UNORM_S8_UINT) 
-            {
-                imageMemoryBarrier.subresourceRange.aspectMask |= VkImageAspectFlags.VK_IMAGE_ASPECT_STENCIL_BIT;
-            }
-        } 
-        else 
-        {
-            imageMemoryBarrier.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT;
-        }
-        
-        VkPipelineStageFlags srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_NONE;
-        VkPipelineStageFlags dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_NONE;
-
-        // If transitioning from new image to image ready to receive data...
-        if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-        {
-            imageMemoryBarrier.srcAccessMask = 0;
-            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;  // The stage the transition must occur after
-            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;     // The stage the transition must occur before
-        }
-        
-        // If transitioning from transfer destination to shader readable...
-        else if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-        {
-            imageMemoryBarrier.srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT;
-            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
-
-            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        
-        // If transitioning from an undefined layout to one optimal for depth stencil...
-        else if (oldLayout == VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
-        {
-            imageMemoryBarrier.srcAccessMask = 0;
-            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VkAccessFlags.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        }
-        else
-        {
-            VulkanDebugger.ThrowError($"Transitioning images from [{ oldLayout.ToString() }] to [{ newLayout.ToString() }] is not supported");
-        }
-
-        VulkanNative.vkCmdPipelineBarrier(
-                commandBuffer,
-                srcStage, dstStage,		                                // Pipeline stages (match to src and dst AccessMasks)
-                0,						                // Dependency flags
-                0, null,				    // Memory Barrier count + data
-                0, null,			// Buffer Memory Barrier count + data
-                1, &imageMemoryBarrier	            // Image Memory Barrier count + data
-        );
-        
         EndSingleTimeCommands(commandBuffer);
     }
 
@@ -598,7 +463,7 @@ public static unsafe class VulkanUtilities
         VulkanNative.vkFreeCommandBuffers(VulkanCore.logicalDevice, VulkanCore.commandPool, 1, commandBuffersPtr);
     }
 
-    private static uint FindMemoryTypeIndex(uint typeFilter, in VkMemoryPropertyFlags givenMemoryPropertyFlags)
+    public static uint FindMemoryTypeIndex(uint typeFilter, in VkMemoryPropertyFlags givenMemoryPropertyFlags)
     {
         VkPhysicalDeviceMemoryProperties memoryProperties;
         VulkanNative.vkGetPhysicalDeviceMemoryProperties(VulkanCore.physicalDevice, &memoryProperties);

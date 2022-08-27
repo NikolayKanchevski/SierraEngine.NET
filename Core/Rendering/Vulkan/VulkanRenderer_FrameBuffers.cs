@@ -1,43 +1,33 @@
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
-public unsafe partial class VulkanRenderer
+public partial class VulkanRenderer
 {
-    private VkFramebuffer[] swapchainFrameBuffers = null!;
+    private Framebuffer[] swapchainFrameBuffers = null!;
     
     private void CreateFrameBuffers()
     {
-        // Resize the framebuffers array to be of the same size as the swapchainImages array
-        swapchainFrameBuffers = new VkFramebuffer[swapchainImages.Length];
+        // Resize the frame buffers array to be of the same size as the swapchainImages array
+        swapchainFrameBuffers = new Framebuffer[swapchainImages.Length];
+        
+        // Assign the static attachments
+        VkImageView[] attachments = new VkImageView[3];
+        attachments[0] = this.colorImage.GetVkImageView();
+        attachments[1] = this.depthImage.GetVkImageView();
 
         // Create a framebuffer for each swapchain image
-        for (int i = 0; i < swapchainImageViews.Length; i++)
+        for (int i = 0; i < swapchainImages.Length; i++)
         {
-            // Define the attachments for the framebuffer
-            #pragma warning disable CA2014
-            VkImageView* attachments = stackalloc VkImageView[] { this.colorImageView, this.depthImageView, this.swapchainImageViews[i] };
+            // Assign the dynamic attachments
+             attachments[2] = this.swapchainImages[i].GetVkImageView();
 
-            // Set up the framebuffer creation info
-            VkFramebufferCreateInfo framebufferCreateInfo = new VkFramebufferCreateInfo()
-            {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                renderPass = this.renderPass,
-                attachmentCount = 3,
-                pAttachments = attachments,
-                width = swapchainExtent.width,
-                height = swapchainExtent.height,
-                layers = 1
-            };
-
-            // Create the framebuffer
-            fixed (VkFramebuffer* framebufferPtr = &swapchainFrameBuffers[i])
-            {
-                if (VulkanNative.vkCreateFramebuffer(this.logicalDevice, &framebufferCreateInfo, null, framebufferPtr) != VkResult.VK_SUCCESS)
-                {
-                    VulkanDebugger.ThrowError("Failed to create the framebuffer");
-                }
-            }
+             // Add the attachments to the framebuffer and then create it
+             new Framebuffer.Builder()
+                 .SetRenderPass(this.renderPass)
+                 .AddAttachments(attachments)
+            .Build(out swapchainFrameBuffers[i]);
         }
     }
 }

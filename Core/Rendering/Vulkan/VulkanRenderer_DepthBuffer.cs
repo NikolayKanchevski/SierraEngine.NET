@@ -1,34 +1,33 @@
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
 public unsafe partial class VulkanRenderer
 {
-    private VkImage depthImage;
-    private VkImageView depthImageView;
-    private VkDeviceMemory depthImageMemory;
+    private Image depthImage = null!;
     private VkFormat depthImageFormat; 
 
     private void CreateDepthBufferImage()
     {
-        // Create the depth buffer image
-        VulkanUtilities.CreateImage(
-            this.swapchainExtent.width, this.swapchainExtent.height, 1, this.msaaSampleCount,
-            depthImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL, 
-            VkImageUsageFlags.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            out depthImage, out depthImageMemory
+        // Retrieve the best depth buffer image format
+        this.depthImageFormat = this.GetBestDepthBufferFormat(
+            new VkFormat[] { VkFormat.VK_FORMAT_D32_SFLOAT_S8_UINT, VkFormat.VK_FORMAT_D32_SFLOAT, VkFormat.VK_FORMAT_D24_UNORM_S8_UINT },
+            VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
+            VkFormatFeatureFlags.VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
         
-        // Create the depth buffer image view
-        VulkanUtilities.CreateImageView(depthImage, depthImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT, 1, out depthImageView);
+        new Image.Builder()
+            .SetSize(swapchainExtent.width, swapchainExtent.height)
+            .SetSampling(this.msaaSampleCount)
+            .SetUsage(VkImageUsageFlags.VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+            .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+            .SetFormat(depthImageFormat)
+        .Build(out depthImage);
         
-        // Transition the layout of the depth buffer image so it is optimal
-        VulkanUtilities.TransitionImageLayout(
-            depthImage, depthImageFormat, 
-            VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, 
-            VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1
-        );
+        depthImage.GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT);
+        
+        depthImage.TransitionLayout(VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     }
 
     private VkFormat GetBestDepthBufferFormat(in VkFormat[] formatCandidates, in VkImageTiling imageTiling, VkFormatFeatureFlags formatFeatureFlags)

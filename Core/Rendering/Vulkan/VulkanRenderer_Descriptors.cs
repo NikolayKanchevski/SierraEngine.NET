@@ -13,14 +13,14 @@ public partial class VulkanRenderer
     private List<VkDescriptorSet> diffuseTextureDescriptorSets = new List<VkDescriptorSet>((int) MAX_TEXTURES);
     private List<VkDescriptorSet> specularTextureDescriptorSets = new List<VkDescriptorSet>((int) MAX_TEXTURES);
     
-    private void CreateDescriptorSetLayout()
+    private unsafe void CreateDescriptorSetLayout()
     {
         // Create the descriptor set layout
-        descriptorSetLayout = new DescriptorSetLayout.Builder()
+        new DescriptorSetLayout.Builder()
             .AddBinding(0, VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT | VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT)
             .AddBinding(1, VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT)
             .AddBinding(2, VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT)
-        .Build();
+        .Build(out descriptorSetLayout);
     }
     
     private void CreateDescriptorPool()
@@ -29,11 +29,11 @@ public partial class VulkanRenderer
         const uint DESCRIPTOR_COUNT = MAX_CONCURRENT_FRAMES + (MAX_TEXTURES * 2);
     
         // Create the descriptor pool
-        descriptorPool = new DescriptorPool.Builder()
+        new DescriptorPool.Builder()
             .SetMaxSets(DESCRIPTOR_COUNT)
             .AddPoolSize(VkDescriptorType.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_COUNT)
             .AddPoolSize(VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, DESCRIPTOR_COUNT)
-        .Build();
+        .Build(out descriptorPool);
     }
 
     private void CreateUniformDescriptorSets()
@@ -57,14 +57,14 @@ public partial class VulkanRenderer
         }
     }
 
-    private int CreateTextureDescriptorSet(in VkImageView textureImageView, ref List<VkDescriptorSet> textureDescriptorSetsList, in TextureType textureType)
+    private int CreateTextureDescriptorSet(in Image image, ref List<VkDescriptorSet> textureDescriptorSetsList, in TextureType textureType)
     {
         // Create the information on the image
         VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
         {
             imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            imageView = textureImageView,
-            sampler = this.textureSampler
+            imageView = image.GetVkImageView(),
+            sampler = textureSampler.GetVkSampler()
         };
 
         // Write the image to the descriptor set

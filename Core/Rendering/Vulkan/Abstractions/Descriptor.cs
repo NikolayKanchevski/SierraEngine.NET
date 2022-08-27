@@ -12,7 +12,7 @@ public unsafe class DescriptorSetLayout
     {
         private readonly List<Tuple<uint, VkDescriptorSetLayoutBinding>> bindings = new();
         
-        public Builder AddBinding(uint binding, in VkDescriptorType descriptorType, in VkShaderStageFlags shaderStages, in uint descriptorCount = 1)
+        public Builder AddBinding(uint binding, in VkDescriptorType descriptorType, in VkShaderStageFlags shaderStages, in uint descriptorCount = 1, VkSampler* immutableSamplers = null)
         {
             // Check if the binding already exists and therefore is in use
             if (bindings.Find(o => o.Item1 == binding) != null)
@@ -28,7 +28,8 @@ public unsafe class DescriptorSetLayout
                 binding = binding,
                 descriptorType = descriptorType,
                 descriptorCount = descriptorCount,
-                stageFlags = shaderStages
+                stageFlags = shaderStages,
+                pImmutableSamplers = immutableSamplers
             };
             
             // Add the binding info to the tuple list
@@ -37,10 +38,10 @@ public unsafe class DescriptorSetLayout
             return this;
         }
 
-        public DescriptorSetLayout Build()
+        public void Build(out DescriptorSetLayout descriptorSetLayout)
         {
             // Create the descriptor set layout
-            return new DescriptorSetLayout(this.bindings);
+            descriptorSetLayout = new DescriptorSetLayout(this.bindings);
         }
     }
 
@@ -108,7 +109,7 @@ public unsafe class DescriptorPool
         public Builder AddPoolSize(in VkDescriptorType descriptorType, in uint count)
         {
             // Add the pool size to the list of pool sizes
-            this.poolSizes.Add(new VkDescriptorPoolSize() with { type =  descriptorType, descriptorCount = count });
+            this.poolSizes.Add(new VkDescriptorPoolSize() { type =  descriptorType, descriptorCount = count });
             return this;
         }
         
@@ -126,10 +127,10 @@ public unsafe class DescriptorPool
             return this;
         }
 
-        public DescriptorPool Build()
+        public void Build(out DescriptorPool givenDescriptorPool)
         {
             // Create the descriptor pool
-            return new DescriptorPool(this.maxSets, this.poolCreateFlags, this.poolSizes.ToArray());
+            givenDescriptorPool = new DescriptorPool(this.maxSets, this.poolCreateFlags, this.poolSizes.ToArray());
         }
     }
 
@@ -283,19 +284,17 @@ public unsafe class DescriptorWriter
         return this;
     }
 
-    public bool Build(out VkDescriptorSet descriptorSet)
+    public void Build(out VkDescriptorSet descriptorSet)
     {
         // Check if the allocation failed
         bool success = descriptorPool.AllocateDescriptorSet(descriptorSetLayout.GetVkDescriptorSetLayout(), out descriptorSet);
         if (!success)
         {
-            return false;
+            VulkanDebugger.ThrowError("Could not allocate descriptor set");
         }
 
         // Update the descriptor sets
         Overwrite(descriptorSet);
-
-        return true;
     }
 
     private void Overwrite(in VkDescriptorSet descriptorSet)

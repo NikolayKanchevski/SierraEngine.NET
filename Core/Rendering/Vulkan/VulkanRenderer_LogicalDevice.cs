@@ -38,7 +38,7 @@ public unsafe partial class VulkanRenderer
             requiredPhysicalDeviceFeatures.fillModeNonSolid = VkBool32.True;
         }
 
-        if (physicalDeviceFeatures.samplerAnisotropy)
+        if (VulkanCore.physicalDeviceFeatures.samplerAnisotropy)
         {
             requiredPhysicalDeviceFeatures.samplerAnisotropy = VkBool32.True;
         }

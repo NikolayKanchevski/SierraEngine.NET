@@ -23,10 +23,10 @@ public unsafe partial class VulkanRenderer
         // Create the command pool
         fixed (VkCommandPool* commandPoolPtr = &commandPool)
         {
-            if (VulkanNative.vkCreateCommandPool(this.logicalDevice, &commandPoolCreateInfo, null, commandPoolPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create the command pool");
-            }
+            VulkanDebugger.CheckResults(
+            VulkanNative.vkCreateCommandPool(this.logicalDevice, &commandPoolCreateInfo, null, commandPoolPtr),
+            "Failed to create command pool"
+            );
         }
         
         // Assign the EngineCore's command pool
@@ -53,10 +53,10 @@ public unsafe partial class VulkanRenderer
             // Allocate the buffer
             fixed (VkCommandBuffer* commandBufferPtr = &commandBuffers[i])
             {
-                if (VulkanNative.vkAllocateCommandBuffers(this.logicalDevice, &commandBufferAllocateInfo, commandBufferPtr) != VkResult.VK_SUCCESS)
-                {
-                    VulkanDebugger.ThrowError($"Failed to allocate command buffer [{ i }]");
-                }
+                VulkanDebugger.CheckResults(
+                    VulkanNative.vkAllocateCommandBuffers(this.logicalDevice, &commandBufferAllocateInfo, commandBufferPtr),
+                    $"Failed to allocate command buffer [{i}]"
+                );
             }
         }
     }
@@ -77,30 +77,6 @@ public unsafe partial class VulkanRenderer
             VulkanDebugger.ThrowError($"Failed to begin command buffer [{ imageIndex }]");
         }
 
-        // Set up render pass begin info
-        VkRenderPassBeginInfo renderPassBeginInfo = new VkRenderPassBeginInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            renderPass = this.renderPass,
-            framebuffer = this.swapchainFrameBuffers[imageIndex],
-        };
-        
-        // Adjust the render area's offset and extent
-        renderPassBeginInfo.renderArea.offset = VkOffset2D.Zero;
-        renderPassBeginInfo.renderArea.extent = swapchainExtent;
-
-        VkClearValue* clearValues = stackalloc VkClearValue[2];
-        clearValues[0].color = backgroundColor;
-        clearValues[1].depthStencil = new VkClearDepthStencilValue()
-        {
-            depth = 1.0f,
-            stencil = 0
-        };
-        
-        // Reference the clear value to the render pass begin info
-        renderPassBeginInfo.clearValueCount = 2;
-        renderPassBeginInfo.pClearValues = clearValues;
-        
         // Queries must be reset after each individual use.
         VulkanNative.vkCmdResetQueryPool(givenCommandBuffer, this.drawTimeQueryPool,  imageIndex * 2, 2);
         
@@ -108,7 +84,8 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkCmdWriteTimestamp(givenCommandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, drawTimeQueryPool, imageIndex * 2);
 
         // Begin the render pass
-        VulkanNative.vkCmdBeginRenderPass(givenCommandBuffer, &renderPassBeginInfo, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
+        renderPass.SetFramebuffer(swapchainFrameBuffers[imageIndex]);
+        renderPass.Begin(givenCommandBuffer);
         
         // Bind the pipeline
         VulkanNative.vkCmdBindPipeline(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipeline);
@@ -169,10 +146,10 @@ public unsafe partial class VulkanRenderer
             VulkanNative.vkCmdDrawIndexed(givenCommandBuffer, mesh.indexCount, 1, 0, 0, 0);
         }
 
-        imGuiController.Render(givenCommandBuffer, swapchainFrameBuffers[imageIndex], swapchainExtent);
+        imGuiController.Render(givenCommandBuffer);
 
         // End the render pass
-        VulkanNative.vkCmdEndRenderPass(givenCommandBuffer);
+        renderPass.End(givenCommandBuffer);
         
         // End GPU timer
         VulkanNative.vkCmdWriteTimestamp(givenCommandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, drawTimeQueryPool, imageIndex * 2 + 1);

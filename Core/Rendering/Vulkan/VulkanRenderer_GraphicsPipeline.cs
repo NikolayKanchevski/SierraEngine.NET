@@ -235,7 +235,7 @@ public unsafe partial class VulkanRenderer
             pColorBlendState = &blendingStateCreateInfo,
             pDynamicState = &dynamicStateCreateInfo,
             layout = graphicsPipelineLayout,
-            renderPass = this.renderPass,
+            renderPass = this.renderPass.GetVkRenderPass(),
             subpass = 0,
             basePipelineHandle = VkPipeline.Null,
             basePipelineIndex = -1

@@ -7,9 +7,6 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private VkPhysicalDevice physicalDevice;
-    private VkPhysicalDeviceProperties physicalDeviceProperties;
-    private VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
-    private VkPhysicalDeviceFeatures physicalDeviceFeatures;
     private QueueFamilyIndices queueFamilyIndices;
     
     private readonly List<string> requiredDeviceExtensions = new List<string>()
@@ -50,17 +47,17 @@ public unsafe partial class VulkanRenderer
                 // Retrieve the GPU's properties
                 VkPhysicalDeviceProperties deviceProperties;
                 VulkanNative.vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-                this.physicalDeviceProperties = deviceProperties;
+                VulkanCore.physicalDeviceProperties = deviceProperties;
                 
                 // Retrieve the GPU's memory properties
                 VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
                 VulkanNative.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
-                this.physicalDeviceMemoryProperties = deviceMemoryProperties;
+                VulkanCore.physicalDeviceMemoryProperties = deviceMemoryProperties;
                 
                 // Retrieve the GPU's features
                 VkPhysicalDeviceFeatures deviceFeatures;
                 VulkanNative.vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
-                this.physicalDeviceFeatures = deviceFeatures;
+                VulkanCore.physicalDeviceFeatures = deviceFeatures;
 
                 // Get queue family indices
                 this.queueFamilyIndices = FindQueueFamilies(currentPhysicalDevice);

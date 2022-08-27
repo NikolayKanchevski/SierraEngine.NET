@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
 
@@ -33,17 +34,15 @@ public unsafe partial class VulkanRenderer
         CreateLogicalDevice();
         
         CreateSwapchain();
-        CreateSwapchainImageViews();
-        
+        CreateCommandPool();
+        CreateDepthBufferImage();
+
         CreateRenderPass();
         CreatePushConstants();
         CreateDescriptorSetLayout();
         CreateGraphicsPipeline();
-        
-        CreateCommandPool();
-        
+
         CreateColorBufferImage();
-        CreateDepthBufferImage();
         
         CreateFrameBuffers();
         
@@ -91,24 +90,20 @@ public unsafe partial class VulkanRenderer
 
         DestroySwapchainObjects();
         
-        VulkanNative.vkDestroySampler(this.logicalDevice, this.textureSampler, null);
+        textureSampler.CleanUp();
         
         VulkanNative.vkDestroyQueryPool(this.logicalDevice, this.drawTimeQueryPool, null);
-        
-        for (int i = 0; i < this.diffuseTextureImages.Count; i++)
+
+        foreach (Image image in diffuseTextureImages)
         {
-            VulkanNative.vkDestroyImage(this.logicalDevice, this.diffuseTextureImages[i], null);
-            VulkanNative.vkDestroyImageView(this.logicalDevice, this.diffuseTextureImageViews[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.diffuseTextureImageMemories[i], null);
+            image.CleanUp();
         }
         
-        for (int i = 0; i < this.specularTextureImages.Count; i++)
+        foreach (Image image in specularTextureImages)
         {
-            VulkanNative.vkDestroyImage(this.logicalDevice, this.specularTextureImages[i], null);
-            VulkanNative.vkDestroyImageView(this.logicalDevice, this.specularTextureImageViews[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.specularTextureImageMemories[i], null);
+            image.CleanUp();
         }
-        
+
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
         VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
 

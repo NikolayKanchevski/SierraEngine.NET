@@ -1,5 +1,7 @@
-﻿using Evergine.Bindings.Vulkan;
+﻿using System.Numerics;
+using Evergine.Bindings.Vulkan;
 using Glfw;
+using Image = SierraEngine.Core.Rendering.Vulkan.Abstractions.Image;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -9,11 +11,19 @@ public unsafe partial class VulkanRenderer
     private VkFormat swapchainImageFormat;
     private VkExtent2D swapchainExtent;
 
-    private VkImage[] swapchainImages = null!;
-    private VkImageView[] swapchainImageViews = null!;
+    private Image[] swapchainImages = null!;
+    private Image swapchainImage => swapchainImages[0];
     
     private void CreateSwapchain()
     {
+        // Lower the sample count if it is not supported
+        VkSampleCountFlags highestSupportedSampleCount = this.GetHighestSupportedSampleCount();
+        if (this.msaaSampleCount > highestSupportedSampleCount)  
+        {
+            VulkanDebugger.ThrowWarning($"Sampling MSAA level [{ this.msaaSampleCount.ToString() }] requested but is not supported by the system. It is automatically lowered to [{ highestSupportedSampleCount }] which is the highest supported setting");
+            this.msaaSampleCount = highestSupportedSampleCount;
+        }
+        
         // Get swapchain details
         SwapchainSupportDetails swapchainSupportDetails = GetSwapchainSupportDetails(this.physicalDevice);
         
@@ -80,27 +90,27 @@ public unsafe partial class VulkanRenderer
         // Get swapchain images
         VulkanNative.vkGetSwapchainImagesKHR(this.logicalDevice, this.swapchain, &imageCount, null);
 
+        VkImage[] swapchainVkImages = new VkImage[imageCount];
+        swapchainImages = new Image[imageCount];
+        
         // Resize the swapchain images array and extract every swapchain image
-        swapchainImages = new VkImage[imageCount];
-        fixed (VkImage* currentSwapchainImagePtr = swapchainImages)
+        fixed (VkImage* currentSwapchainImagePtr = swapchainVkImages)
         {
             VulkanNative.vkGetSwapchainImagesKHR(this.logicalDevice, this.swapchain, &imageCount, currentSwapchainImagePtr);
         }
         
+        for (int i = 0; i < imageCount; i++)
+        {
+            swapchainImages[i] = new Image(
+                swapchainVkImages[i], swapchainImageFormat, msaaSampleCount,
+                new Vector3(swapchainExtent.width, swapchainExtent.height, 0.0f)
+            );
+            
+            swapchainImages[i].GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
+        }
+
         // Assign the EngineCore's swapchain extent
         VulkanCore.swapchainExtent = swapchainExtent;
-    }
-
-    private void CreateSwapchainImageViews()
-    {
-        // Resize the image views array to have the same size as the swapchain images one
-        swapchainImageViews = new VkImageView[swapchainImages.Length];
-
-        // Loop trough each image view
-        for (int i = 0; i < swapchainImageViews.Length; i++)
-        {
-            VulkanUtilities.CreateImageView(swapchainImages[i], swapchainImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, 1, out swapchainImageViews[i]);
-        }
     }
 
     private void RecreateSwapchainObjects()
@@ -115,7 +125,6 @@ public unsafe partial class VulkanRenderer
         DestroySwapchainObjects();
         
         CreateSwapchain();
-        CreateSwapchainImageViews();
         CreateRenderPass();
         CreateDepthBufferImage();
         CreateColorBufferImage();
@@ -126,24 +135,20 @@ public unsafe partial class VulkanRenderer
 
     private void DestroySwapchainObjects()
     {
-        VulkanNative.vkDestroyImage(this.logicalDevice, this.colorImage, null);
-        VulkanNative.vkDestroyImageView(this.logicalDevice, this.colorImageView, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, this.colorImageMemory, null);
+        colorImage.CleanUp();
         
         foreach (var swapchainFramebuffer in this.swapchainFrameBuffers)
         {
-            VulkanNative.vkDestroyFramebuffer(this.logicalDevice, swapchainFramebuffer, null);
+            swapchainFramebuffer.CleanUp();
         }
         
-        VulkanNative.vkDestroyImage(this.logicalDevice, this.depthImage, null);
-        VulkanNative.vkDestroyImageView(this.logicalDevice, this.depthImageView, null);
-        VulkanNative.vkFreeMemory(this.logicalDevice, this.depthImageMemory, null);
+        depthImage.CleanUp();
+
+        renderPass.CleanUp();
         
-        VulkanNative.vkDestroyRenderPass(this.logicalDevice, this.renderPass, null);
-        
-        foreach (var imageView in this.swapchainImageViews!)
+        foreach (Image image in swapchainImages)
         {
-            VulkanNative.vkDestroyImageView(this.logicalDevice, imageView, null);
+            image.CleanUpImageView();
         }
         
         VulkanNative.vkDestroySwapchainKHR(this.logicalDevice, this.swapchain, null);

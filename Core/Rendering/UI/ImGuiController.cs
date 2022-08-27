@@ -5,9 +5,11 @@ using Evergine.Bindings.Vulkan;
 using Glfw;
 using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
+using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using SierraEngine.Engine.Classes;
 using Silk.NET.Core.Native;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
+using Image = SierraEngine.Core.Rendering.Vulkan.Abstractions.Image;
 
 namespace SierraEngine.Core.Rendering.UI;
 
@@ -15,28 +17,26 @@ public unsafe class ImGuiController
 {
     private int windowWidth;
     private int windowHeight;
-    private int verticesDrawn = 0;
+    private int verticesDrawn;
     private uint swapchainImageCount;
     private bool frameBegun;
     private const ulong BUFFER_MEMORY_ALIGNMENT = 256;
     private GlobalMemory frameRenderBuffers = null!;
 
-    private VkDescriptorPool descriptorPool;
+    private DescriptorPool descriptorPool = null!;
     private readonly VkSampleCountFlags msaaSampleCount;
-    private VkSampler fontSampler;
-    private VkDescriptorSetLayout descriptorSetLayout;
+    private Sampler fontSampler = null!;
+    private DescriptorSetLayout descriptorSetLayout = null!;
     private VkDescriptorSet descriptorSet;
     private VkPipelineLayout graphicsPipelineLayout;
     private VkShaderModule vertexShaderModule;
     private VkShaderModule fragmentShaderModule;
-    private VkImage fontImage;
-    private VkImageView fontImageView;
-    private VkDeviceMemory fontImageMemory;
     private VkPipeline graphicsPipeline;
+    private Image fontImage = null!;
     
     private WindowRenderBuffers mainWindowRenderBuffers;
     
-    public ImGuiController(in Window window, ref VkRenderPass renderPass, in uint swapchainImageCount, in VkSampleCountFlags sampleCountFlags)
+    public ImGuiController(in Window window, ref RenderPass renderPass, in uint swapchainImageCount, in VkSampleCountFlags sampleCountFlags)
     {
         this.msaaSampleCount = sampleCountFlags;
         
@@ -65,7 +65,7 @@ public unsafe class ImGuiController
         BeginFrame();
     }
 
-    private void Init(in Window window, ref VkRenderPass renderPass, in uint swapChainImageCount)
+    private void Init(in Window window, ref RenderPass renderPass, in uint swapChainImageCount)
     {
         windowWidth = window.width;
         windowHeight = window.height;
@@ -79,93 +79,22 @@ public unsafe class ImGuiController
         // Set default style
         ImGui.StyleColorsDark();
 
-        // Create the descriptor pool for ImGui
-        VkDescriptorPoolSize descriptorPoolSize = new VkDescriptorPoolSize() with
-        {
-            type = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            descriptorCount = 1
-        };
+        new DescriptorPool.Builder()
+            .AddPoolSize(VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1)
+            .SetMaxSets(1)
+        .Build(out descriptorPool);
         
-        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            poolSizeCount = 1,
-            pPoolSizes = &descriptorPoolSize,
-            maxSets = 1
-        };
+        new Sampler.Builder()
+            .SetBilinearFiltering(true)
+            .SetLod(new Vector2(-1000.0f, 1000.0f))
+            .SetMaxAnisotropy(1.0f)
+        .Build(out fontSampler);
 
-        fixed (VkDescriptorPool* descriptorPoolPtr = &descriptorPool)
-        {
-            if (VulkanNative.vkCreateDescriptorPool(VulkanCore.logicalDevice, &descriptorPoolCreateInfo, null, descriptorPoolPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create ImGui descriptor pool");
-            }
-        }
+        VkSampler* immutableSamplersPtr = stackalloc VkSampler[] { fontSampler.GetVkSampler() };
 
-        VkSamplerCreateInfo samplerCreateInfo = new VkSamplerCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            magFilter = VkFilter.VK_FILTER_LINEAR,
-            minFilter = VkFilter.VK_FILTER_LINEAR,
-            mipmapMode = VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_LINEAR,
-            addressModeU = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            addressModeV = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            addressModeW = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            minLod = -1000.0f,
-            maxLod = 1000.0f,
-            maxAnisotropy = 1.0f
-        };
-
-        fixed (VkSampler* fontSamplerPtr = &fontSampler)
-        {
-            if (VulkanNative.vkCreateSampler(VulkanCore.logicalDevice, &samplerCreateInfo, null, fontSamplerPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create ImGui font sampler");
-            }
-        }
-
-        VkSampler* immutableSamplersPtr = stackalloc VkSampler[] { fontSampler };
-        
-        VkDescriptorSetLayoutBinding descriptorSetLayoutBinding = new VkDescriptorSetLayoutBinding()
-        {
-            descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            descriptorCount = 1,
-            stageFlags = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT,
-            pImmutableSamplers = immutableSamplersPtr
-        };
-
-        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = new VkDescriptorSetLayoutCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            bindingCount = 1,
-            pBindings = &descriptorSetLayoutBinding
-        };
-
-        fixed (VkDescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
-        {
-            if (VulkanNative.vkCreateDescriptorSetLayout(VulkanCore.logicalDevice, &descriptorSetLayoutCreateInfo, null, descriptorSetLayoutPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create ImGui descriptor set layout");
-            }
-        }
-
-        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { descriptorSetLayout };
-
-        VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = new VkDescriptorSetAllocateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            descriptorPool = descriptorPool,
-            descriptorSetCount = 1,
-            pSetLayouts = descriptorSetLayoutsPtr
-        };
-
-        fixed (VkDescriptorSet* descriptorSetPtr = &descriptorSet)
-        {
-            if (VulkanNative.vkAllocateDescriptorSets(VulkanCore.logicalDevice, &descriptorSetAllocateInfo, descriptorSetPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to allocate ImGui descriptor set");   
-            }
-        }
+        new DescriptorSetLayout.Builder()
+            .AddBinding(0, VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT, 1, immutableSamplersPtr)
+        .Build(out descriptorSetLayout);
 
         VkPushConstantRange vertexPushConstant = new VkPushConstantRange()
         {
@@ -175,7 +104,8 @@ public unsafe class ImGuiController
         };
 
         VkPushConstantRange* pushConstantsPtr = stackalloc VkPushConstantRange[] { vertexPushConstant };
-
+        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { descriptorSetLayout.GetVkDescriptorSetLayout() };
+        
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -351,7 +281,7 @@ public unsafe class ImGuiController
             pColorBlendState = &colorBlendStateCreateInfo,
             pDynamicState = &dynamicStateCreateInfo,
             layout = graphicsPipelineLayout,
-            renderPass = renderPass,
+            renderPass = renderPass.GetVkRenderPass(),
             subpass = 0
         };
 
@@ -373,39 +303,26 @@ public unsafe class ImGuiController
         var uploadSize = (ulong) (width * height * 4 * sizeof(byte));
         VkCommandBuffer commandBuffer = VulkanUtilities.BeginSingleTimeCommands();
         
-        VulkanUtilities.CreateImage(
-            (uint) width, (uint) height, 1,
-            VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT, VkFormat.VK_FORMAT_R8G8B8A8_UNORM, 
-            VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
-            VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            out fontImage, out fontImageMemory
-        );
-
-        VulkanUtilities.CreateImageView(
-            fontImage, VkFormat.VK_FORMAT_R8G8B8A8_UNORM, 
-            VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, 1,
-            out fontImageView
-        );
+        new Image.Builder()
+            .SetSize((uint) width, (uint) height)
+            .SetFormat(VkFormat.VK_FORMAT_R8G8B8A8_UNORM)
+            .SetUsage(VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+            .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+        .Build(out fontImage);
+        
+        fontImage.GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
 
         VkDescriptorImageInfo descriptorImageInfo = new VkDescriptorImageInfo()
         {
-            sampler = fontSampler,
-            imageView = fontImageView,
+            sampler = fontSampler.GetVkSampler(),
+            imageView = fontImage.GetVkImageView(),
             imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
 
-        VkWriteDescriptorSet writeDescriptorSet = new VkWriteDescriptorSet()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            descriptorCount = 1,
-            dstSet = descriptorSet,
-            descriptorType = VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            pImageInfo = &descriptorImageInfo
-        };
-
-        VulkanNative.vkUpdateDescriptorSets(VulkanCore.logicalDevice, 1, &writeDescriptorSet, 0, null);
-
+        new DescriptorWriter(descriptorSetLayout, descriptorPool)
+            .WriteImage(0, descriptorImageInfo)
+            .Build(out descriptorSet);
+        
         VulkanUtilities.CreateBuffer(
             uploadSize, VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
             VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 
@@ -439,7 +356,7 @@ public unsafe class ImGuiController
             newLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            image = fontImage,
+            image = fontImage.GetVkImage(),
             subresourceRange = new VkImageSubresourceRange()
             {
                 aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
@@ -471,7 +388,7 @@ public unsafe class ImGuiController
         };
         
         VulkanNative.vkCmdCopyBufferToImage(
-            commandBuffer, uploadBuffer, fontImage,
+            commandBuffer, uploadBuffer, fontImage.GetVkImage(),
             VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopyRegion
         );
 
@@ -484,7 +401,7 @@ public unsafe class ImGuiController
             newLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            image = fontImage,
+            image = fontImage.GetVkImage(),
             subresourceRange = new VkImageSubresourceRange()
             {
                 aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
@@ -502,7 +419,7 @@ public unsafe class ImGuiController
         );
         
         // Store our identifier
-        io.Fonts.SetTexID((IntPtr) fontImage.Handle);
+        io.Fonts.SetTexID((IntPtr) fontImage.GetVkImage().Handle);
         
         VulkanUtilities.EndSingleTimeCommands(commandBuffer);
 
@@ -665,7 +582,7 @@ public unsafe class ImGuiController
         style.Colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
         style.Colors[(int) ImGuiCol.PlotHistogramHovered]   = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
         style.Colors[(int) ImGuiCol.TextSelectedBg]         = new Vector4(0.26f, 0.59f, 0.98f, 0.35f);
-        style.Colors[(int) ImGuiCol.DragDropTarget]          = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
+        style.Colors[(int) ImGuiCol.DragDropTarget]         = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
         style.Colors[(int) ImGuiCol.NavHighlight]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
         style.Colors[(int) ImGuiCol.NavWindowingHighlight]  = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
         style.Colors[(int) ImGuiCol.NavWindowingDimBg]      = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
@@ -684,7 +601,7 @@ public unsafe class ImGuiController
         ImGui.NewFrame();
     }
     
-    public void Render(in VkCommandBuffer commandBuffer, in VkFramebuffer framebuffer, in VkExtent2D swapChainExtent)
+    public void Render(in VkCommandBuffer commandBuffer)
     {
         if (frameBegun)
         {
@@ -757,15 +674,13 @@ public unsafe class ImGuiController
 
         VulkanNative.vkDestroyShaderModule(VulkanCore.logicalDevice, vertexShaderModule, default);
         VulkanNative.vkDestroyShaderModule(VulkanCore.logicalDevice, fragmentShaderModule, default);
-        VulkanNative.vkDestroyImageView(VulkanCore.logicalDevice, fontImageView, default);
-        VulkanNative.vkDestroyImage(VulkanCore.logicalDevice, fontImage, default);
-        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, fontImageMemory, default);
-        VulkanNative.vkDestroySampler(VulkanCore.logicalDevice, fontSampler, default);
-        VulkanNative.vkDestroyDescriptorSetLayout(VulkanCore.logicalDevice, descriptorSetLayout, default);
+        fontImage.CleanUp();
+        fontSampler.CleanUp();
+        descriptorSetLayout.CleanUp();
         VulkanNative.vkDestroyPipelineLayout(VulkanCore.logicalDevice, graphicsPipelineLayout, default);
         VulkanNative.vkDestroyPipeline(VulkanCore.logicalDevice, graphicsPipeline, default);
-        VulkanNative.vkDestroyDescriptorPool(VulkanCore.logicalDevice, descriptorPool, default);
-
+        descriptorPool.CleanUp();
+        
         ImGui.DestroyContext();
     }
     

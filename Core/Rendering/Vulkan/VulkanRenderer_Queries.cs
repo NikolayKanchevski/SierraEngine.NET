@@ -28,6 +28,6 @@ public unsafe partial class VulkanRenderer
         }
 
         // Get the timestamp period of the physical device
-        timestampPeriod = physicalDeviceProperties.limits.timestampPeriod;
+        timestampPeriod = VulkanCore.physicalDeviceProperties.limits.timestampPeriod;
     }
 }

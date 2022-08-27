@@ -1,8 +1,5 @@
-using System.Runtime.InteropServices;
-using Assimp;
 using Evergine.Bindings.Vulkan;
-using SierraEngine.Engine;
-using SierraEngine.Engine.Classes;
+using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using StbImageSharp;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -11,18 +8,11 @@ public enum TextureType { Diffuse, Specular, Normal, Height }
 
 public unsafe partial class VulkanRenderer
 {
-    private List<uint> diffuseTextureMipLevels = new List<uint>((int) MAX_TEXTURES);
-    private List<VkImage> diffuseTextureImages = new List<VkImage>((int) MAX_TEXTURES);
-    private List<VkImageView> diffuseTextureImageViews = new List<VkImageView>((int) MAX_TEXTURES);
-    private List<VkDeviceMemory> diffuseTextureImageMemories = new List<VkDeviceMemory>((int) MAX_TEXTURES);
-    
-    private List<uint> specularTextureMipLevels = new List<uint>((int) MAX_TEXTURES);
-    private List<VkImage> specularTextureImages = new List<VkImage>((int) MAX_TEXTURES);
-    private List<VkImageView> specularTextureImageViews = new List<VkImageView>((int) MAX_TEXTURES);
-    private List<VkDeviceMemory> specularTextureImageMemories = new List<VkDeviceMemory>((int) MAX_TEXTURES);
+    private List<Image> diffuseTextureImages = new List<Image>((int) MAX_TEXTURES);
+    private List<Image> specularTextureImages = new List<Image>((int) MAX_TEXTURES);
 
     private VkFormat textureImageFormat;
-    private VkSampler textureSampler;
+    private Sampler textureSampler = null!;
 
     private void CreateNullTextures()
     {
@@ -39,15 +29,15 @@ public unsafe partial class VulkanRenderer
         if (textureType == TextureType.Diffuse)
         {
             return CreateTextureImageResources(
-                loadedImage, ref diffuseTextureMipLevels, 
-                ref diffuseTextureImages, ref diffuseTextureImageViews, ref diffuseTextureImageMemories,
+                loadedImage, 
+                ref diffuseTextureImages,
                 ref diffuseTextureDescriptorSets, textureType, colors);
         }
         if (textureType == TextureType.Specular)
         {
             return CreateTextureImageResources(
-                loadedImage, ref specularTextureMipLevels, 
-                ref specularTextureImages, ref specularTextureImageViews, ref specularTextureImageMemories,
+                loadedImage, 
+                ref specularTextureImages,
                 ref specularTextureDescriptorSets, textureType, colors);
         }
 
@@ -55,22 +45,19 @@ public unsafe partial class VulkanRenderer
     }
 
     private int CreateTextureImageResources(
-        in ImageResult loadedImage, ref List<uint> textureMipLevelsList, 
-        ref List<VkImage> textureImagesList, ref List<VkImageView> textureImageViewsList, ref List<VkDeviceMemory> textureImageMemoriesList, 
+        in ImageResult loadedImage, ref List<Image> textureImagesList, 
         ref List<VkDescriptorSet> textureDescriptorSetsList, in TextureType textureType, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
     {
         uint textureMipLevels = (uint)Math.Floor(Math.Log2(Math.Max(loadedImage.Width, loadedImage.Height)) + 1);
-        textureMipLevelsList.Add(textureMipLevels);
-        
+
         ulong imageSize = (ulong) (loadedImage.Width * loadedImage.Height * GetColorChannelCount(colors));
 
-        CreateTextureImage((uint) loadedImage.Width, (uint) loadedImage.Height, colors, imageSize, loadedImage.Data, ref textureMipLevelsList, ref textureImagesList, ref textureImageMemoriesList);
-        CreateTextureImageView(ref textureMipLevelsList, textureImagesList, ref textureImageViewsList);
+        CreateTextureImage((uint) loadedImage.Width, (uint) loadedImage.Height, colors, imageSize, loadedImage.Data, textureMipLevels, ref textureImagesList);
 
-        return CreateTextureDescriptorSet(textureImageViewsList.Last(), ref textureDescriptorSetsList, textureType);
+        return CreateTextureDescriptorSet(textureImagesList.Last(), ref textureDescriptorSetsList, textureType);
     }
 
-    private void CreateTextureImage(in uint imageWidth, in uint imageHeight, in ColorComponents colors, in ulong imageSize, in byte[] imageData, ref List<uint> textureMipLevelsList, ref List<VkImage> textureImagesList, ref List<VkDeviceMemory> textureImageMemories)
+    private void CreateTextureImage(in uint imageWidth, in uint imageHeight, in ColorComponents colors, in ulong imageSize, in byte[] imageData, in uint textureMipLevels, ref List<Image> textureImagesList)
     {
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -101,97 +88,41 @@ public unsafe partial class VulkanRenderer
             _ => VkFormat.VK_FORMAT_R8G8B8A8_SRGB
         };
 
-        VkImage textureImage;
-        VkDeviceMemory textureImageMemory;
-
-        // Create the vulkan image
-        VulkanUtilities.CreateImage(
-            imageWidth, imageHeight, textureMipLevelsList.Last(), VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT,
-            textureImageFormat, VkImageTiling.VK_IMAGE_TILING_OPTIMAL,
-            VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT,
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            out textureImage, out textureImageMemory
-        );
+        Image textureImage;
         
-        // Transition its layout so that it can be used for copying
-        VulkanUtilities.TransitionImageLayout(
-            textureImage, textureImageFormat, 
-            VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, textureMipLevelsList.Last()
-        );
+        new Image.Builder()
+            .SetSize(imageWidth, imageHeight)
+            .SetMipLevels(textureMipLevels)
+            .SetFormat(textureImageFormat)
+            .SetUsage(VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT)
+            .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+        .Build(out textureImage);
         
-        // Copy the transitioned image to the staging buffer
-        VulkanUtilities.CopyImageToBuffer(
-            stagingBuffer, textureImage, imageWidth, imageHeight
-        );
+        textureImage.TransitionLayout(VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        
+        VulkanUtilities.CopyImageToBuffer(stagingBuffer, textureImage.GetVkImage(), textureImage.width, textureImage.height);
         
         // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
-        
-        // Add the texture image and its memory to the lists
+
         textureImagesList.Add(textureImage);
-        textureImageMemories.Add(textureImageMemory);
 
         // Destroy the staging buffer and free its memory
         VulkanNative.vkDestroyBuffer(this.logicalDevice, stagingBuffer, null);
         VulkanNative.vkFreeMemory(this.logicalDevice, stagingBufferMemory, null);
         
         // Generate mip maps for the current texture
-        VulkanUtilities.GenerateMipMaps(textureImage, textureImageFormat, imageWidth, imageHeight, textureMipLevelsList.Last());
-    }
-
-    private void CreateTextureImageView(ref List<uint> textureMipLevelsList, in List<VkImage> textureImagesList, ref List<VkImageView> textureImageViewsList)
-    {
-        // Create the image view using the proper image format
-        VkImageView textureImageView;
-        VulkanUtilities.CreateImageView(textureImagesList.Last(), textureImageFormat, VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT, textureMipLevelsList.Last(), out textureImageView);
+        VulkanUtilities.GenerateMipMaps(textureImage.GetVkImage(), textureImage.format, textureImage.width, textureImage.height, textureImage.mipLevels);
         
-        // Add the image view to the list
-        textureImageViewsList.Add(textureImageView);
+        // Create the image view using the proper image format
+        textureImagesList.Last().GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
-    private void CreateTextureSampler(VkSamplerAddressMode samplerAddressMode = VkSamplerAddressMode.VK_SAMPLER_ADDRESS_MODE_REPEAT, float maxAnisotropy = 100.0f, bool applyBilinearFiltering = true)
+    private void CreateTextureSampler()
     {
-        // Check if bilinear filtering is requested and 
-        VkFilter samplerFilter = applyBilinearFiltering ? VkFilter.VK_FILTER_LINEAR : VkFilter.VK_FILTER_NEAREST;
-
-        // Set up the sampler creation info
-        VkSamplerCreateInfo samplerCreateInfo = new VkSamplerCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            minFilter = samplerFilter,
-            magFilter = samplerFilter,
-            addressModeU = samplerAddressMode,
-            addressModeV = samplerAddressMode,
-            addressModeW = samplerAddressMode,
-            borderColor = VkBorderColor.VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-            unnormalizedCoordinates = VkBool32.False,
-            compareEnable = VkBool32.False,
-            compareOp = VkCompareOp.VK_COMPARE_OP_ALWAYS,
-            mipmapMode = VkSamplerMipmapMode.VK_SAMPLER_MIPMAP_MODE_LINEAR,
-            mipLodBias = 0.0f,
-            minLod = 0.0f,
-            maxLod = 13.0f
-        };
-
-        // Check if sampler anisotropy is requested and supported
-        if (physicalDeviceFeatures.samplerAnisotropy && maxAnisotropy > 0.0f)
-        {
-            samplerCreateInfo.anisotropyEnable = VkBool32.True;
-            maxAnisotropy = Mathematics.Clamp(maxAnisotropy, 0f, 100f);
-            samplerCreateInfo.maxAnisotropy = (maxAnisotropy / 100.0f) * this.physicalDeviceProperties.limits.maxSamplerAnisotropy;
-        }
-        else
-        {
-            VulkanDebugger.ThrowWarning("Sampler anisotropy is requested but not supported by the GPU. The feature has automatically been disabled");
-        }
-
-        // Create the texture sampler
-        fixed (VkSampler* textureSamplerPtr = &textureSampler)
-        {
-            if (VulkanNative.vkCreateSampler(this.logicalDevice, &samplerCreateInfo, null, textureSamplerPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create texture sampler");
-            }
-        }
+        new Sampler.Builder()
+            .SetMaxAnisotropy(1.0f)
+            .SetBilinearFiltering(true)
+        .Build(out textureSampler);
     }
     
     
