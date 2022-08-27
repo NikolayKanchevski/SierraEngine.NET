@@ -227,33 +227,6 @@ public static unsafe class VulkanUtilities
         EndSingleTimeCommands(commandBuffer);
     }
 
-    public static void CreateImageView(in VkImage image, VkFormat imageFormat, VkImageAspectFlags aspectFlags, in uint mipLevels, out VkImageView imageView)
-    {
-        VkImageViewCreateInfo imageViewCreateInfo = new VkImageViewCreateInfo()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            image = image,
-            viewType = VkImageViewType.VK_IMAGE_VIEW_TYPE_2D,
-            format = imageFormat,
-            subresourceRange = new VkImageSubresourceRange()
-            {
-                aspectMask = aspectFlags,
-                baseMipLevel = 0,
-                levelCount = mipLevels,
-                baseArrayLayer = 0,
-                layerCount = 1
-            }
-        };
-        
-        fixed (VkImageView* textureImageViewPtr = &imageView)
-        {
-            if (VulkanNative.vkCreateImageView(VulkanCore.logicalDevice, &imageViewCreateInfo, null, textureImageViewPtr) != VkResult.VK_SUCCESS)
-            {
-                VulkanDebugger.ThrowError("Failed to create image view for texture");
-            }
-        }
-    }
-
     public static void CopyImageToBuffer(in VkBuffer sourceBuffer, in VkImage image, in uint width, in uint height)
     {
         VkCommandBuffer commandBuffer = BeginSingleTimeCommands();

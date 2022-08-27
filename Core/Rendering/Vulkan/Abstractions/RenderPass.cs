@@ -15,6 +15,7 @@ public unsafe class Subpass
 
         public Builder SetPipelineBindPoint(in VkPipelineBindPoint bindPoint)
         {
+            // Save the given bind point locally
             this.pipelineBindPoint = bindPoint;
             return this;
         }
@@ -23,6 +24,7 @@ public unsafe class Subpass
             in uint binding, in Image colorImage, in VkAttachmentLoadOp loadOp, in VkAttachmentStoreOp storeOp,
             in VkAttachmentLoadOp stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE)
         {
+            // Create the color attachment and save it in the local list together with its binding
             this.colorAttachments.Add(new Tuple<VkAttachmentDescription, uint>(new ()
             {
                 format = colorImage.format,
@@ -43,6 +45,7 @@ public unsafe class Subpass
             VkAttachmentLoadOp loadOp, in VkAttachmentStoreOp storeOp, in VkSampleCountFlags sampling = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT, 
             VkAttachmentLoadOp stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE)
         {
+            // Create the resolve attachment and save it in the local list together with its binding and reference layout
             this.resolveAttachments.Add(new (new ()
             {
                 format = image.format,
@@ -62,6 +65,7 @@ public unsafe class Subpass
             in uint binding, in Image depthImage, in VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
             in VkAttachmentLoadOp stencilLoadOp = VkAttachmentLoadOp.VK_ATTACHMENT_LOAD_OP_DONT_CARE, VkAttachmentStoreOp stencilStoreOp = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_DONT_CARE)
         {
+            //  Create the depth attachment and save it together with its binding
             this.depthAttachment = new Tuple<VkAttachmentDescription, uint>( new()
             {
                 format = depthImage.format,
@@ -79,6 +83,7 @@ public unsafe class Subpass
 
         public void Build(out Subpass subpass, in uint srcSubpass = ~0U, in uint dstSubpass = 0)
         {
+            // Build the subpass
             subpass = new Subpass(in pipelineBindPoint, in depthAttachment, in colorAttachments, resolveAttachments, srcSubpass, dstSubpass);
         }
     }
@@ -93,8 +98,6 @@ public unsafe class Subpass
     private readonly VkAttachmentReference[] colorAttachmentReferences;
     private readonly VkAttachmentReference[] resolveAttachmentReferences;
 
-    private readonly int attachmentCount;
-    
     private Subpass(
         in VkPipelineBindPoint givenBindPoint,
         in Tuple<VkAttachmentDescription, uint> givenDepthAttachment,
@@ -102,12 +105,15 @@ public unsafe class Subpass
         in List<Tuple<VkAttachmentDescription, uint, VkImageLayout>> givenResolveAttachments,
         in uint srcSubpass, in uint dstSubpass)
     {
-        bindPoint = givenBindPoint;
+        // Save the given bind point
+        this.bindPoint = givenBindPoint;
         
-        attachmentCount = givenColorAttachments.Count + givenResolveAttachments.Count + (givenDepthAttachment != null ? 1 : 0);
-        attachmentDescriptions = new VkAttachmentDescription[attachmentCount];
+        // Calculate total attachment count
+        int attachmentCount = givenColorAttachments.Count + givenResolveAttachments.Count + (givenDepthAttachment != null ? 1 : 0);
+        this.attachmentDescriptions = new VkAttachmentDescription[attachmentCount];
         
-        colorAttachmentReferences = new VkAttachmentReference[givenColorAttachments.Count];
+        // Create the references to the color attachments
+        this.colorAttachmentReferences = new VkAttachmentReference[givenColorAttachments.Count];
         for (int i = 0; i < givenColorAttachments.Count; i++)
         {
             colorAttachmentReferences[i] = new VkAttachmentReference()
@@ -119,7 +125,8 @@ public unsafe class Subpass
             attachmentDescriptions[givenColorAttachments[i].Item2] = givenColorAttachments[i].Item1;
         }
         
-        resolveAttachmentReferences = new VkAttachmentReference[givenResolveAttachments.Count];
+        // Create the references to the resolve attachments
+        this.resolveAttachmentReferences = new VkAttachmentReference[givenResolveAttachments.Count];
         for (int i = 0; i < givenResolveAttachments.Count; i++)
         {
             resolveAttachmentReferences[i] = new VkAttachmentReference()
@@ -131,11 +138,12 @@ public unsafe class Subpass
             attachmentDescriptions[givenResolveAttachments[i].Item2] = givenResolveAttachments[i].Item1;
         }
 
+        // If a depth attachment is provided create a reference to it
         if (givenDepthAttachment != null)
         {
             attachmentDescriptions[givenDepthAttachment.Item2] = givenDepthAttachment.Item1;
 
-            depthReference = new VkAttachmentReference()
+            this.depthReference = new VkAttachmentReference()
             {
                 attachment = givenDepthAttachment.Item2,
                 layout = givenDepthAttachment.Item1.finalLayout
@@ -144,6 +152,7 @@ public unsafe class Subpass
             hasDepthReference = true;
         }
 
+        // Configure the subpass dependency
         this.subpassDependency = new VkSubpassDependency()
         {
             srcSubpass = srcSubpass,
@@ -157,12 +166,14 @@ public unsafe class Subpass
 
     public VkSubpassDescription GetVkSubpass()
     {
+        // Create a new subpass description
         var output = new VkSubpassDescription()
         {
             pipelineBindPoint = bindPoint,
             colorAttachmentCount = (uint) colorAttachmentReferences.Length
         };
 
+        // If a depth reference is present bind it to the description
         if (hasDepthReference)
         {
             fixed (VkAttachmentReference* depthReferencePtr = &depthReference)
@@ -170,12 +181,14 @@ public unsafe class Subpass
                 output.pDepthStencilAttachment = depthReferencePtr;
             }
         }
-
+        
+        // If color references are present bind them to the description
         fixed (VkAttachmentReference* colorReferencesPtr = colorAttachmentReferences)
         {
             output.pColorAttachments = colorReferencesPtr;
         }
-
+        
+        // If resolve references are present bind them to the description
         fixed (VkAttachmentReference* resolveReferencesPtr = resolveAttachmentReferences)
         {
             output.pResolveAttachments = resolveReferencesPtr;
@@ -215,11 +228,11 @@ public unsafe class RenderPass
 
     private RenderPass(Subpass subpass)
     {
+        // Put all subpasses and their dependencies in pointer arrays
         VkSubpassDescription* subpassesPtr = stackalloc VkSubpassDescription[] { subpass.GetVkSubpass() };
         VkSubpassDependency* subpassDependenciesPtr = stackalloc VkSubpassDependency[] { subpass.GetVkDependency() };
 
-        var a = subpass.GetVkSubpass();
-        
+        // Set up the render pass creation info
         VkRenderPassCreateInfo renderPassCreateInfo = new VkRenderPassCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
@@ -230,11 +243,13 @@ public unsafe class RenderPass
             pDependencies = subpassDependenciesPtr
         };
 
+        // Bind the attachment descriptions to the create info
         fixed (VkAttachmentDescription* attachmentDescriptionsPtr = subpass.attachmentDescriptions)
         {
             renderPassCreateInfo.pAttachments = attachmentDescriptionsPtr;
         }
 
+        // Create the Vulkan render pass
         fixed (VkRenderPass* renderPassPtr = &vkRenderPass)
         {
             VulkanDebugger.CheckResults(
@@ -256,6 +271,7 @@ public unsafe class RenderPass
 
     public void Begin(in VkCommandBuffer commandBuffer)
     {
+        // Configure the begin info
         VkRenderPassBeginInfo beginInfo = new VkRenderPassBeginInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -263,6 +279,7 @@ public unsafe class RenderPass
             framebuffer = vkFramebuffer
         };
         
+        // Set render area and background color
         beginInfo.renderArea.offset = VkOffset2D.Zero;
         beginInfo.renderArea.extent = VulkanCore.swapchainExtent;
         beginInfo.clearValueCount = (uint) clearValues.Length;
@@ -271,11 +288,13 @@ public unsafe class RenderPass
             beginInfo.pClearValues = clearValuesPtr;
         }
         
+        // Begin the render pass
         VulkanNative.vkCmdBeginRenderPass(commandBuffer, &beginInfo, VkSubpassContents.VK_SUBPASS_CONTENTS_INLINE);
     }
 
     public void End(in VkCommandBuffer commandBuffer)
     {
+        // End the render pass
         VulkanNative.vkCmdEndRenderPass(commandBuffer);
     }
 
@@ -286,6 +305,7 @@ public unsafe class RenderPass
 
     public void CleanUp()
     {
+        // Destroy the Vulkan render pass
         VulkanNative.vkDestroyRenderPass(VulkanCore.logicalDevice, vkRenderPass, null);
     }
 }

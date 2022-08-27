@@ -18,49 +18,57 @@ public unsafe class Image
         private VkSampleCountFlags samplingFlags = VkSampleCountFlags.VK_SAMPLE_COUNT_1_BIT;
         
         public Builder SetSize(in uint givenWidth, in uint givenHeight, in uint givenDepth = 1)
-        { 
+        {
+            // Save the given size locally
             this.dimensions = new Vector3(givenWidth, givenHeight, givenDepth);
             return this;
         }
 
         public Builder SetMipLevels(in uint givenMipLevels)
         {
+            // Save the given mip levels locally
             this.mipLevels = givenMipLevels;
             return this;
         }
 
         public Builder SetFormat(in VkFormat givenFormat)
         {
+            // Save the given format locally
             this.format = givenFormat;
             return this;
         }
 
         public Builder SetUsage(in VkImageUsageFlags givenUsageFlags)
         {
+            // Save the given usage flags locally
             this.usageFlags = givenUsageFlags;
             return this;
         }
 
-        public Builder SetMemoryFlags(in VkMemoryPropertyFlags givenPropertyFlags)
+        public Builder SetMemoryFlags(in VkMemoryPropertyFlags givenMemoryFlags)
         {
-            this.propertyFlags = givenPropertyFlags;
+            // Save the given memory flags locally
+            this.propertyFlags = givenMemoryFlags;
             return this;
         }
 
         public Builder SetSampling(in VkSampleCountFlags givenSamplingFlags)
         {
+            // Save the given sampling locally
             this.samplingFlags = givenSamplingFlags;
             return this;
         }
 
         public Builder SetImageTiling(in VkImageTiling givenTiling)
         {
+            // Save the given image tiling locally
             this.imageTiling = givenTiling;
             return this;
         }
 
         public void Build(out Image image)
         {
+            // Build and return the image
             image = new Image(dimensions, mipLevels, samplingFlags, format, imageTiling, usageFlags, propertyFlags);
         }
     }
@@ -85,6 +93,7 @@ public unsafe class Image
         in VkImage givenVkImage, in VkFormat givenFormat, in VkSampleCountFlags givenSampling, in Vector3 givenDimensions,
         in uint givenMipLevels = 1, in VkImageLayout givenLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED)
     {
+        // Save the provided values locally
         this.format = givenFormat;
         this.sampling = givenSampling;
         this.mipLevels = givenMipLevels;
@@ -96,11 +105,13 @@ public unsafe class Image
     private Image(in Vector3 givenDimensions, in uint givenMipLevels, VkSampleCountFlags givenSampling, in VkFormat givenFormat, 
                   in VkImageTiling imageTiling, in VkImageUsageFlags usageFlags, in VkMemoryPropertyFlags propertyFlags)
     {
+        // Save the provided values locally
         this.dimensions = givenDimensions;
         this.mipLevels = givenMipLevels;
         this.sampling = givenSampling;
         this.format = givenFormat;
 
+        // Set up image creation info
         VkImageCreateInfo imageCreateInfo = new VkImageCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -121,6 +132,7 @@ public unsafe class Image
             sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE
         };
         
+        // Create the Vulkan image
         fixed (VkImage* imagePtr = &vkImage)
         {
             VulkanDebugger.CheckResults(
@@ -130,9 +142,11 @@ public unsafe class Image
             );
         }
 
+        // Retrieve its memory requirements
         VkMemoryRequirements imageMemoryRequirements;
         VulkanNative.vkGetImageMemoryRequirements(VulkanCore.logicalDevice, vkImage, &imageMemoryRequirements);
 
+        // Set up image memory allocation info
         VkMemoryAllocateInfo imageMemoryAllocateInfo = new VkMemoryAllocateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -140,6 +154,7 @@ public unsafe class Image
             memoryTypeIndex = VulkanUtilities.FindMemoryTypeIndex(imageMemoryRequirements.memoryTypeBits, propertyFlags)
         };
 
+        // Allocate the image to memory
         fixed (VkDeviceMemory* imageMemoryPtr = &vkImageMemory)
         {
             VulkanDebugger.CheckResults(
@@ -149,11 +164,13 @@ public unsafe class Image
             );
         }
 
+        // Bind the image to its corresponding memory
         VulkanNative.vkBindImageMemory(VulkanCore.logicalDevice, vkImage, vkImageMemory, 0);
     }
 
     public void GenerateImageView(in VkImageAspectFlags givenAspectFlags)
     {
+        // Check if an image view has already been generated
         if (imageViewGenerated)
         {
             VulkanDebugger.ThrowWarning("Trying to create an image view for an image with an already existing view. " +
@@ -163,6 +180,7 @@ public unsafe class Image
         
         imageViewGenerated = true;
 
+        // Set up image view creation info
         VkImageViewCreateInfo imageViewCreateInfo = new VkImageViewCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -179,6 +197,7 @@ public unsafe class Image
             }
         };
         
+        // Create the image view
         fixed (VkImageView* textureImageViewPtr = &vkImageView)
         {
             VulkanDebugger.CheckResults(
@@ -191,25 +210,28 @@ public unsafe class Image
 
     public void TransitionLayout(in VkImageLayout newLayout)
     {
+        // Create a temporary command buffer
         VkCommandBuffer commandBuffer = VulkanUtilities.BeginSingleTimeCommands();
         
+        // Create image memory barrier
         VkImageMemoryBarrier imageMemoryBarrier = new VkImageMemoryBarrier()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             oldLayout = layout,									// Layout to transition from
-            newLayout = newLayout,									// Layout to transition to
-            srcQueueFamilyIndex = ~0U,			                    // Queue family to transition from
-            dstQueueFamilyIndex = ~0U,			                    // Queue family to transition to
-            image = vkImage,											// Image being accessed and modified as part of barrier
+            newLayout = newLayout,								// Layout to transition to
+            srcQueueFamilyIndex = ~0U,			                // Queue family to transition from
+            dstQueueFamilyIndex = ~0U,			                // Queue family to transition to
+            image = vkImage,									// Image being accessed and modified as part of barrier
             subresourceRange = new VkImageSubresourceRange()
             {
                 baseMipLevel = 0,						                    // First mip level to start alterations on
-                levelCount = mipLevels,							                    // Number of mip levels to alter starting from baseMipLevel
+                levelCount = mipLevels,							            // Number of mip levels to alter starting from baseMipLevel
                 baseArrayLayer = 0,						                    // First layer to start alterations on
                 layerCount = 1,							                    // Number of layers to alter starting from baseArrayLayer
             }
         };
         
+        // If transitioning from a depth image...
         if (newLayout == VkImageLayout.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
         {
             imageMemoryBarrier.subresourceRange.aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -227,7 +249,7 @@ public unsafe class Image
         VkPipelineStageFlags srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_NONE;
         VkPipelineStageFlags dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_NONE;
 
-        // If transitioning from new image to image ready to receive data...
+        // If transitioning from a new or undefined image to an image that is ready to receive data...
         if (layout == VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
             imageMemoryBarrier.srcAccessMask = 0;
@@ -261,17 +283,20 @@ public unsafe class Image
             VulkanDebugger.ThrowError($"Transitioning images from [{ layout.ToString() }] to [{ newLayout.ToString() }] is not supported");
         }
 
+        // Bind the pipeline barrier
         VulkanNative.vkCmdPipelineBarrier(
                 commandBuffer,
                 srcStage, dstStage,		                                // Pipeline stages (match to src and dst AccessMasks)
-                0,						                // Dependency flags
+                0,						                    // Dependency flags
                 0, null,				    // Memory Barrier count + data
                 0, null,			// Buffer Memory Barrier count + data
                 1, &imageMemoryBarrier	            // Image Memory Barrier count + data
         );
         
+        // End command buffer
         VulkanUtilities.EndSingleTimeCommands(commandBuffer);
 
+        // Change the current layout
         this.layout = newLayout;
     }
     

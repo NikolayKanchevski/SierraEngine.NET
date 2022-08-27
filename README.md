@@ -171,6 +171,8 @@ There are many other features planned. Some of them are:
 - [x] <a href="https://en.wikipedia.org/wiki/User_interface">UI</a>
 - [x] <a href="https://en.wikipedia.org/wiki/Computer_graphics_lighting#Point">Point Lights</a>
 - [x] Performance Monitoring
+- [x] Vulkan Abstracting
+- [ ] <a href="https://en.wikipedia.org/wiki/Shadow_mapping">Shadow Mapping</a>
 - [ ] <a href="https://en.wikipedia.org/wiki/Video_post-processing">Post-Processing</a>
 - [ ] <a href="https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)">Multi-Threading 😥</a>
 - [ ] Camera System
@@ -204,7 +206,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 7043</p>
-<p align="center" id="LastUpdated">Last updated: 24/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 7440</p>
+<p align="center" id="LastUpdated">Last updated: 27/08/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
