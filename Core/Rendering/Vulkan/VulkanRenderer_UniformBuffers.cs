@@ -1,9 +1,11 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
+#pragma warning disable CS0169
 public struct UniformDirectionalLight
 {
     public Vector3 direction;
@@ -39,7 +41,9 @@ public struct UniformPointLight
     public Vector3 specular;
     public float quadratic;
 }
+#pragma warning restore CS0169
 
+[StructLayout(LayoutKind.Sequential)]
 public struct UniformData
 {
     /* Vertex Uniform Data */
@@ -48,7 +52,11 @@ public struct UniformData
         
     /* Fragment Uniform Data */
     public UniformDirectionalLight directionalLight;
-    public UniformPointLight pointLight;
+    
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = VulkanRenderer.MAX_POINT_LIGHTS)]
+    public UniformPointLight[] pointLights;
+
+    public int pointLightsCount;
 }
 
 public unsafe partial class VulkanRenderer
@@ -64,6 +72,9 @@ public unsafe partial class VulkanRenderer
         // Resize the uniformBuffers and its memories arrays
         uniformBuffers = new VkBuffer[MAX_CONCURRENT_FRAMES];
         uniformBuffersMemory = new VkDeviceMemory[MAX_CONCURRENT_FRAMES];
+
+        // Create uniform arrays
+        uniformData.pointLights = new UniformPointLight[MAX_POINT_LIGHTS];
 
         // For each concurrent frame
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
@@ -86,12 +97,13 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkMapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex], 0, uniformDataSize, 0, &data);
 
         // Copy memory data
-        fixed (UniformData* uniformDataPtr = &uniformData)
-        {
-            Buffer.MemoryCopy(uniformDataPtr, data, uniformDataSize, uniformDataSize);
-        }
+        IntPtr uniformDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(UniformData)));
+        Marshal.StructureToPtr(uniformData, uniformDataPtr, true);
+        
+        Buffer.MemoryCopy(uniformDataPtr.ToPointer(), data, uniformDataSize, uniformDataSize);
         
         // Unmap the memory for current vertex uniform buffer's memory
         VulkanNative.vkUnmapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex]);
+        Marshal.FreeHGlobal(uniformDataPtr);
     }
 }

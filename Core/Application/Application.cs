@@ -17,7 +17,9 @@ public class Application
 
     private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
     private readonly DirectionalLight directionalLight = (new GameObject("Directional Light").AddComponent(new DirectionalLight()) as DirectionalLight)!;
-    private readonly PointLight pointLight;
+    
+    private readonly PointLight firstPointLight;
+    private readonly PointLight secondPointLight;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float CAMERA_LOOK_SPEED = 0.1f;
@@ -39,14 +41,19 @@ public class Application
         window.Show();
         
         // Create a new game object for the point light
-        GameObject pointLightObject = new GameObject("Point Light");
+        GameObject firstPointLightObject = new GameObject("First Point Light");
+        GameObject secondPointLightObject = new GameObject("Second Point Light");
         
         // Add a textured cube to the point light object so that we can see where in the world it is
-        Mesh pointLightMesh = (pointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
-        pointLightMesh.SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse));
+        Mesh firstPointLightMesh = (firstPointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
+        int lampTexture = firstPointLightMesh.SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse));
+        
+        Mesh secondPointLightMesh = (secondPointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
+        secondPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         
         // Add the point light component to the object
-        pointLight = (pointLightObject.AddComponent(new PointLight()) as PointLight)!;
+        firstPointLight = (firstPointLightObject.AddComponent(new PointLight()) as PointLight)!;
+        secondPointLight = (secondPointLightObject.AddComponent(new PointLight()) as PointLight)!;
         
         // Load a tank model in the scene
         MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", vulkanRenderer);
@@ -59,7 +66,7 @@ public class Application
 
         // Set initial values for the lighting and camera
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
-        pointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
+        firstPointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
         directionalLight.direction = Vector3.Normalize(new Vector3(1.0f, -1.0f, 0.0f) - Vector3.Zero);
         directionalLight.intensity = 0.0f;
 
@@ -172,20 +179,27 @@ public class Application
         directionalLight.specular = new Vector3(0.5f);
 
         // Point light settings
-        pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
-        pointLight.linear = 0.09f;
-        pointLight.quadratic = 0.032f;
+        firstPointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
+        firstPointLight.linear = 0.09f;
+        firstPointLight.quadratic = 0.032f;
         
-        pointLight.ambient = new Vector3(0.2f);
-        pointLight.diffuse = new Vector3(0.5f);
-        pointLight.specular = new Vector3(0.5f);
+        firstPointLight.ambient = new Vector3(0.2f);
+        firstPointLight.diffuse = new Vector3(0.5f);
+        firstPointLight.specular = new Vector3(0.5f);
         
-        // Object transformations
-        World.meshes[0].transform.position = pointLight.transform.position;
-        World.meshes[0].transform.scale = new Vector3(0.5f);
+        secondPointLight.transform.position = new Vector3(-firstPointLight.position.X, -firstPointLight.position.Y, -firstPointLight.position.Z);
+        secondPointLight.linear = 0.09f;
+        secondPointLight.quadratic = 0.032f;
         
-        World.meshes[4].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
+        secondPointLight.ambient = new Vector3(0.2f);
+        secondPointLight.diffuse = new Vector3(0.5f);
+        secondPointLight.specular = new Vector3(0.5f);
+
+        secondPointLight.intensity = 3.0f;
+
+        // Apply rotations to the turret and gun objects 
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
+        World.meshes[6].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
     }
 
     private void UpdateUI()
@@ -201,8 +215,8 @@ public class Application
         {
             ImGui.SliderFloat("Directional Intensity", ref directionalLight.intensity, 0f, 10f);
             ImGui.SliderFloat3("Directional Color", ref directionalLight.color, 0f, 1f);
-            ImGui.SliderFloat("Point Intensity", ref pointLight.intensity, 0f, 10f);
-            ImGui.SliderFloat3("Point Color", ref pointLight.color, 0f, 1f);
+            ImGui.SliderFloat("Point Intensity", ref firstPointLight.intensity, 0f, 10f);
+            ImGui.SliderFloat3("Point Color", ref firstPointLight.color, 0f, 1f);
             ImGui.End();
         }
     }
@@ -214,7 +228,9 @@ public class Application
         window.vulkanRenderer!.uniformData.projection.M11 *= -1;
 
         window.vulkanRenderer!.uniformData.directionalLight = directionalLight;
-        window.vulkanRenderer!.uniformData.pointLight = pointLight;
+        window.vulkanRenderer!.uniformData.pointLights[0] = firstPointLight;
+        window.vulkanRenderer!.uniformData.pointLights[1] = secondPointLight;
+        window.vulkanRenderer!.uniformData.pointLightsCount = 2;
     }
 
     private void UpdateClasses()

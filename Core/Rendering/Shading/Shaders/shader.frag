@@ -4,6 +4,8 @@ layout(location = 0) in vec3 fromVert_Position;
 layout(location = 1) in vec3 fromVert_Normal;
 layout(location = 2) in vec2 fromVert_TextureCoordinates;
 
+const int MAX_POINT_LIGHTS = 64;
+
 struct DirectionalLight {
         vec3 direction;
         float intensity;
@@ -45,7 +47,9 @@ layout(set = 0, binding = 0) uniform UniformBuffer {
 
         /* FRAGMENT DATA */
         DirectionalLight directionalLight;
-        PointLight pointLight;
+        PointLight[MAX_POINT_LIGHTS] pointLights;
+
+        int pointLightsCount;
 } ub;
 
 layout(push_constant) uniform PushConstant {
@@ -91,8 +95,10 @@ void main() {
                 calculatedColor += CalculateDirectionalLight(ub.directionalLight);
         }
         
-        if (ub.pointLight.intensity > 0) {
-                calculatedColor += CalculatePointLight(ub.pointLight);
+        // For each point light calculate its color
+        for (int i = 0; i < ub.pointLightsCount; i++) {
+                if (ub.pointLights[i].intensity <= 0.0001) continue;
+                calculatedColor += CalculatePointLight(ub.pointLights[i]);
         }
         
         outColor = vec4(calculatedColor, 1.0);

@@ -57,10 +57,12 @@ public unsafe class Mesh : Component
         VulkanRendererInfo.verticesDrawn += (int) verticesCount;
     }
 
-    public void SetTexture(in TextureType textureType, in int newTextureID)
+    public int SetTexture(in TextureType textureType, in int newTextureID)
     {
         if (textureType == TextureType.Diffuse) this.diffuseTextureID = newTextureID;
         else if (textureType == TextureType.Specular) this.specularTextureID = newTextureID;
+
+        return newTextureID;
     }
 
     public void ResetTexture(in TextureType textureType)
