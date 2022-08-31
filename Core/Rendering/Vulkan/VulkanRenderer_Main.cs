@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Numerics;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Core.Rendering.Vulkan.Abstractions;
-using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core.Rendering.Vulkan;

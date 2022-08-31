@@ -8,6 +8,7 @@ using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using SierraEngine.Engine.Classes;
 using Silk.NET.Core.Native;
+using StbImageSharp;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
 using Image = SierraEngine.Core.Rendering.Vulkan.Abstractions.Image;
 
@@ -27,12 +28,13 @@ public unsafe class ImGuiController
     private readonly VkSampleCountFlags msaaSampleCount;
     private Sampler fontSampler = null!;
     private DescriptorSetLayout descriptorSetLayout = null!;
-    private VkDescriptorSet descriptorSet;
+    private readonly List<VkDescriptorSet> descriptorSets = new List<VkDescriptorSet>();
+    private readonly List<Image> textureImages = new List<Image>();
     private VkPipelineLayout graphicsPipelineLayout;
     private VkShaderModule vertexShaderModule;
     private VkShaderModule fragmentShaderModule;
     private VkPipeline graphicsPipeline;
-    private Image fontImage = null!;
+    public Image a = null!;
     
     private WindowRenderBuffers mainWindowRenderBuffers;
     
@@ -80,10 +82,10 @@ public unsafe class ImGuiController
         ImGui.StyleColorsDark();
 
         new DescriptorPool.Builder()
-            .AddPoolSize(VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1)
-            .SetMaxSets(1)
-        .Build(out descriptorPool);
-        
+            .AddPoolSize(VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100)
+            .SetMaxSets(100)
+            .Build(out descriptorPool);
+
         new Sampler.Builder()
             .SetBilinearFiltering(true)
             .SetLod(new Vector2(-1000.0f, 1000.0f))
@@ -105,7 +107,7 @@ public unsafe class ImGuiController
 
         VkPushConstantRange* pushConstantsPtr = stackalloc VkPushConstantRange[] { vertexPushConstant };
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { descriptorSetLayout.GetVkDescriptorSetLayout() };
-        
+
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -126,14 +128,14 @@ public unsafe class ImGuiController
         VkShaderModuleCreateInfo vertexShaderModuleCreateInfo = new VkShaderModuleCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            codeSize = (nuint) vertexShader.Length * sizeof(uint)
+            codeSize = (nuint)vertexShader.Length * sizeof(uint)
         };
 
         fixed (uint* vertexShaderPtr = vertexShader)
         {
             vertexShaderModuleCreateInfo.pCode = vertexShaderPtr;
-        } 
-        
+        }
+
         fixed (VkShaderModule* vertexShaderPtr = &vertexShaderModule)
         {
             if (VulkanNative.vkCreateShaderModule(VulkanCore.logicalDevice, &vertexShaderModuleCreateInfo, null, vertexShaderPtr) != VkResult.VK_SUCCESS)
@@ -141,18 +143,18 @@ public unsafe class ImGuiController
                 VulkanDebugger.ThrowError("Failed to create ImGui vertex shader module");
             }
         }
-        
+
         VkShaderModuleCreateInfo fragmentShaderModuleCreateInfo = new VkShaderModuleCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            codeSize = (nuint) fragmentShader.Length * sizeof(uint),
+            codeSize = (nuint)fragmentShader.Length * sizeof(uint),
         };
 
         fixed (uint* fragmentShaderPtr = fragmentShader)
         {
             fragmentShaderModuleCreateInfo.pCode = fragmentShaderPtr;
         }
-        
+
         fixed (VkShaderModule* fragmentShaderPtr = &fragmentShaderModule)
         {
             if (VulkanNative.vkCreateShaderModule(VulkanCore.logicalDevice, &fragmentShaderModuleCreateInfo, null, fragmentShaderPtr) != VkResult.VK_SUCCESS)
@@ -162,12 +164,12 @@ public unsafe class ImGuiController
         }
 
         VkPipelineShaderStageCreateInfo* pipelineShaderStageCreateInfosPtr = stackalloc VkPipelineShaderStageCreateInfo[2];
-        
+
         pipelineShaderStageCreateInfosPtr[0].sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         pipelineShaderStageCreateInfosPtr[0].stage = VkShaderStageFlags.VK_SHADER_STAGE_VERTEX_BIT;
         pipelineShaderStageCreateInfosPtr[0].module = vertexShaderModule;
         pipelineShaderStageCreateInfosPtr[0].pName = "main".ToPointer();
-        
+
         pipelineShaderStageCreateInfosPtr[1].sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         pipelineShaderStageCreateInfosPtr[1].stage = VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT;
         pipelineShaderStageCreateInfosPtr[1].module = fragmentShaderModule;
@@ -184,18 +186,18 @@ public unsafe class ImGuiController
         attributeDescriptionsPtr[0].location = 0;
         attributeDescriptionsPtr[0].binding = vertexInputBindingDescription.binding;
         attributeDescriptionsPtr[0].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptionsPtr[0].offset = (uint) Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.pos));
+        attributeDescriptionsPtr[0].offset = (uint)Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.pos));
 
         attributeDescriptionsPtr[1].location = 1;
         attributeDescriptionsPtr[1].binding = vertexInputBindingDescription.binding;
         attributeDescriptionsPtr[1].format = VkFormat.VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptionsPtr[1].offset = (uint) Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.uv));
+        attributeDescriptionsPtr[1].offset = (uint)Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.uv));
 
         attributeDescriptionsPtr[2].location = 2;
         attributeDescriptionsPtr[2].binding = vertexInputBindingDescription.binding;
         attributeDescriptionsPtr[2].format = VkFormat.VK_FORMAT_R8G8B8_UNORM;
-        attributeDescriptionsPtr[2].offset = (uint) Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.col));
-        
+        attributeDescriptionsPtr[2].offset = (uint)Marshal.OffsetOf(typeof(ImDrawVert), nameof(ImDrawVert.col));
+
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = new VkPipelineVertexInputStateCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -292,139 +294,93 @@ public unsafe class ImGuiController
                 VulkanDebugger.ThrowError("Failed to create ImGui graphics pipeline");
             }
         }
-        
-        Marshal.FreeHGlobal((IntPtr) pipelineShaderStageCreateInfosPtr[0].pName);
-        Marshal.FreeHGlobal((IntPtr) pipelineShaderStageCreateInfosPtr[1].pName);
+
+        Marshal.FreeHGlobal((IntPtr)pipelineShaderStageCreateInfosPtr[0].pName);
+        Marshal.FreeHGlobal((IntPtr)pipelineShaderStageCreateInfosPtr[1].pName);
 
         // Initialise ImGui Vulkan adapter
         var io = ImGui.GetIO();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
         io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out var width, out var height);
-        var uploadSize = (ulong) (width * height * 4 * sizeof(byte));
-        VkCommandBuffer commandBuffer = VulkanUtilities.BeginSingleTimeCommands();
+
+        int fontImageSize = width * height * 4 * sizeof(byte);
+        
+        byte[] fontImagePixels = new byte[fontImageSize];
+        Marshal.Copy(pixels, fontImagePixels, 0, fontImageSize);
+        
+        Image fontImage = CreateTextureImage((uint) width, (uint) height, (ulong) fontImageSize, fontImagePixels);
+        io.Fonts.SetTexID((IntPtr) fontImage.handle);
+    }
+    
+    private Image CreateTextureImage(in uint imageWidth, in uint imageHeight, in ulong imageSize, in byte[] imageData, in ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    {
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        
+        // Create the staging buffer
+        VulkanUtilities.CreateBuffer(
+            imageSize, VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            out stagingBuffer, out stagingBufferMemory
+        );
+
+        void* data;
+        VulkanNative.vkMapMemory(VulkanCore.logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+
+        // Copy image data to the buffer
+        fixed (byte* imageDataPtr = imageData)
+            Buffer.MemoryCopy(imageDataPtr, data, imageSize, imageSize);
+        
+        VulkanNative.vkUnmapMemory(VulkanCore.logicalDevice, stagingBufferMemory);
+
+        VkFormat textureImageFormat = colors switch
+        {
+            ColorComponents.Grey => VkFormat.VK_FORMAT_R8_SRGB,
+            ColorComponents.GreyAlpha => VkFormat.VK_FORMAT_R8G8_SRGB,
+            ColorComponents.RedGreenBlue => VkFormat.VK_FORMAT_R8G8B8_SRGB,
+            _ => VkFormat.VK_FORMAT_R8G8B8A8_SRGB
+        };
+
+        Image textureImage;
         
         new Image.Builder()
-            .SetSize((uint) width, (uint) height)
-            .SetFormat(VkFormat.VK_FORMAT_R8G8B8A8_UNORM)
-            .SetUsage(VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+            .SetSize(imageWidth, imageHeight)
+            .SetFormat(textureImageFormat)
+            .SetUsage(VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT)
             .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-        .Build(out fontImage);
+        .Build(out textureImage);
         
-        fontImage.GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
-
+        textureImage.TransitionLayout(VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        
+        VulkanUtilities.CopyImageToBuffer(stagingBuffer, textureImage.GetVkImage(), textureImage.width, textureImage.height);
+        
+        // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
+        
+        // Destroy the staging buffer and free its memory
+        VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, stagingBuffer, null);
+        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
+        
+        // Generate mip maps for the current texture
+        VulkanUtilities.GenerateMipMaps(textureImage.GetVkImage(), textureImage.format, textureImage.width, textureImage.height, textureImage.mipLevels);
+        
+        // Create the image view using the proper image format
+        textureImage.GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
+        
         VkDescriptorImageInfo descriptorImageInfo = new VkDescriptorImageInfo()
         {
             sampler = fontSampler.GetVkSampler(),
-            imageView = fontImage.GetVkImageView(),
+            imageView = textureImage.GetVkImageView(),
             imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
-
+        
         new DescriptorWriter(descriptorSetLayout, descriptorPool)
             .WriteImage(0, descriptorImageInfo)
-            .Build(out descriptorSet);
-        
-        VulkanUtilities.CreateBuffer(
-            uploadSize, VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 
-            out var uploadBuffer, out var uploadBufferMemory);
+        .Build(out var newDescriptorSet);
 
-        void* data;
-        VulkanNative.vkMapMemory(VulkanCore.logicalDevice, uploadBufferMemory, 0, uploadSize, 0, &data);
-        Unsafe.CopyBlock(data, pixels.ToPointer(), (uint) uploadSize);
+        textureImages.Add(textureImage);
+        descriptorSets.Add(newDescriptorSet);
 
-        VkMappedMemoryRange mappedMemoryRange = new VkMappedMemoryRange()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-            memory = uploadBufferMemory,
-            size = uploadSize
-        };
-
-        if (VulkanNative.vkFlushMappedMemoryRanges(VulkanCore.logicalDevice, 1, &mappedMemoryRange) != VkResult.VK_SUCCESS)
-        {
-            VulkanDebugger.ThrowError("Failed to flush ImGui mapped memory range");
-        }
-        
-        VulkanNative.vkUnmapMemory(VulkanCore.logicalDevice, uploadBufferMemory);
-
-        const uint VK_QUEUE_FAMILY_IGNORED = ~0U;
-
-        VkImageMemoryBarrier imageCopyBarrier = new VkImageMemoryBarrier()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            dstAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT,
-            oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED,
-            newLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            image = fontImage.GetVkImage(),
-            subresourceRange = new VkImageSubresourceRange()
-            {
-                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
-                layerCount = 1,
-                levelCount = 1
-            }
-        };
-        
-        VulkanNative.vkCmdPipelineBarrier(
-            commandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_HOST_BIT, 
-            VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, 
-            0, 0, null, 0, 
-            null, 1, &imageCopyBarrier
-        );
-
-        VkBufferImageCopy imageCopyRegion = new VkBufferImageCopy()
-        {
-            imageSubresource = new VkImageSubresourceLayers()
-            {
-                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
-                layerCount = 1
-            },
-            imageExtent = new VkExtent3D()
-            {
-                width = (uint)width,
-                height = (uint)height,
-                depth = 1
-            }
-        };
-        
-        VulkanNative.vkCmdCopyBufferToImage(
-            commandBuffer, uploadBuffer, fontImage.GetVkImage(),
-            VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopyRegion
-        );
-
-        VkImageMemoryBarrier imageBarrier = new VkImageMemoryBarrier()
-        {
-            sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            srcAccessMask = VkAccessFlags.VK_ACCESS_TRANSFER_WRITE_BIT,
-            dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT,
-            oldLayout = VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            newLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            image = fontImage.GetVkImage(),
-            subresourceRange = new VkImageSubresourceRange()
-            {
-                aspectMask = VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT,
-                layerCount = 1,
-                levelCount = 1
-            }
-        };
-        
-        
-        VulkanNative.vkCmdPipelineBarrier(
-            commandBuffer, VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT, 
-            VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 
-            0, null, 0, null,
-            1, &imageBarrier
-        );
-        
-        // Store our identifier
-        io.Fonts.SetTexID((IntPtr) fontImage.GetVkImage().Handle);
-        
-        VulkanUtilities.EndSingleTimeCommands(commandBuffer);
-
-        VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, uploadBuffer, default);
-        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, uploadBufferMemory, default);
+        return textureImages.Last();
     }
 
     private void SetKeyMappings()
@@ -674,7 +630,12 @@ public unsafe class ImGuiController
 
         VulkanNative.vkDestroyShaderModule(VulkanCore.logicalDevice, vertexShaderModule, default);
         VulkanNative.vkDestroyShaderModule(VulkanCore.logicalDevice, fragmentShaderModule, default);
-        fontImage.CleanUp();
+        
+        foreach (Image image in textureImages)
+        {
+            image.CleanUp();
+        }
+        
         fontSampler.CleanUp();
         descriptorSetLayout.CleanUp();
         VulkanNative.vkDestroyPipelineLayout(VulkanCore.logicalDevice, graphicsPipelineLayout, default);
@@ -772,11 +733,7 @@ public unsafe class ImGuiController
         }
 
         // Setup desired Vulkan state
-        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[] { descriptorSet };
-        
         VulkanNative.vkCmdBindPipeline(commandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-        VulkanNative.vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, descriptorSetsPtr, 0,
-            null);
 
         // Bind Vertex And Index Buffer:
         if (drawData.TotalVtxCount > 0)
@@ -817,6 +774,8 @@ public unsafe class ImGuiController
         var clipOff = drawData.DisplayPos; // (0,0) unless using multi-viewports
         var clipScale = drawData.FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 
+        VkDescriptorSet* descriptorSetsPtr = stackalloc VkDescriptorSet[1];
+        
         // Render command lists
         // (Because we merged all buffers into a single one, we maintain our own offset into them)
         var vertexOffset = 0;
@@ -851,9 +810,19 @@ public unsafe class ImGuiController
                     scissor.extent.height = (uint) (clipRect.W - clipRect.Y);
                     VulkanNative.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-                    // Draw
-                    VulkanNative.vkCmdDrawIndexed(commandBuffer, imGuiDrawCommand.ElemCount, 1, imGuiDrawCommand.IdxOffset + (uint) indexOffset,
-                        (int) imGuiDrawCommand.VtxOffset + vertexOffset, 0);
+                    descriptorSetsPtr[0] = descriptorSets[0];
+
+                    foreach (VkDescriptorSet descriptorSet in descriptorSets)
+                    {
+                        descriptorSetsPtr[0] = descriptorSet;
+                        
+                        VulkanNative.vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, descriptorSetsPtr, 0,
+                            null);
+                    
+                        // Draw
+                        VulkanNative.vkCmdDrawIndexed(commandBuffer, imGuiDrawCommand.ElemCount, 1, imGuiDrawCommand.IdxOffset + (uint) indexOffset,
+                            (int) imGuiDrawCommand.VtxOffset + vertexOffset, 0);
+                    }
                 }
             }
 

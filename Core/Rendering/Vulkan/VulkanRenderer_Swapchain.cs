@@ -103,7 +103,7 @@ public unsafe partial class VulkanRenderer
         {
             swapchainImages[i] = new Image(
                 swapchainVkImages[i], swapchainImageFormat, msaaSampleCount,
-                new Vector3(swapchainExtent.width, swapchainExtent.height, 0.0f)
+                new Vector3(swapchainExtent.width, swapchainExtent.height, 0.0f), 1, VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
             );
             
             swapchainImages[i].GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);

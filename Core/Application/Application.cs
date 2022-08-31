@@ -51,7 +51,7 @@ public class Application
         // Load a tank model in the scene
         MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", vulkanRenderer);
     }
-    
+
     public void Start()
     {   
         // Set the visibility of the cursor
@@ -62,7 +62,7 @@ public class Application
         pointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
         directionalLight.direction = Vector3.Normalize(new Vector3(1.0f, -1.0f, 0.0f) - Vector3.Zero);
         directionalLight.intensity = 0.0f;
-        
+
         // Loop until the window is closed
         while (!window.closed)
         {

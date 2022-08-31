@@ -77,17 +77,18 @@ public unsafe class Image
     public uint width => (uint) dimensions.X;
     public uint height => (uint) dimensions.Y;
     public uint depth => (uint) dimensions.Z;
+    public ulong handle => vkImage.Handle;
     
     public readonly uint mipLevels;
     public readonly VkFormat format;
     public readonly VkSampleCountFlags sampling;
+    public VkImageLayout layout { get; private set; } = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED; 
 
     private VkImage vkImage;
     private VkImageView vkImageView;
     private VkDeviceMemory vkImageMemory;
     private bool imageViewGenerated;
     
-    private VkImageLayout layout = VkImageLayout.VK_IMAGE_LAYOUT_UNDEFINED;
 
     public Image(
         in VkImage givenVkImage, in VkFormat givenFormat, in VkSampleCountFlags givenSampling, in Vector3 givenDimensions,
@@ -258,7 +259,6 @@ public unsafe class Image
             srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;  // The stage the transition must occur after
             dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;     // The stage the transition must occur before
         }
-        
         // If transitioning from transfer destination to shader readable...
         else if (layout == VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
         {
@@ -266,6 +266,14 @@ public unsafe class Image
             imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
 
             srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else if (layout == VkImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        {
+            imageMemoryBarrier.srcAccessMask = 0;
+            imageMemoryBarrier.dstAccessMask = VkAccessFlags.VK_ACCESS_SHADER_READ_BIT;
+
+            srcStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VkPipelineStageFlags.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         }
         
