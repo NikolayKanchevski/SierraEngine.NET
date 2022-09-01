@@ -1,3 +1,4 @@
+using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 
@@ -7,6 +8,24 @@ public class PointLight : Light
 {
     public float linear;
     public float quadratic;
+
+    public PointLight()
+    {
+        this.ID = World.RegisterPointLight(this);
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        
+        if (ID == -1)
+        {
+            Destroy();
+            return;
+        }
+        
+        World.pointLights[ID] = this;
+    } 
     
     public static implicit operator UniformPointLight(PointLight givenPointLight)
     {

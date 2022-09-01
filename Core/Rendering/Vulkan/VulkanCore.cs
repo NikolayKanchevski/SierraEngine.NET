@@ -11,7 +11,8 @@ public static class VulkanCore
     public static VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     public static VkPhysicalDevice physicalDevice;
     public static VkDevice logicalDevice;
-    public static VkExtent2D swapchainExtent; 
+    public static VkExtent2D swapchainExtent;
+    public static float swapchainAspectRatio => (float) swapchainExtent.width / swapchainExtent.height;
     public static VkCommandPool commandPool;
     public static VkQueue graphicsQueue;
     public static uint graphicsFamilyIndex;

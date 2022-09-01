@@ -10,8 +10,12 @@ public class Component
     public Vector3 position => this.gameObject.transform.position;
     public Vector3 rotation => this.gameObject.transform.rotation;
     public Vector3 scale => this.gameObject.transform.scale;
-
+    
     public virtual void Start() { }
     public virtual void Update() { }
-    public virtual void Destroy() { }
+
+    public virtual void Destroy()
+    {
+        gameObject?.RemoveComponent(this);
+    }
 }   

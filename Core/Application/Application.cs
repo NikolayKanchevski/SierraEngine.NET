@@ -77,6 +77,9 @@ public class Application
             // Update the game logic
             Update();
             
+            // Update the world
+            World.Update();
+            
             // Update the window and its renderer
             window.Update();
         }
@@ -123,8 +126,7 @@ public class Application
             secondPointLight.specular = new Vector3(0.5f);
             secondPointLight.intensity = firstPointLight.intensity;
         }
-
-
+        
         // Apply rotations to the turret and gun objects 
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
         World.meshes[6].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
@@ -150,16 +152,16 @@ public class Application
     private void UpdateRenderer()
     {
         window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainAspectRatio, camera.nearClip, camera.farClip);
         window.vulkanRenderer!.uniformData.projection.M11 *= -1;
+
+        window.vulkanRenderer!.uniformData.directionalLights = World.directionalLights;
+        window.vulkanRenderer!.uniformData.directionalLightsCount = World.directionalLightsCount;
         
-        window.vulkanRenderer!.uniformData.pointLights[0] = firstPointLight;
-        window.vulkanRenderer!.uniformData.pointLights[1] = secondPointLight;
-        window.vulkanRenderer!.uniformData.pointLightsCount = 2;
+        window.vulkanRenderer!.uniformData.pointLights = World.pointLights;
+        window.vulkanRenderer!.uniformData.pointLightsCount = World.pointLightsCount;
     }
-    
-    
-    
+
     private void HandleCameraMovement()
     {
         // If escape is pressed toggle mouse visibility

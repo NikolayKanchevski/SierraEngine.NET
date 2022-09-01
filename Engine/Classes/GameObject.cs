@@ -77,9 +77,9 @@ public class GameObject
         children.Add(newChild);
     }
 
-    public void AddChildren(params GameObject[] children)
+    public void AddChildren(params GameObject[] givenChildren)
     {
-        foreach (GameObject child in children)
+        foreach (GameObject child in givenChildren)
         {
             AddChild(child);
         }
@@ -90,11 +90,29 @@ public class GameObject
         return parent == null;
     }
 
+    public void Update()
+    {
+        foreach (Component component in components.ToList())
+        {
+            component.Update();
+        }
+    }
+
     public Component AddComponent(Component component)
     {
         component.gameObject = this;
         
         components.Add(component);
         return components.Last();
+    }
+
+    public void RemoveComponent(Component component)
+    {
+        components.Remove(component);
+    }
+
+    public void RemoveAllComponents()
+    {
+        components.Clear();
     }
 }

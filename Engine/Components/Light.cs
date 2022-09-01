@@ -10,4 +10,6 @@ public class Light : Component
     public Vector3 ambient = Vector3.One;
     public Vector3 diffuse = Vector3.One;
     public Vector3 specular = Vector3.One;
+
+    public int ID { get; protected init; } = -1;
 }

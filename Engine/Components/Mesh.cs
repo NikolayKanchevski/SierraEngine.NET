@@ -179,6 +179,8 @@ public unsafe class Mesh : Component
 
     public override void Destroy()
     {
+        base.Destroy();
+        
         VulkanRendererInfo.meshesDrawn--;
         VulkanRendererInfo.verticesDrawn -= (int) this.verticesCount;
         
