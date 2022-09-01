@@ -16,9 +16,6 @@ public unsafe partial class VulkanRenderer
     public bool frameBufferResized;
 
     private const uint MAX_CONCURRENT_FRAMES = 3;
-    // TODO: Set a texture system so that there is not a limit to their amount and is performant
-    public const uint MAX_TEXTURES = 128; // Changed as @kael wouldn't stop bitching about it
-    public const int MAX_POINT_LIGHTS = 64;
         
     private void CreateSynchronisation()
     {

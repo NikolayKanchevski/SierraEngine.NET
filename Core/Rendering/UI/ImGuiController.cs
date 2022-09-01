@@ -603,7 +603,7 @@ public unsafe class ImGuiController
         io.MouseWheel = Input.GetVerticalMouseScroll();
         io.MouseWheelH = Input.GetHorizontalMouseScroll();
 
-        io.MousePos = Cursor.GetGlfwCursorPosition();
+        io.MousePos = Cursor.cursorShown ? Cursor.GetGlfwCursorPosition() : new Vector2(-696969, -696969);
         
         io.KeyCtrl = Input.GetKeyHeld(Key.LeftControl) || Input.GetKeyHeld(Key.RightControl);
         io.KeyAlt = Input.GetKeyHeld(Key.LeftAlt) || Input.GetKeyHeld(Key.RightAlt);
@@ -656,7 +656,7 @@ public unsafe class ImGuiController
         var drawData = *drawDataPtr.NativePtr;
         VulkanRendererInfo.verticesDrawn -= verticesDrawn;
 
-            // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
         var fbWidth = (int) (drawData.DisplaySize.X * drawData.FramebufferScale.X);
         var fbHeight = (int) (drawData.DisplaySize.Y * drawData.FramebufferScale.Y);
         if (fbWidth <= 0 || fbHeight <= 0) return;
@@ -830,7 +830,7 @@ public unsafe class ImGuiController
             vertexOffset += cmdList->VtxBuffer.Size;
         }
 
-        verticesDrawn = (int) frameRenderBuffer.vertexBufferSize / 3 / sizeof(Vector3);
+        verticesDrawn = ImGui.GetDrawData().TotalVtxCount;
         VulkanRendererInfo.verticesDrawn += verticesDrawn;
     }
     

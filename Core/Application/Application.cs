@@ -16,7 +16,6 @@ public class Application
     private readonly UserInterface ui = new UserInterface();
 
     private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
-    private readonly DirectionalLight directionalLight = (new GameObject("Directional Light").AddComponent(new DirectionalLight()) as DirectionalLight)!;
     
     private readonly PointLight firstPointLight;
     private readonly PointLight secondPointLight;
@@ -45,10 +44,12 @@ public class Application
         GameObject secondPointLightObject = new GameObject("Second Point Light");
         
         // Add a textured cube to the point light object so that we can see where in the world it is
+        int lampTexture = vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse);
+
         Mesh firstPointLightMesh = (firstPointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
-        int lampTexture = firstPointLightMesh.SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse));
-        
         Mesh secondPointLightMesh = (secondPointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
+
+        firstPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         secondPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         
         // Add the point light component to the object
@@ -66,10 +67,7 @@ public class Application
 
         // Set initial values for the lighting and camera
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
-        firstPointLight.transform.position = new Vector3(0.0f, -6.0f, 0.0f);
-        directionalLight.direction = Vector3.Normalize(new Vector3(1.0f, -1.0f, 0.0f) - Vector3.Zero);
-        directionalLight.intensity = 0.0f;
-
+        
         // Loop until the window is closed
         while (!window.closed)
         {
@@ -100,6 +98,67 @@ public class Application
 
         UpdateRenderer();
     }
+
+    private void UpdateObjects()
+    {
+        // Calculate some example values to be used for animations
+        float upTimeSin = (float) Math.Sin(Time.upTime);
+
+        // Point light settings
+        {
+            firstPointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
+            firstPointLight.linear = 0.09f;
+            firstPointLight.quadratic = 0.032f;
+        
+            firstPointLight.ambient = new Vector3(0.2f);
+            firstPointLight.diffuse = new Vector3(0.5f);
+            firstPointLight.specular = new Vector3(0.5f);
+        
+            secondPointLight.transform.position = new Vector3(-firstPointLight.position.X, -firstPointLight.position.Y, -firstPointLight.position.Z);
+            secondPointLight.linear = 0.09f;
+            secondPointLight.quadratic = 0.032f;
+        
+            secondPointLight.ambient = new Vector3(0.2f);
+            secondPointLight.diffuse = new Vector3(0.5f);
+            secondPointLight.specular = new Vector3(0.5f);
+            secondPointLight.intensity = firstPointLight.intensity;
+        }
+
+
+        // Apply rotations to the turret and gun objects 
+        World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
+        World.meshes[6].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
+    }
+
+    private void UpdateUI()
+    {
+        // Update the UI handler
+        window.vulkanRenderer!.imGuiController.Update();
+
+        // Draw the static UI
+        ui.Update(window);
+
+        // Draw the application-specific UI
+        if (ImGui.Begin("Lighting Sliders", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize))
+        {
+            ImGui.SliderFloat("Point Intensities", ref firstPointLight.intensity, 0f, 10f);
+            ImGui.SliderFloat3("Point Color", ref firstPointLight.color, 0f, 1f);
+            ImGui.End();
+        }
+    }
+    
+    private void UpdateRenderer()
+    {
+        window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
+        window.vulkanRenderer!.uniformData.projection.M11 *= -1;
+        
+        window.vulkanRenderer!.uniformData.pointLights[0] = firstPointLight;
+        window.vulkanRenderer!.uniformData.pointLights[1] = secondPointLight;
+        window.vulkanRenderer!.uniformData.pointLightsCount = 2;
+    }
+    
+    
     
     private void HandleCameraMovement()
     {
@@ -166,71 +225,6 @@ public class Application
         newCameraFrontDirection.Y = (float) (Math.Sin(Mathematics.ToRadians(pitch)));
         newCameraFrontDirection.Z = (float) (Math.Sin(Mathematics.ToRadians(yaw)) * Math.Cos(Mathematics.ToRadians(pitch)));
         camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
-    }
-
-    private void UpdateObjects()
-    {
-        // Calculate some example values to be used for animations
-        float upTimeSin = (float) Math.Sin(Time.upTime);
-        
-        // Directional light settings
-        directionalLight.ambient = new Vector3(0.005f);
-        directionalLight.diffuse = new Vector3(0.5f);
-        directionalLight.specular = new Vector3(0.5f);
-
-        // Point light settings
-        firstPointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
-        firstPointLight.linear = 0.09f;
-        firstPointLight.quadratic = 0.032f;
-        
-        firstPointLight.ambient = new Vector3(0.2f);
-        firstPointLight.diffuse = new Vector3(0.5f);
-        firstPointLight.specular = new Vector3(0.5f);
-        
-        secondPointLight.transform.position = new Vector3(-firstPointLight.position.X, -firstPointLight.position.Y, -firstPointLight.position.Z);
-        secondPointLight.linear = 0.09f;
-        secondPointLight.quadratic = 0.032f;
-        
-        secondPointLight.ambient = new Vector3(0.2f);
-        secondPointLight.diffuse = new Vector3(0.5f);
-        secondPointLight.specular = new Vector3(0.5f);
-
-        secondPointLight.intensity = 3.0f;
-
-        // Apply rotations to the turret and gun objects 
-        World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
-        World.meshes[6].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
-    }
-
-    private void UpdateUI()
-    {
-        // Update the UI handler
-        window.vulkanRenderer!.imGuiController.Update();
-
-        // Draw the static UI
-        ui.Update(window);
-
-        // Draw the application-specific UI
-        if (ImGui.Begin("Lighting Sliders", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize))
-        {
-            ImGui.SliderFloat("Directional Intensity", ref directionalLight.intensity, 0f, 10f);
-            ImGui.SliderFloat3("Directional Color", ref directionalLight.color, 0f, 1f);
-            ImGui.SliderFloat("Point Intensity", ref firstPointLight.intensity, 0f, 10f);
-            ImGui.SliderFloat3("Point Color", ref firstPointLight.color, 0f, 1f);
-            ImGui.End();
-        }
-    }
-    
-    private void UpdateRenderer()
-    {
-        window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainExtent.width / VulkanCore.swapchainExtent.height, 0.1f, 100.0f);
-        window.vulkanRenderer!.uniformData.projection.M11 *= -1;
-
-        window.vulkanRenderer!.uniformData.directionalLight = directionalLight;
-        window.vulkanRenderer!.uniformData.pointLights[0] = firstPointLight;
-        window.vulkanRenderer!.uniformData.pointLights[1] = secondPointLight;
-        window.vulkanRenderer!.uniformData.pointLightsCount = 2;
     }
 
     private void UpdateClasses()

@@ -6,7 +6,7 @@ namespace SierraEngine.Engine.Classes;
 
 public class GameObject
 {
-    public string name = "Game Object";
+    public readonly string name = "Game Object";
 
     public readonly Transform transform = new Transform();
 
@@ -24,33 +24,33 @@ public class GameObject
 
     public GameObject()
     {
-        this.ID = World.hierarchy.Count;
         World.hierarchy.Add(this);
+        this.ID = World.hierarchy.Count - 1;
     }
 
     public GameObject(in string name)
     {
         this.name = name;
-        this.ID = World.hierarchy.Count;
-        
+
         World.hierarchy.Add(this);
+        this.ID = World.hierarchy.Count - 1;
     }
 
     public GameObject(GameObject parent)
     {
         SetParent(parent);
-        this.ID = World.hierarchy.Count;
-        
+
         World.hierarchy.Add(this);
+        this.ID = World.hierarchy.Count - 1;
     }
 
     public GameObject(in string name, GameObject parent)
     {
         this.name = name;
-        this.ID = World.hierarchy.Count;
         
         SetParent(parent);
         World.hierarchy.Add(this);
+        this.ID = World.hierarchy.Count - 1;
     }
 
     public void SetParent(GameObject newParent)

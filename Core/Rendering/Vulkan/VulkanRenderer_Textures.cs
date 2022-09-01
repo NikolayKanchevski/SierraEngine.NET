@@ -8,6 +8,8 @@ public enum TextureType { Diffuse, Specular, Normal, Height }
 
 public unsafe partial class VulkanRenderer
 {
+    private const uint MAX_TEXTURES = World.MAX_TEXTURES;
+    
     private List<Image> diffuseTextureImages = new List<Image>((int) MAX_TEXTURES);
     private List<Image> specularTextureImages = new List<Image>((int) MAX_TEXTURES);
 

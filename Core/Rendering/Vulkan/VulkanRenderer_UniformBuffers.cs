@@ -51,12 +51,14 @@ public struct UniformData
     public Matrix4x4 projection;
         
     /* Fragment Uniform Data */
-    public UniformDirectionalLight directionalLight;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = World.MAX_DIRECTIONAL_LIGHTS)]
+    public UniformDirectionalLight[] directionalLights;
     
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = VulkanRenderer.MAX_POINT_LIGHTS)]
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = World.MAX_POINT_LIGHTS)]
     public UniformPointLight[] pointLights;
 
     public int pointLightsCount;
+    public int directionalLightsCount;
 }
 
 public unsafe partial class VulkanRenderer
@@ -74,7 +76,8 @@ public unsafe partial class VulkanRenderer
         uniformBuffersMemory = new VkDeviceMemory[MAX_CONCURRENT_FRAMES];
 
         // Create uniform arrays
-        uniformData.pointLights = new UniformPointLight[MAX_POINT_LIGHTS];
+        uniformData.pointLights = new UniformPointLight[World.MAX_POINT_LIGHTS];
+        uniformData.directionalLights = new UniformDirectionalLight[World.MAX_DIRECTIONAL_LIGHTS];
 
         // For each concurrent frame
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)

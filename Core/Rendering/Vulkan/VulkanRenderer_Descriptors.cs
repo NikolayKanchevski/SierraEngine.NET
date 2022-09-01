@@ -9,7 +9,7 @@ public partial class VulkanRenderer
     private DescriptorPool descriptorPool = null!;
     
     private VkDescriptorSet[] uniformDescriptorSets = null!;
-    
+
     private List<VkDescriptorSet> diffuseTextureDescriptorSets = new List<VkDescriptorSet>((int) MAX_TEXTURES);
     private List<VkDescriptorSet> specularTextureDescriptorSets = new List<VkDescriptorSet>((int) MAX_TEXTURES);
     
