@@ -1,3 +1,4 @@
+using System.Numerics;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
@@ -20,10 +21,30 @@ public static class World
     public static int pointLightsCount { get; private set; } = 0;
     public static UniformPointLight[] pointLights { get; } = new UniformPointLight[MAX_POINT_LIGHTS];
 
+    public static Camera camera = null!;
+
     
     public static GameObject? selectedGameObject;
 
     public static void Update()
+    {
+        UpdateObjects();
+        
+        UpdateRenderer();
+
+        UpdateWindow();
+    }
+
+    public static void UpdateClasses()
+    { 
+        Time.Update();
+        Input.Update();
+        Cursor.Update();
+        
+        VulkanCore.vulkanRenderer!.imGuiController.Update();
+    }
+    
+    private static void UpdateObjects()
     {
         foreach (GameObject gameObject in hierarchy)
         {
@@ -31,6 +52,26 @@ public static class World
         }
     }
 
+    private static void UpdateRenderer()
+    {
+        if (!VulkanCore.window.HasRenderer()) return;
+        
+        VulkanCore.vulkanRenderer.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        VulkanCore.vulkanRenderer.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainAspectRatio, camera.nearClip, camera.farClip);
+        VulkanCore.vulkanRenderer.uniformData.projection.M11 *= -1;
+
+        VulkanCore.vulkanRenderer.uniformData.directionalLights = World.directionalLights;
+        VulkanCore.vulkanRenderer.uniformData.directionalLightsCount = World.directionalLightsCount;
+        
+        VulkanCore.vulkanRenderer.uniformData.pointLights = World.pointLights;
+        VulkanCore.vulkanRenderer.uniformData.pointLightsCount = World.pointLightsCount;
+    }
+
+    private static void UpdateWindow()
+    {
+        VulkanCore.window.Update();
+    }
+    
     public static int RegisterDirectionalLight(DirectionalLight directionalLight)
     {
         if (directionalLightsCount == MAX_DIRECTIONAL_LIGHTS)

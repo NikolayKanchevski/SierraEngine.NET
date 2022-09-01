@@ -22,12 +22,12 @@ public class MeshObject
     private string[] diffuseTextureFileNames = null!;
     private string[] specularTextureFileNames = null!;
     
-    public static MeshObject LoadFromModel(string fileName, VulkanRenderer vulkanRenderer)
+    public static MeshObject LoadFromModel(string fileName)
     {
-        return new MeshObject(fileName, vulkanRenderer);
+        return new MeshObject(fileName);
     }
     
-    private MeshObject(string filePath, VulkanRenderer vulkanRenderer)
+    private MeshObject(string filePath)
     {
         this.model = new AssimpContext().ImportFile(filePath);
         this.meshes = new Mesh[model.MeshCount];
@@ -44,7 +44,7 @@ public class MeshObject
         int endIdx = modelName.LastIndexOf('.');
         modelName = modelName[..(endIdx)];
         
-        ListDeeperNode(model.RootNode, vulkanRenderer);
+        ListDeeperNode(model.RootNode);
         
         
         #if DEBUG
@@ -55,7 +55,7 @@ public class MeshObject
         model.Clear();
     }
 
-    private void ListDeeperNode(in Node node, VulkanRenderer vulkanRenderer, in GameObject parentObject = null!, in bool firstTime = true)
+    private void ListDeeperNode(in Node node, in GameObject parentObject = null!, in bool firstTime = true)
     {
         GameObject nodeGameObject = new GameObject(firstTime ? modelName : node.Name);
         if (firstTime) rootGameObject = nodeGameObject;
@@ -75,20 +75,20 @@ public class MeshObject
             if (currentAssimpMaterial.HasTextureDiffuse)
             {
                 string diffuseTexturePath = Files.FindInSubdirectories(modelLocation, diffuseTextureFileNames[currentAssimpMesh.MaterialIndex]);
-                mesh.SetTexture(TextureType.Diffuse, vulkanRenderer.CreateTexture(diffuseTexturePath, TextureType.Diffuse));
+                mesh.SetTexture(TextureType.Diffuse, VulkanCore.vulkanRenderer.CreateTexture(diffuseTexturePath, TextureType.Diffuse));
             }
             if (currentAssimpMaterial.HasTextureSpecular)
             {
                 string specularTexturePath = Files.FindInSubdirectories(modelLocation, specularTextureFileNames[currentAssimpMesh.MaterialIndex]);
-                mesh.SetTexture(TextureType.Specular, vulkanRenderer.CreateTexture(specularTexturePath, TextureType.Specular));
+                mesh.SetTexture(TextureType.Specular, VulkanCore.vulkanRenderer.CreateTexture(specularTexturePath, TextureType.Specular));
             }
             
-            nodeGameObject.AddComponent(mesh);
+            nodeGameObject.AddComponent<Mesh>(mesh);
         }
          
         for (int i = 0; i < node.ChildCount; i++)
         {
-            ListDeeperNode(node.Children[i], vulkanRenderer, nodeGameObject, false);
+            ListDeeperNode(node.Children[i], nodeGameObject, false);
         }
     }
 

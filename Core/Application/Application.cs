@@ -15,7 +15,7 @@ public class Application
     private readonly Window window;
     private readonly UserInterface ui = new UserInterface();
 
-    private readonly Camera camera = (new GameObject("Camera").AddComponent(new Camera()) as Camera)!;
+    private readonly Camera camera = new GameObject("Camera").AddComponent<Camera>();
     
     private readonly PointLight firstPointLight;
     private readonly PointLight secondPointLight;
@@ -46,18 +46,19 @@ public class Application
         // Add a textured cube to the point light object so that we can see where in the world it is
         int lampTexture = vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse);
 
-        Mesh firstPointLightMesh = (firstPointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
-        Mesh secondPointLightMesh = (secondPointLightObject.AddComponent(new Mesh(cubeVertices, cubeIndices)) as Mesh)!;
+
+        Mesh firstPointLightMesh = firstPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
+        Mesh secondPointLightMesh = secondPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
 
         firstPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         secondPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         
         // Add the point light component to the object
-        firstPointLight = (firstPointLightObject.AddComponent(new PointLight()) as PointLight)!;
-        secondPointLight = (secondPointLightObject.AddComponent(new PointLight()) as PointLight)!;
-        
+        firstPointLight = firstPointLightObject.AddComponent<PointLight>();
+        secondPointLight = secondPointLightObject.AddComponent<PointLight>();
+
         // Load a tank model in the scene
-        MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx", vulkanRenderer);
+        MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx");
     }
 
     public void Start()
@@ -72,16 +73,13 @@ public class Application
         while (!window.closed)
         {
             // Update utility classes
-            UpdateClasses();
+            World.UpdateClasses();
             
             // Update the game logic
             Update();
             
             // Update the world
             World.Update();
-            
-            // Update the window and its renderer
-            window.Update();
         }
         
         // Once closed destroy the window
@@ -98,8 +96,6 @@ public class Application
         UpdateObjects();
 
         UpdateUI();
-
-        UpdateRenderer();
     }
 
     private void UpdateObjects()
@@ -134,9 +130,6 @@ public class Application
 
     private void UpdateUI()
     {
-        // Update the UI handler
-        window.vulkanRenderer!.imGuiController.Update();
-
         // Draw the static UI
         ui.Update(window);
 
@@ -149,19 +142,6 @@ public class Application
         }
     }
     
-    private void UpdateRenderer()
-    {
-        window.vulkanRenderer!.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        window.vulkanRenderer!.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainAspectRatio, camera.nearClip, camera.farClip);
-        window.vulkanRenderer!.uniformData.projection.M11 *= -1;
-
-        window.vulkanRenderer!.uniformData.directionalLights = World.directionalLights;
-        window.vulkanRenderer!.uniformData.directionalLightsCount = World.directionalLightsCount;
-        
-        window.vulkanRenderer!.uniformData.pointLights = World.pointLights;
-        window.vulkanRenderer!.uniformData.pointLightsCount = World.pointLightsCount;
-    }
-
     private void HandleCameraMovement()
     {
         // If escape is pressed toggle mouse visibility
@@ -229,13 +209,6 @@ public class Application
         camera.frontDirection = Vector3.Normalize(newCameraFrontDirection);
     }
 
-    private void UpdateClasses()
-    {
-        Time.Update();
-        Input.Update();
-        Cursor.Update();
-    }
-    
     private readonly Vertex[] cubeVertices = new Vertex[]
     {
         new Vertex()

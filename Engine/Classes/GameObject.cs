@@ -98,14 +98,23 @@ public class GameObject
         }
     }
 
-    public Component AddComponent(Component component)
+    public T AddComponent<T>() where T : Component
+    {
+        Component component = (Component) Activator.CreateInstance(typeof(T))!;
+        component.gameObject = this;
+        
+        components.Add(component);
+        return (T)(components.Last());
+    }
+
+    public T AddComponent<T>(Component component) where T : Component
     {
         component.gameObject = this;
         
         components.Add(component);
-        return components.Last();
+        return (T)(components.Last());
     }
-
+    
     public void RemoveComponent(Component component)
     {
         components.Remove(component);

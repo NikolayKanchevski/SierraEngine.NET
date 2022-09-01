@@ -3,7 +3,7 @@ using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Engine.Components;
 
-public class Component
+public class Component 
 {
     public GameObject gameObject = null!;
     public Transform transform => gameObject != null ? this.gameObject.transform : Transform.Default;
@@ -18,4 +18,4 @@ public class Component
     {
         gameObject?.RemoveComponent(this);
     }
-}   
+}

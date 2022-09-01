@@ -99,8 +99,7 @@ public class Window
         this.title = newTitle;
         Glfw3.SetWindowTitle(glfwWindow, newTitle);
     }
-
-
+    
     /// <summary>
     /// Shows the window after startup, or manually hiding it. See <see cref="Hide"/>
     /// </summary>
@@ -139,6 +138,15 @@ public class Window
     {
         Image icon = new Image((uint) iconWidth, (uint) iconHeight, iconImageData);
         Glfw3.SetWindowIcon(glfwWindow, 1, ref icon);
+    }
+    
+    /// <summary>
+    /// Checks whether a Vulkan rendering backend is attached to the window.
+    /// </summary>
+    /// <returns>A boolean indicating whether the Vulkan renderer is null.</returns>
+    public bool HasRenderer()
+    {
+        return vulkanRenderer != null;
     }
     
     /// <summary>
