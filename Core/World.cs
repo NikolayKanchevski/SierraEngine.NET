@@ -12,13 +12,13 @@ public static class World
     public const int MAX_POINT_LIGHTS = 64; // Remember to change the limit in the fragment shader too!
     public const int MAX_DIRECTIONAL_LIGHTS = 16; // Remember to change the limit in the fragment shader too!
     
-    public static List<Mesh> meshes { get; private set; } = new List<Mesh>(); 
-    public static List<GameObject> hierarchy { get; private set; } = new List<GameObject>();
+    public static List<Mesh> meshes { get; } = new List<Mesh>(); 
+    public static List<GameObject> hierarchy { get; } = new List<GameObject>();
 
-    public static int directionalLightsCount { get; private set; } = 0;
-    public static UniformDirectionalLight[] directionalLights { get; }= new UniformDirectionalLight[MAX_DIRECTIONAL_LIGHTS];
+    private static int directionalLightsCount;
+    public static UniformDirectionalLight[] directionalLights { get; } = new UniformDirectionalLight[MAX_DIRECTIONAL_LIGHTS];
     
-    public static int pointLightsCount { get; private set; } = 0;
+    private static int pointLightsCount;
     public static UniformPointLight[] pointLights { get; } = new UniformPointLight[MAX_POINT_LIGHTS];
 
     public static Camera camera = null!;
@@ -41,7 +41,7 @@ public static class World
         Input.Update();
         Cursor.Update();
         
-        VulkanCore.vulkanRenderer!.imGuiController.Update();
+        VulkanCore.vulkanRenderer.imGuiController.Update();
     }
     
     private static void UpdateObjects()
@@ -57,7 +57,7 @@ public static class World
         if (!VulkanCore.window.HasRenderer()) return;
         
         VulkanCore.vulkanRenderer.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
-        VulkanCore.vulkanRenderer.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), (float) VulkanCore.swapchainAspectRatio, camera.nearClip, camera.farClip);
+        VulkanCore.vulkanRenderer.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), VulkanCore.swapchainAspectRatio, camera.nearClip, camera.farClip);
         VulkanCore.vulkanRenderer.uniformData.projection.M11 *= -1;
 
         VulkanCore.vulkanRenderer.uniformData.directionalLights = World.directionalLights;

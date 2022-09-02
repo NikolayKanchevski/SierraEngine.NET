@@ -46,10 +46,11 @@ public class Application
         // Add a textured cube to the point light object so that we can see where in the world it is
         int lampTexture = vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse);
 
-
+        // Add the mesh components to the point light objects
         Mesh firstPointLightMesh = firstPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
         Mesh secondPointLightMesh = secondPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
 
+        // Set the textures of the meshes
         firstPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         secondPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         

@@ -23,4 +23,9 @@ public static class Files
         
         return fileLocation.Replace("\\", "/");
     }
+
+    public static byte[] GetBytes(string filePath)
+    {
+        return File.ReadAllBytes(filePath);
+    }
 }
