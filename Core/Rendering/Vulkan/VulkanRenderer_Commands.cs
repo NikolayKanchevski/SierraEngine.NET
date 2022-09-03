@@ -137,8 +137,8 @@ public unsafe partial class VulkanRenderer
             );
             
             descriptorSetsPtr[0] = uniformDescriptorSets[currentFrame];
-            descriptorSetsPtr[1] = diffuseTextureDescriptorSets[mesh.diffuseTextureID];
-            descriptorSetsPtr[2] = specularTextureDescriptorSets[mesh.specularTextureID];
+            descriptorSetsPtr[1] = diffuseTextures[mesh.diffuseTextureID].descriptorSet;
+            descriptorSetsPtr[2] = specularTextures[mesh.specularTextureID].descriptorSet;
             
             VulkanNative.vkCmdBindDescriptorSets(givenCommandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, this.graphicsPipelineLayout, 0, 3, descriptorSetsPtr, 0, null);
 

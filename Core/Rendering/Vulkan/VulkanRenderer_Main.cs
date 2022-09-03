@@ -92,14 +92,14 @@ public unsafe partial class VulkanRenderer
         
         VulkanNative.vkDestroyQueryPool(this.logicalDevice, this.drawTimeQueryPool, null);
 
-        foreach (Image image in diffuseTextureImages)
+        foreach (Texture texture in diffuseTextures)
         {
-            image.CleanUp();
+            texture.CleanUp();
         }
         
-        foreach (Image image in specularTextureImages)
+        foreach (Texture texture in specularTextures)
         {
-            image.CleanUp();
+            texture.CleanUp();
         }
 
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);

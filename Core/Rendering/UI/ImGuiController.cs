@@ -26,15 +26,13 @@ public unsafe class ImGuiController
 
     private DescriptorPool descriptorPool = null!;
     private readonly VkSampleCountFlags msaaSampleCount;
-    private Sampler fontSampler = null!;
+    private Sampler textureSampler = null!;
     private DescriptorSetLayout descriptorSetLayout = null!;
-    private readonly List<VkDescriptorSet> descriptorSets = new List<VkDescriptorSet>();
-    private readonly List<Image> textureImages = new List<Image>();
+    private readonly List<Texture> textures = new List<Texture>(10000);
     private VkPipelineLayout graphicsPipelineLayout;
     private VkShaderModule vertexShaderModule;
     private VkShaderModule fragmentShaderModule;
     private VkPipeline graphicsPipeline;
-    public Image a = null!;
     
     private WindowRenderBuffers mainWindowRenderBuffers;
     
@@ -90,9 +88,9 @@ public unsafe class ImGuiController
             .SetBilinearFiltering(true)
             .SetLod(new Vector2(-1000.0f, 1000.0f))
             .SetMaxAnisotropy(1.0f)
-        .Build(out fontSampler);
+        .Build(out textureSampler);
 
-        VkSampler* immutableSamplersPtr = stackalloc VkSampler[] { fontSampler.GetVkSampler() };
+        VkSampler* immutableSamplersPtr = stackalloc VkSampler[] { textureSampler.GetVkSampler() };
 
         new DescriptorSetLayout.Builder()
             .AddBinding(0, VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT, 1, immutableSamplersPtr)
@@ -308,79 +306,21 @@ public unsafe class ImGuiController
         byte[] fontImagePixels = new byte[fontImageSize];
         Marshal.Copy(pixels, fontImagePixels, 0, fontImageSize);
         
-        Image fontImage = CreateTextureImage((uint) width, (uint) height, (ulong) fontImageSize, fontImagePixels);
-        io.Fonts.SetTexID((IntPtr) fontImage.handle);
+        Texture fontTexture = CreateTextureImage((uint) width, (uint) height, (ulong) fontImageSize, fontImagePixels);
+        io.Fonts.SetTexID((IntPtr) fontTexture.handle);
     }
     
-    private Image CreateTextureImage(in uint imageWidth, in uint imageHeight, in ulong imageSize, in byte[] imageData, in ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    private Texture CreateTextureImage(in uint imageWidth, in uint imageHeight, in ulong imageSize, in byte[] imageData, in ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
     {
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        
-        // Create the staging buffer
-        VulkanUtilities.CreateBuffer(
-            imageSize, VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            out stagingBuffer, out stagingBufferMemory
-        );
+        new Texture.Builder()
+            .SetSampler(textureSampler)
+            .SetDescriptorSetLayout(descriptorSetLayout)
+            .SetDescriptorPool(descriptorPool)
+            .SetColors(colors)
+        .Build(imageWidth, imageHeight, imageData, out var texture);
 
-        void* data;
-        VulkanNative.vkMapMemory(VulkanCore.logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-
-        // Copy image data to the buffer
-        fixed (byte* imageDataPtr = imageData)
-            Buffer.MemoryCopy(imageDataPtr, data, imageSize, imageSize);
-        
-        VulkanNative.vkUnmapMemory(VulkanCore.logicalDevice, stagingBufferMemory);
-
-        VkFormat textureImageFormat = colors switch
-        {
-            ColorComponents.Grey => VkFormat.VK_FORMAT_R8_SRGB,
-            ColorComponents.GreyAlpha => VkFormat.VK_FORMAT_R8G8_SRGB,
-            ColorComponents.RedGreenBlue => VkFormat.VK_FORMAT_R8G8B8_SRGB,
-            _ => VkFormat.VK_FORMAT_R8G8B8A8_SRGB
-        };
-
-        Image textureImage;
-        
-        new Image.Builder()
-            .SetSize(imageWidth, imageHeight)
-            .SetFormat(textureImageFormat)
-            .SetUsage(VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlags.VK_IMAGE_USAGE_SAMPLED_BIT)
-            .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-        .Build(out textureImage);
-        
-        textureImage.TransitionLayout(VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        
-        VulkanUtilities.CopyImageToBuffer(stagingBuffer, textureImage.GetVkImage(), textureImage.width, textureImage.height);
-        
-        // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
-        
-        // Destroy the staging buffer and free its memory
-        VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, stagingBuffer, null);
-        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
-        
-        // Generate mip maps for the current texture
-        VulkanUtilities.GenerateMipMaps(textureImage.GetVkImage(), textureImage.format, textureImage.width, textureImage.height, textureImage.mipLevels);
-        
-        // Create the image view using the proper image format
-        textureImage.GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
-        
-        VkDescriptorImageInfo descriptorImageInfo = new VkDescriptorImageInfo()
-        {
-            sampler = fontSampler.GetVkSampler(),
-            imageView = textureImage.GetVkImageView(),
-            imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        };
-        
-        new DescriptorWriter(descriptorSetLayout, descriptorPool)
-            .WriteImage(0, descriptorImageInfo)
-        .Build(out var newDescriptorSet);
-
-        textureImages.Add(textureImage);
-        descriptorSets.Add(newDescriptorSet);
-
-        return textureImages.Last();
+        textures.Add(texture);
+        return textures.Last();
     }
 
     private void SetKeyMappings()
@@ -631,12 +571,12 @@ public unsafe class ImGuiController
         VulkanNative.vkDestroyShaderModule(VulkanCore.logicalDevice, vertexShaderModule, default);
         VulkanNative.vkDestroyShaderModule(VulkanCore.logicalDevice, fragmentShaderModule, default);
         
-        foreach (Image image in textureImages)
+        foreach (Texture texture in textures)
         {
-            image.CleanUp();
+            texture.CleanUp();
         }
         
-        fontSampler.CleanUp();
+        textureSampler.CleanUp();
         descriptorSetLayout.CleanUp();
         VulkanNative.vkDestroyPipelineLayout(VulkanCore.logicalDevice, graphicsPipelineLayout, default);
         VulkanNative.vkDestroyPipeline(VulkanCore.logicalDevice, graphicsPipeline, default);
@@ -810,11 +750,9 @@ public unsafe class ImGuiController
                     scissor.extent.height = (uint) (clipRect.W - clipRect.Y);
                     VulkanNative.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-                    descriptorSetsPtr[0] = descriptorSets[0];
-
-                    foreach (VkDescriptorSet descriptorSet in descriptorSets)
+                    foreach (Texture texture in textures)
                     {
-                        descriptorSetsPtr[0] = descriptorSet;
+                        descriptorSetsPtr[0] = texture.descriptorSet;
                         
                         VulkanNative.vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, descriptorSetsPtr, 0,
                             null);
