@@ -11,7 +11,7 @@ though the engine has only been tested on <b>Windows 10, 11</b> and <b>macOS Mon
 
 <br>
 
-## 🛠️ Building and Running the Engine
+## 🛠️ Installing, Building, and Running the Engine<br>
 
 Clone the repository in your IDE of choice (<i>Visual Studio</i>, <i>Rider</i>, etc.) Now, you will have to run a Python script what will configure the project for you. Obviously, this will require your machine to have <b><a href="https://www.python.org/downloads/">Python 3</a></b> installed, so make sure you have that. Navigate over to the folder where you cloned the repo and run the following two commands in your command prompt or terminal:
 ```bat
@@ -20,6 +20,10 @@ $ python3 UpdateProject.py --Release
 ```
 
 You can then proceed and run the program in your IDE. Make sure you are in <b>RELEASE</b> mode, because Debug mode will not be configured by the script. However, if you are feeling like working on the project yourself, feel free to change the <i>--Release</i> argument with <i>--Debug</i>, which will configure it for Debug mode.
+
+<br>
+
+<i>NOTE: This whole tab will be eventually moved to https://nikicha.gitbook.io/sierra-engine/ where all the documentation will be put.</i>
 
 <br>
 
@@ -206,7 +210,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 7440</p>
-<p align="center" id="LastUpdated">Last updated: 27/08/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 7893</p>
+<p align="center" id="LastUpdated">Last updated: 04/09/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
