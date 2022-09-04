@@ -9,8 +9,8 @@ using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using SierraEngine.Engine.Classes;
 using Silk.NET.Core.Native;
 using StbImageSharp;
+using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
-using Image = SierraEngine.Core.Rendering.Vulkan.Abstractions.Image;
 
 namespace SierraEngine.Core.Rendering.UI;
 
@@ -90,7 +90,7 @@ public unsafe class ImGuiController
             .SetMaxAnisotropy(1.0f)
         .Build(out textureSampler);
 
-        VkSampler* immutableSamplersPtr = stackalloc VkSampler[] { textureSampler.GetVkSampler() };
+        VkSampler* immutableSamplersPtr = stackalloc VkSampler[] { textureSampler };
 
         new DescriptorSetLayout.Builder()
             .AddBinding(0, VkDescriptorType.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VkShaderStageFlags.VK_SHADER_STAGE_FRAGMENT_BIT, 1, immutableSamplersPtr)
@@ -104,7 +104,7 @@ public unsafe class ImGuiController
         };
 
         VkPushConstantRange* pushConstantsPtr = stackalloc VkPushConstantRange[] { vertexPushConstant };
-        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { descriptorSetLayout.GetVkDescriptorSetLayout() };
+        VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[] { descriptorSetLayout };
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo()
         {
@@ -281,7 +281,7 @@ public unsafe class ImGuiController
             pColorBlendState = &colorBlendStateCreateInfo,
             pDynamicState = &dynamicStateCreateInfo,
             layout = graphicsPipelineLayout,
-            renderPass = renderPass.GetVkRenderPass(),
+            renderPass = renderPass,
             subpass = 0
         };
 
@@ -306,11 +306,11 @@ public unsafe class ImGuiController
         byte[] fontImagePixels = new byte[fontImageSize];
         Marshal.Copy(pixels, fontImagePixels, 0, fontImageSize);
         
-        Texture fontTexture = CreateTextureImage((uint) width, (uint) height, (ulong) fontImageSize, fontImagePixels);
+        Texture fontTexture = CreateTextureImage((uint) width, (uint) height, fontImagePixels);
         io.Fonts.SetTexID((IntPtr) fontTexture.handle);
     }
     
-    private Texture CreateTextureImage(in uint imageWidth, in uint imageHeight, in ulong imageSize, in byte[] imageData, in ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
+    private Texture CreateTextureImage(in uint imageWidth, in uint imageHeight, in byte[] imageData, in ColorComponents colors = ColorComponents.RedGreenBlueAlpha)
     {
         new Texture.Builder()
             .SetSampler(textureSampler)
@@ -776,17 +776,20 @@ public unsafe class ImGuiController
     private void CreateOrResizeBuffer(ref VkBuffer deviceBuffer, ref VkDeviceMemory deviceBufferMemory, ref ulong bufferSize,
         ulong newSize, VkBufferUsageFlags usage)
     {
-        if (deviceBuffer.Handle != default) VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, deviceBuffer, default);
-        if (deviceBufferMemory.Handle != default) VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, deviceBufferMemory, default);
+        if (deviceBuffer.Handle != default) VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, deviceBuffer, null);
+        if (deviceBufferMemory.Handle != default) VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, deviceBufferMemory, null);
 
         ulong sizeAlignedVertexBuffer = ((newSize - 1) / BUFFER_MEMORY_ALIGNMENT + 1) * BUFFER_MEMORY_ALIGNMENT;
 
-        VulkanUtilities.CreateBuffer(
-            sizeAlignedVertexBuffer, usage, 
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-            out deviceBuffer, out deviceBufferMemory
-        );
+        new Buffer.Builder()
+            .SetMemorySize(sizeAlignedVertexBuffer)
+            .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+            .SetUsageFlags(usage)
+        .Build(out var buffer);
 
+        deviceBuffer = buffer;
+        deviceBufferMemory = buffer;
+        
         VkMemoryRequirements memoryRequirements;
         VulkanNative.vkGetBufferMemoryRequirements(VulkanCore.logicalDevice, deviceBuffer, &memoryRequirements);
         

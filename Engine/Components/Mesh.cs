@@ -3,6 +3,7 @@ using Evergine.Bindings.Vulkan;
 using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
+using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Engine.Components;
 
@@ -17,12 +18,9 @@ public unsafe class Mesh : Component
     public int specularTextureID { get; private set; } = 0;
 
     private PushConstant pushConstantData;
-    
-    private VkBuffer vertexBuffer;
-    private VkDeviceMemory vertexBufferMemory;
 
-    private VkBuffer indexBuffer;
-    private VkDeviceMemory indexBufferMemory;
+    private Buffer vertexBuffer = null!;
+    private Buffer indexBuffer = null!;
 
     public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newDiffuseTextureId)
     {
@@ -189,19 +187,17 @@ public unsafe class Mesh : Component
 
     private void DestroyBuffers()
     {
-        VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, vertexBuffer, null);
-        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, vertexBufferMemory, null);
-        VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, indexBuffer, null);
-        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, indexBufferMemory, null);
+        vertexBuffer.CleanUp();
+        indexBuffer.CleanUp();
     }
     
     private void CreateVertexBuffer(in Vertex[] vertices)
     {
-        VulkanUtilities.CreateVertexBuffer(vertices, out vertexBuffer, out vertexBufferMemory);
+        VulkanUtilities.CreateVertexBuffer(vertices, out vertexBuffer);
     }
 
     private void CreateIndexBuffer(in UInt32[] indices)
     {
-        VulkanUtilities.CreateIndexBuffer(indices, out indexBuffer, out indexBufferMemory);
+        VulkanUtilities.CreateIndexBuffer(indices, out indexBuffer);
     }
 }

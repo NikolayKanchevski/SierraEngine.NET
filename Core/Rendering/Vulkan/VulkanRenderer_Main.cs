@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using SierraEngine.Engine.Components;
+using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -105,10 +106,9 @@ public unsafe partial class VulkanRenderer
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
         VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
 
-        for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
+        foreach (Buffer uniformBuffer in uniformBuffers)
         {
-            VulkanNative.vkDestroyBuffer(this.logicalDevice, this.uniformBuffers[i], null);
-            VulkanNative.vkFreeMemory(this.logicalDevice, this.uniformBuffersMemory[i], null);
+            uniformBuffer.CleanUp();
         }
         
         descriptorPool.CleanUp();

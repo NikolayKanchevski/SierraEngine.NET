@@ -307,17 +307,32 @@ public unsafe class Image
         // Change the current layout
         this.layout = newLayout;
     }
+
+    public static implicit operator VkImage(Image givenImage)
+    {
+        return givenImage.vkImage;
+    }
+
+    public static implicit operator VkImageView(Image givenImage)
+    {
+        return givenImage.vkImageView;
+    }
+
+    public static implicit operator VkDeviceMemory(Image givenImage)
+    {
+        return givenImage.vkImageMemory;
+    }
     
     public VkImage GetVkImage()
     {
         return this.vkImage;
     }
-
+    
     public VkImageView GetVkImageView()
     {
         return this.vkImageView;
     }
-
+    
     public VkDeviceMemory GetVkImageMemory()
     {
         return this.vkImageMemory;

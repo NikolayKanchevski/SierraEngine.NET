@@ -105,6 +105,11 @@ public unsafe class Sampler
         return this.vkSampler;
     }
 
+    public static implicit operator VkSampler(Sampler givenSampler)
+    {
+        return givenSampler.vkSampler;
+    }
+
     public void CleanUp()
     {
         // Destroy the Vulkan sampler

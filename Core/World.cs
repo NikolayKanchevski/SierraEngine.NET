@@ -5,6 +5,18 @@ using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core;
 
+public static class Version
+{
+    public static uint major = 1;
+    public static uint minor = 0;
+    public static uint patch = 0;
+
+    public new static string ToString()
+    {
+        return $"v{ major }.{ minor }.{ patch }";
+    }
+}
+
 public static class World
 {
     // TODO: Set a texture system so that there is not a limit to their amount and is performant

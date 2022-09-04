@@ -6,7 +6,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public enum TextureType { None = 0, Diffuse, Specular, Normal, Height }
 
-public unsafe partial class VulkanRenderer
+public partial class VulkanRenderer
 {
     private const uint MAX_TEXTURES = World.MAX_TEXTURES;
     

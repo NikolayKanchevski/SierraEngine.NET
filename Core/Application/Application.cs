@@ -30,7 +30,7 @@ public class Application
     public Application()
     {
         // Create window
-        window = new Window("Sierra Engine v1.0.0", true, true);
+        window = new Window($"Sierra Engine { Version.ToString() }", true, true);
         
         // Create Vulkan renderer and assign it to the window
         VulkanRenderer vulkanRenderer = new VulkanRenderer(window);

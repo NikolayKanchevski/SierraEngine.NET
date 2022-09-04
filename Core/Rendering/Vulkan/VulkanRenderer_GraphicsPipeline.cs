@@ -194,9 +194,9 @@ public unsafe partial class VulkanRenderer
 
         VkDescriptorSetLayout* descriptorSetLayoutsPtr = stackalloc VkDescriptorSetLayout[]
         {
-            this.descriptorSetLayout.GetVkDescriptorSetLayout(),
-            this.descriptorSetLayout.GetVkDescriptorSetLayout(),
-            this.descriptorSetLayout.GetVkDescriptorSetLayout()
+            this.descriptorSetLayout,
+            this.descriptorSetLayout,
+            this.descriptorSetLayout
         };
         
         VkPushConstantRange* pushConstantRangesPtr = stackalloc VkPushConstantRange[] { this.pushConstantRange };
@@ -235,7 +235,7 @@ public unsafe partial class VulkanRenderer
             pColorBlendState = &blendingStateCreateInfo,
             pDynamicState = &dynamicStateCreateInfo,
             layout = graphicsPipelineLayout,
-            renderPass = this.renderPass.GetVkRenderPass(),
+            renderPass = this.renderPass,
             subpass = 0,
             basePipelineHandle = VkPipeline.Null,
             basePipelineIndex = -1

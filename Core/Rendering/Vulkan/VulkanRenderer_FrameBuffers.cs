@@ -14,14 +14,14 @@ public partial class VulkanRenderer
         
         // Assign the static attachments
         VkImageView[] attachments = new VkImageView[3];
-        attachments[0] = this.colorImage.GetVkImageView();
-        attachments[1] = this.depthImage.GetVkImageView();
+        attachments[0] = this.colorImage;
+        attachments[1] = this.depthImage;
 
         // Create a framebuffer for each swapchain image
         for (int i = 0; i < swapchainImages.Length; i++)
         {
             // Assign the dynamic attachments
-             attachments[2] = this.swapchainImages[i].GetVkImageView();
+             attachments[2] = this.swapchainImages[i];
 
              // Add the attachments to the framebuffer and then create it
              new Framebuffer.Builder()

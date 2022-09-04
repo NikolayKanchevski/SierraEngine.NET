@@ -261,7 +261,7 @@ public unsafe class RenderPass
 
     public void SetFramebuffer(in Framebuffer framebuffer)
     {
-        this.vkFramebuffer = framebuffer.GetVkFramebuffer();
+        this.vkFramebuffer = framebuffer;
     }
 
     public void SetBackgroundColor(in Vector3 givenColor)
@@ -298,6 +298,11 @@ public unsafe class RenderPass
         VulkanNative.vkCmdEndRenderPass(commandBuffer);
     }
 
+    public static implicit operator VkRenderPass(RenderPass givenRenderPass)
+    {
+        return givenRenderPass.vkRenderPass;
+    }
+    
     public VkRenderPass GetVkRenderPass()
     {
         return this.vkRenderPass;

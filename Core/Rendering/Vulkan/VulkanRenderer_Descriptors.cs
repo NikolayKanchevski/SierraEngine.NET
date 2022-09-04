@@ -60,8 +60,8 @@ public partial class VulkanRenderer
         VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
         {
             imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            imageView = image.GetVkImageView(),
-            sampler = textureSampler.GetVkSampler()
+            imageView = image,
+            sampler = textureSampler
         };
 
         // Write the image to the descriptor set

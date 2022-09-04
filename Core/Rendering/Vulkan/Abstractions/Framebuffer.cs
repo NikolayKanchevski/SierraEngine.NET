@@ -12,7 +12,7 @@ public unsafe class Framebuffer
         public Builder SetRenderPass(in RenderPass givenRenderPass)
         {
             // Save the provided render pass
-            this.vkRenderPass = givenRenderPass.GetVkRenderPass();
+            this.vkRenderPass = givenRenderPass;
             return this;
         }
         
@@ -79,6 +79,11 @@ public unsafe class Framebuffer
     {
         // Return the Vulkan framebuffer
         return this.vkFramebuffer;
+    }
+
+    public static implicit operator VkFramebuffer(Framebuffer givenFramebuffer)
+    {
+        return givenFramebuffer.vkFramebuffer;
     }
 
     public void CleanUp()

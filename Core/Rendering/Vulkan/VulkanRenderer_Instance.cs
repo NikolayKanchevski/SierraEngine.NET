@@ -8,10 +8,7 @@ public unsafe partial class VulkanRenderer
 {
     private VkInstance instance;
 
-    private readonly List<string> requiredInstanceExtensions = new List<string>()
-    {
-        
-    };
+    private readonly List<string> requiredInstanceExtensions = new List<string>();
     
 #if DEBUG
     private const bool VALIDATION_ENABLED = true;
@@ -31,7 +28,7 @@ public unsafe partial class VulkanRenderer
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
             pApplicationName = "Sierra Engine".ToPointer(),
-            applicationVersion = VulkanUtilities.Version(1, 0, 0),
+            applicationVersion = VulkanUtilities.Version(Version.major, Version.minor, Version.patch),
             pEngineName = "No Engine".ToPointer(),
             engineVersion = VulkanUtilities.Version(1, 0, 0),
             apiVersion = VulkanUtilities.Version(1, 2, 0),

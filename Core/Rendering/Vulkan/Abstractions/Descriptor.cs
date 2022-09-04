@@ -81,16 +81,21 @@ public unsafe class DescriptorSetLayout
         }
     }
 
-    public void CleanUp()
-    {
-        // Destroy the Vulkan descriptor set
-        VulkanNative.vkDestroyDescriptorSetLayout(VulkanCore.logicalDevice, this.vkDescriptorSetLayout, null);
-    }
-
     public VkDescriptorSetLayout GetVkDescriptorSetLayout()
     {
         // Get the Vulkan descriptor set layout
         return this.vkDescriptorSetLayout;
+    }
+
+    public static implicit operator VkDescriptorSetLayout(DescriptorSetLayout givenDescriptorSetLayout)
+    {
+        return givenDescriptorSetLayout.vkDescriptorSetLayout;
+    }
+
+    public void CleanUp()
+    {
+        // Destroy the Vulkan descriptor set
+        VulkanNative.vkDestroyDescriptorSetLayout(VulkanCore.logicalDevice, this.vkDescriptorSetLayout, null);
     }
 }
 
@@ -287,7 +292,7 @@ public unsafe class DescriptorWriter
     public void Build(out VkDescriptorSet descriptorSet)
     {
         // Check if the allocation failed
-        bool success = descriptorPool.AllocateDescriptorSet(descriptorSetLayout.GetVkDescriptorSetLayout(), out descriptorSet);
+        bool success = descriptorPool.AllocateDescriptorSet(descriptorSetLayout, out descriptorSet);
         if (!success)
         {
             VulkanDebugger.ThrowError("Could not allocate descriptor set");

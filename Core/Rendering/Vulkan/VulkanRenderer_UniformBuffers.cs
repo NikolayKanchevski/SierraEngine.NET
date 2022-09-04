@@ -1,7 +1,9 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Core.Rendering.Vulkan.Abstractions;
 using SierraEngine.Engine.Components;
+using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -66,14 +68,12 @@ public unsafe partial class VulkanRenderer
     public UniformData uniformData;
     private readonly ulong uniformDataSize = (ulong) Marshal.SizeOf(typeof(UniformData));
     
-    private VkBuffer[] uniformBuffers = null!;
-    private VkDeviceMemory[] uniformBuffersMemory = null!;
+    private Buffer[] uniformBuffers = null!;
     
     private void CreateUniformBuffers()
     {
         // Resize the uniformBuffers and its memories arrays
-        uniformBuffers = new VkBuffer[MAX_CONCURRENT_FRAMES];
-        uniformBuffersMemory = new VkDeviceMemory[MAX_CONCURRENT_FRAMES];
+        uniformBuffers = new Buffer[MAX_CONCURRENT_FRAMES];
 
         // Create uniform arrays
         uniformData.pointLights = new UniformPointLight[World.MAX_POINT_LIGHTS];
@@ -82,31 +82,16 @@ public unsafe partial class VulkanRenderer
         // For each concurrent frame
         for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            // Create a uniform buffer
-            VulkanUtilities.CreateBuffer(
-                uniformDataSize, VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-                VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                out uniformBuffers[i], out uniformBuffersMemory[i]
-            );
+            new Buffer.Builder()
+                .SetMemorySize<UniformData>()
+                .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+                .SetUsageFlags(VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+            .Build(out uniformBuffers[i]);
         }
     }
 
     private void UpdateUniformBuffers(in uint imageIndex)
     {
-        // Create an empty pointer
-        void *data;
-        
-        // Map memory to current vertex uniform buffer's memory to the empty pointer
-        VulkanNative.vkMapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex], 0, uniformDataSize, 0, &data);
-
-        // Copy memory data
-        IntPtr uniformDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(UniformData)));
-        Marshal.StructureToPtr(uniformData, uniformDataPtr, true);
-        
-        Buffer.MemoryCopy(uniformDataPtr.ToPointer(), data, uniformDataSize, uniformDataSize);
-        
-        // Unmap the memory for current vertex uniform buffer's memory
-        VulkanNative.vkUnmapMemory(this.logicalDevice, uniformBuffersMemory[imageIndex]);
-        Marshal.FreeHGlobal(uniformDataPtr);
+        uniformBuffers[imageIndex].CopyStruct(uniformData);
     }
 }

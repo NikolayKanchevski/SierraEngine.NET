@@ -21,52 +21,62 @@ public unsafe class Texture
 
         public Builder SetName(in string givenName)
         {
+            // Save given name
             this.name = givenName;
             return this;
         }
 
         public Builder SetTextureType(in TextureType givenTextureType)
         {
+            // Save given texture type
             this.textureType = givenTextureType;
             return this;
         }
 
         public Builder SetColors(in ColorComponents givenColors)
         {
+            // Save given colors
             this.colors = givenColors;
             return this;
         }
 
         public Builder EnableMipMapGeneration(in bool enable)
         {
+            // Save given mip generation toggle
             mipMappingEnabled = enable;
             return this;
         }
 
         public Builder SetSampler(in Sampler givenSampler)
         {
+            // Save given sampler
             this.sampler = givenSampler;
             return this;
         }
 
         public Builder SetDescriptorSetLayout(in DescriptorSetLayout givenDescriptorSetLayout)
         {
+            // Save given descriptor set layout
             this.descriptorSetLayout = givenDescriptorSetLayout;
             return this;
         }
 
         public Builder SetDescriptorPool(in DescriptorPool givenDescriptorPool)
         {
+            // Save given descriptor pool
             this.descriptorPool = givenDescriptorPool;
             return this;
         }
 
         public void Build(in string filePath, out Texture texture)
         {
+            // Set a default name if none is assigned
             if (name == String.Empty) name = filePath;
             
+            // Load image file
             ImageResult loadedImage = ImageResult.FromMemory(Files.GetBytes(filePath), colors);
             
+            // Create the texture
             texture = new Texture((uint) loadedImage.Width, (uint) loadedImage.Height, loadedImage.Data, textureType, colors, mipMappingEnabled, sampler, descriptorSetLayout, descriptorPool, name);
         }
 
@@ -98,40 +108,32 @@ public unsafe class Texture
         uint width, uint height, byte[] imageBytes, TextureType givenTextureType, ColorComponents givenColors, bool givenMipMappingEnabled,
         Sampler givenSampler, DescriptorSetLayout descriptorSetLayout, DescriptorPool descriptorPool, string givenName)
     {
+        // Save provided data
         this.name = givenName;
         this.textureType = givenTextureType;
         this.colors = givenColors;
         this.sampler = givenSampler;
 
+        // If mip mapping is enabled calculate mip levels
         if (givenMipMappingEnabled)
         {
             this.mipMappingEnabled = true;
             mipMapLevels = (uint) Math.Floor(Math.Log2(Math.Max(width, height)) + 1);
         }
         
+        // Calculate the image's memory size
         this.memorySize = (ulong) (width * height * (int) colors);
-        
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        
-        // Create the staging buffer
-        VulkanUtilities.CreateBuffer(
-            memorySize, VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-            VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            out stagingBuffer, out stagingBufferMemory
-        );
 
-        void* data;
-        VulkanNative.vkMapMemory(VulkanCore.logicalDevice, stagingBufferMemory, 0, memorySize, 0, &data);
-
-        // Copy image data to the buffer
-        fixed (byte* imageDataPtr = imageBytes)
-        {
-            Buffer.MemoryCopy(imageDataPtr, data, memorySize, memorySize);
-        }
+        Buffer stagingBuffer;
         
-        VulkanNative.vkUnmapMemory(VulkanCore.logicalDevice, stagingBufferMemory);
-
+        new Buffer.Builder()
+            .SetMemorySize(memorySize)
+            .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+            .SetUsageFlags(VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
+        .Build(out stagingBuffer);
+        
+        stagingBuffer.CopyBytes(imageBytes);
+        
         VkFormat textureImageFormat = colors switch
         {
             ColorComponents.RedGreenBlueAlpha => VkFormat.VK_FORMAT_R8G8B8A8_SRGB,
@@ -140,6 +142,7 @@ public unsafe class Texture
             _ => VkFormat.VK_FORMAT_R8_SRGB
         };
         
+        // Create the texture image
         new Image.Builder()
             .SetSize(width, height)
             .SetMipLevels(mipMapLevels)
@@ -150,13 +153,12 @@ public unsafe class Texture
         
         image.TransitionLayout(VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         
-        VulkanUtilities.CopyImageToBuffer(stagingBuffer, image.GetVkImage(), image.width, image.height);
-        
+        stagingBuffer.CopyImage(image);
+
         // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
 
         // Destroy the staging buffer and free its memory
-        VulkanNative.vkDestroyBuffer(VulkanCore.logicalDevice, stagingBuffer, null);
-        VulkanNative.vkFreeMemory(VulkanCore.logicalDevice, stagingBufferMemory, null);
+        stagingBuffer.CleanUp();
         
         // Generate mip maps for the current texture
         GenerateMipMaps();
@@ -168,8 +170,8 @@ public unsafe class Texture
         VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
         {
             imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            imageView = image.GetVkImageView(),
-            sampler = sampler.GetVkSampler()
+            imageView = image,
+            sampler = sampler
         };
 
         // Write the image to the descriptor set
@@ -196,7 +198,7 @@ public unsafe class Texture
         VkImageMemoryBarrier memoryBarrier = new VkImageMemoryBarrier()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            image = image.GetVkImage(),
+            image = image,
             srcQueueFamilyIndex = ~0U,
             dstQueueFamilyIndex = ~0U,
             subresourceRange = new VkImageSubresourceRange()
@@ -268,8 +270,8 @@ public unsafe class Texture
             };
 
             VulkanNative.vkCmdBlitImage(commandBuffer,
-                image.GetVkImage(), VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                image.GetVkImage(), VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                image, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1, &blit,
                 VkFilter.VK_FILTER_LINEAR);
 
