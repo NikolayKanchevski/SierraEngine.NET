@@ -14,36 +14,42 @@ public unsafe class Buffer
 
         public Builder SetMemorySize(in ulong givenMemorySize)
         {
+            // Save the given memory size
             this.memorySize = givenMemorySize;
             return this;
         }
 
         public Builder SetMemorySize(in object givenStruct)
         {
+            // Save calculate and save the memory size of the given struct
             this.memorySize = (ulong) Marshal.SizeOf(givenStruct);
             return this;
         }
         
         public Builder SetMemorySize<T>() where T : struct
         {
+            // Save calculate and save the memory size of the given struct 
             this.memorySize = (ulong) Marshal.SizeOf(typeof(T));
             return this;
         }
 
         public Builder SetMemoryFlags(in VkMemoryPropertyFlags givenMemoryFlags)
         {
+            // Save the given memory flags
             this.memoryFlags = givenMemoryFlags;
             return this;
         }
 
         public Builder SetUsageFlags(in VkBufferUsageFlags givenUsageFlags)
         {
+            // Save the given usage flags
             this.usageFlags = givenUsageFlags;
             return this;
         }
 
         public void Build(out Buffer buffer)
         {
+            // Create and return a new buffer
             buffer = new Buffer(memorySize, memoryFlags, usageFlags);
         }
     }
@@ -59,10 +65,12 @@ public unsafe class Buffer
     
     private Buffer(ulong givenMemorySize, VkMemoryPropertyFlags givenMemoryFlags, VkBufferUsageFlags givenUsageFlags)
     {
+        // Save the given data
         this.memorySize = givenMemorySize;
         this.memoryFlags = givenMemoryFlags;
         this.usageFlags = givenUsageFlags;
         
+        // Set up buffer creation info
         VkBufferCreateInfo bufferCreateInfo = new VkBufferCreateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -71,6 +79,7 @@ public unsafe class Buffer
             sharingMode = VkSharingMode.VK_SHARING_MODE_EXCLUSIVE
         };
 
+        // Create the Vulkan buffer
         fixed (VkBuffer* bufferPtr = &vkBuffer)
         {
             VulkanDebugger.CheckResults(
@@ -79,9 +88,11 @@ public unsafe class Buffer
             );
         }
 
+        // Get the Vulkan buffer's memory requirements
         VkMemoryRequirements memoryRequirements = new VkMemoryRequirements();
         VulkanNative.vkGetBufferMemoryRequirements(VulkanCore.logicalDevice, vkBuffer, &memoryRequirements);
 
+        // Set up the buffer's memory allocation info
         VkMemoryAllocateInfo memoryAllocationInfo = new VkMemoryAllocateInfo()
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -89,6 +100,7 @@ public unsafe class Buffer
             memoryTypeIndex = VulkanUtilities.FindMemoryTypeIndex(memoryRequirements.memoryTypeBits, memoryFlags)
         };
 
+        // Allocate buffer's memory
         fixed (VkDeviceMemory* memoryPtr = &vkBufferMemory)
         {
             if (VulkanNative.vkAllocateMemory(VulkanCore.logicalDevice, &memoryAllocationInfo, null, memoryPtr) != VkResult.VK_SUCCESS)
@@ -97,6 +109,7 @@ public unsafe class Buffer
             }
         }
 
+        // Bind the allocated memory to the buffer
         VulkanNative.vkBindBufferMemory(VulkanCore.logicalDevice, vkBuffer, vkBufferMemory, 0);
     }
 
@@ -154,8 +167,10 @@ public unsafe class Buffer
 
     public void CopyImage(in Image givenImage, in Vector3 imageOffset = default, in ulong offset = 0)
     {
+        // Create a temporary command buffer
         VkCommandBuffer commandBuffer = VulkanUtilities.BeginSingleTimeCommands();
 
+        // Set up image copy region
         VkBufferImageCopy copyRegion = new VkBufferImageCopy()
         {
             bufferOffset = offset,
@@ -182,27 +197,34 @@ public unsafe class Buffer
             }
         };
         
+        // Copy the image to the buffer
         VulkanNative.vkCmdCopyBufferToImage(commandBuffer, this, givenImage, VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
+        // Destroy the temporary command buffer
         VulkanUtilities.EndSingleTimeCommands(commandBuffer);
     }
 
     public void CopyToBuffer(in Buffer anotherBuffer)
     {
+        // Check if the two buffers are compatible
         if (this.memorySize != anotherBuffer.memorySize)
         {
             VulkanDebugger.ThrowError("Cannot copy data from one buffer to another with a different memory size!");
         }
         
+        // Create a temporary command buffer
         VkCommandBuffer commandBuffer = VulkanUtilities.BeginSingleTimeCommands();
 
+        // Set up the buffer's copy region
         VkBufferCopy copyRegion = new VkBufferCopy()
         {
             size = this.memorySize
         };
         
+        // Copy the buffer
         VulkanNative.vkCmdCopyBuffer(commandBuffer, this, anotherBuffer, 1, &copyRegion);
         
+        // Destroy the temporary command buffer
         VulkanUtilities.EndSingleTimeCommands(commandBuffer);
     }
 

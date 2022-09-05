@@ -6,6 +6,7 @@ using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
 using Camera = SierraEngine.Engine.Components.Camera;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
+using Key = Glfw.Key;
 using Window = SierraEngine.Core.Rendering.Window;
 
 namespace SierraEngine.Core.Application;
@@ -13,7 +14,7 @@ namespace SierraEngine.Core.Application;
 public class Application
 {
     private readonly Window window;
-    private readonly UserInterface ui = new UserInterface();
+    private readonly UserInterface ui = new UserInterface(); 
 
     private readonly Camera camera = new GameObject("Camera").AddComponent<Camera>();
     
@@ -89,7 +90,7 @@ public class Application
         // Terminate the windowing system
         Glfw3.Terminate();
     }
-
+    
     private void Update()
     {
         HandleCameraMovement();
@@ -101,6 +102,13 @@ public class Application
 
     private void UpdateObjects()
     {
+        // Console.WriteLine(Glfw3.GetJoystickGUID(0).ToString());
+        // var a = Glfw3.GetJoystickAxes(0, out var count);
+        // float[] buttons = new float[count];
+        // Marshal.Copy(a, buttons, 0, count);
+        // foreach (var c in buttons) if (c != -1) Console.WriteLine(c);
+        // Glfw3.GetGamepadState(0, new GamepadStatePtr());
+        
         // Calculate some example values to be used for animations
         float upTimeSin = (float) Math.Sin(Time.upTime);
 

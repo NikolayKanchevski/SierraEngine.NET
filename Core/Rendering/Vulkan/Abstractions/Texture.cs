@@ -126,14 +126,17 @@ public unsafe class Texture
 
         Buffer stagingBuffer;
         
+        // Create the staging buffer
         new Buffer.Builder()
             .SetMemorySize(memorySize)
             .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
             .SetUsageFlags(VkBufferUsageFlags.VK_BUFFER_USAGE_TRANSFER_SRC_BIT)
         .Build(out stagingBuffer);
         
+        // Copy the image data to the staging buffer
         stagingBuffer.CopyBytes(imageBytes);
         
+        // Configure the color format
         VkFormat textureImageFormat = colors switch
         {
             ColorComponents.RedGreenBlueAlpha => VkFormat.VK_FORMAT_R8G8B8A8_SRGB,
@@ -151,17 +154,20 @@ public unsafe class Texture
             .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
         .Build(out image);
         
+        // Transition the layout of the image, so it can be used for copying
         image.TransitionLayout(VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         
+        // Copy the image to the staging buffer
         stagingBuffer.CopyImage(image);
 
-        // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
 
         // Destroy the staging buffer and free its memory
         stagingBuffer.CleanUp();
         
         // Generate mip maps for the current texture
         GenerateMipMaps();
+        
+        // NOTE: Transitioning to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL is not required as it is automatically done during the mip map generation
         
         // Create the image view using the proper image format
         image.GenerateImageView(VkImageAspectFlags.VK_IMAGE_ASPECT_COLOR_BIT);
@@ -182,6 +188,7 @@ public unsafe class Texture
 
     private void GenerateMipMaps()
     {
+        // Get the properties of the image's format
         VkFormatProperties formatProperties;
         VulkanNative.vkGetPhysicalDeviceFormatProperties(VulkanCore.physicalDevice, image.format, &formatProperties);
 

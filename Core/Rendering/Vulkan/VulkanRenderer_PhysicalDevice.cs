@@ -14,6 +14,19 @@ public unsafe partial class VulkanRenderer
         "VK_KHR_swapchain"
     };
     
+    private struct QueueFamilyIndices
+    {
+        public QueueFamilyIndices() { }
+        
+        public uint? graphicsFamily = null;
+        public uint? presentFamily = null;
+
+        public bool IsValid()
+        {
+            return graphicsFamily.HasValue && presentFamily.HasValue;
+        }
+    }
+    
     private void GetPhysicalDevice()
     {
         // Retrieve how many GPUs are found on the system
@@ -89,5 +102,122 @@ public unsafe partial class VulkanRenderer
             // Assign the EngineCore's physical device
             VulkanCore.physicalDevice = this.physicalDevice;
         }
+    }
+    
+    
+
+    private bool DeviceExtensionsSupported(in VkPhysicalDevice givenPhysicalDevice, in string[] givenExtensions)
+    {
+        // Get how many extensions are supported in total
+        uint extensionCount;
+        VulkanNative.vkEnumerateDeviceExtensionProperties(givenPhysicalDevice, null, &extensionCount, null);
+
+        // Create an array to store the supported extensions
+        VkExtensionProperties[] extensionPropertiesArray = new VkExtensionProperties[extensionCount];
+        fixed (VkExtensionProperties* currentPropertiesPtr = extensionPropertiesArray)
+        {
+            VulkanNative.vkEnumerateDeviceExtensionProperties(givenPhysicalDevice, null, &extensionCount, currentPropertiesPtr);
+        }
+        
+        // Check if each given extension is in the supported extensions array
+        foreach (var requiredExtension in givenExtensions)
+        {
+            bool extensionSupported = Array.Exists(extensionPropertiesArray, o => VulkanUtilities.GetString(o.extensionName) == requiredExtension);
+            if (!extensionSupported)
+            {
+                // Write which extensions are not supported
+                VulkanDebugger.ThrowWarning($"Device extension { requiredExtension } is not supported");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool DeviceExtensionSupported(in VkPhysicalDevice givenPhysicalDevice, string requiredExtension)
+    {
+        // Get how many extensions are supported in total
+        uint extensionCount;
+        VulkanNative.vkEnumerateDeviceExtensionProperties(givenPhysicalDevice, null, &extensionCount, null);
+
+        // Create an array to store the supported extensions
+        VkExtensionProperties[] extensionPropertiesArray = new VkExtensionProperties[extensionCount];
+        fixed (VkExtensionProperties* currentPropertiesPtr = extensionPropertiesArray)
+        {
+            VulkanNative.vkEnumerateDeviceExtensionProperties(givenPhysicalDevice, null, &extensionCount, currentPropertiesPtr);
+        }
+        
+        // Check if the given extension is in the supported extensions array
+        return Array.Exists(extensionPropertiesArray, o => VulkanUtilities.GetString(o.extensionName) == requiredExtension);
+    }
+
+    private bool PhysicalDeviceSuitable(in VkPhysicalDevice givenPhysicalDevice)
+    {
+        // Get the features of the given GPU
+        VkPhysicalDeviceFeatures deviceFeatures = new VkPhysicalDeviceFeatures();
+        VulkanNative.vkGetPhysicalDeviceFeatures(givenPhysicalDevice, &deviceFeatures);
+        
+        // Get the queue indices for it and check if they are valid
+        QueueFamilyIndices familyIndices = FindQueueFamilies(in givenPhysicalDevice);
+        bool indicesValid = familyIndices.IsValid();
+
+        // Check if all required extensions are supported
+        bool extensionsSupported = DeviceExtensionsSupported(in givenPhysicalDevice, requiredDeviceExtensions.ToArray());
+        
+        // Check for required features
+        bool featuresSupported = !(this.renderingMode != RenderingMode.Fill && !deviceFeatures.fillModeNonSolid);
+
+        // Check if the swapchain type is supported
+        SwapchainSupportDetails swapchainSupportDetails = GetSwapchainSupportDetails(in givenPhysicalDevice);
+        bool swapchainAdequate = !swapchainSupportDetails.formats.IsNullOrEmpty() && !swapchainSupportDetails.presentModes.IsNullOrEmpty();
+
+        return indicesValid && extensionsSupported && swapchainAdequate && featuresSupported;
+    }
+
+    private QueueFamilyIndices FindQueueFamilies(in VkPhysicalDevice givenPhysicalDevice)
+    {
+        QueueFamilyIndices indices = new QueueFamilyIndices();
+
+        // Get how many family properties are available
+        uint queueFamilyPropertiesCount = 0;
+        VulkanNative.vkGetPhysicalDeviceQueueFamilyProperties(givenPhysicalDevice, &queueFamilyPropertiesCount, null);
+
+        // Put each of them in an array
+        VkQueueFamilyProperties[] vkQueueFamilyPropertiesArray = new VkQueueFamilyProperties[queueFamilyPropertiesCount];
+        fixed (VkQueueFamilyProperties* currentQueueProperties = vkQueueFamilyPropertiesArray)
+        {
+            VulkanNative.vkGetPhysicalDeviceQueueFamilyProperties(givenPhysicalDevice, &queueFamilyPropertiesCount, currentQueueProperties);
+        }
+
+        // Iterate trough each
+        for (uint i = 0; i < queueFamilyPropertiesCount; i++)
+        {
+            // Save the current one
+            var currentQueueProperties = vkQueueFamilyPropertiesArray[i];
+            
+            // Check if the current queue has a graphics family
+            if ((currentQueueProperties.queueFlags & VkQueueFlags.VK_QUEUE_GRAPHICS_BIT) != 0)
+            {
+                indices.graphicsFamily = i;
+            }
+            
+            // Check if the current queue supports presentation
+            VkBool32 presentationSupported;
+            VulkanNative.vkGetPhysicalDeviceSurfaceSupportKHR(givenPhysicalDevice, i, this.surface, &presentationSupported);
+
+            // If so set its presentation family
+            if (presentationSupported)
+            {
+                indices.presentFamily = i;
+            }
+
+            // If the indices are already valid there's no need to continue the loop
+            if (indices.IsValid())
+            {
+                break;
+            }
+        }
+
+        return indices;
     }
 }

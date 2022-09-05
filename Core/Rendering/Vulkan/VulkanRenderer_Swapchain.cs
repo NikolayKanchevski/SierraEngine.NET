@@ -14,6 +14,107 @@ public unsafe partial class VulkanRenderer
     private Image[] swapchainImages = null!;
     private Image swapchainImage => swapchainImages[0];
     
+    private struct SwapchainSupportDetails {
+        public VkSurfaceCapabilitiesKHR capabilities;
+        public VkSurfaceFormatKHR[] formats;
+        public VkPresentModeKHR[] presentModes;
+    };
+
+    private VkSurfaceFormatKHR ChooseSwapchainFormat(in VkSurfaceFormatKHR[] givenFormats)
+    {
+        // Loop trough each to check if it is one of the preferred types
+        foreach (var availableFormat in givenFormats)
+        {
+            if (availableFormat.format == VkFormat.VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VkColorSpaceKHR.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
+            {
+                return availableFormat;
+            }
+        }
+
+        // Otherwise just return the very first one
+        return givenFormats[0];
+    }
+
+    private VkPresentModeKHR ChooseSwapchainPresentMode(in VkPresentModeKHR[] givenPresentModes)
+    {
+        // Loop trough each to check if it is VK_PRESENT_MODE_MAILBOX_KHR
+        foreach (var availablePresentMode in givenPresentModes)
+        {
+            if (availablePresentMode == VkPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR)
+            {
+                return availablePresentMode;
+            }
+        }
+
+        // Otherwise return VK_PRESENT_MODE_FIFO_KHR which is guaranteed to be available
+        return VkPresentModeKHR.VK_PRESENT_MODE_FIFO_KHR;
+    }
+
+    private VkExtent2D ChooseSwapchainExtent(in VkSurfaceCapabilitiesKHR givenCapabilities)
+    {
+        // Check to see if the extent is already configured
+        if (givenCapabilities.currentExtent.width != uint.MaxValue)
+        {
+            // If so just return it
+            return givenCapabilities.currentExtent;
+        }
+
+        // Otherwise get the settings for it manually by finding out the width and height for it
+        
+        // Save the sizes in a struct
+        VkExtent2D createdExtent = new VkExtent2D()
+        {
+            width = (uint) window.width,
+            height = (uint) window.height
+        };
+        
+        // Clamp the width and height so they don't exceed the maximums
+        createdExtent.width = Math.Max(givenCapabilities.minImageExtent.width, Math.Min(givenCapabilities.maxImageExtent.width, createdExtent.width));
+        createdExtent.height = Math.Max(givenCapabilities.minImageExtent.height, Math.Min(givenCapabilities.maxImageExtent.height, createdExtent.height));
+
+        // Return the manually created extent
+        return createdExtent;
+    }
+    
+    private SwapchainSupportDetails GetSwapchainSupportDetails(in VkPhysicalDevice givenPhysicalDevice)
+    {
+        // Get the details of the GPU's supported swapchain
+        SwapchainSupportDetails swapchainDetails = new SwapchainSupportDetails();
+        VulkanNative.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(givenPhysicalDevice, surface, &swapchainDetails.capabilities);
+
+        // Get how many formats are available
+        uint formatCount;
+        VulkanNative.vkGetPhysicalDeviceSurfaceFormatsKHR(givenPhysicalDevice, this.surface, &formatCount, null);
+
+        // Check if there are not none available
+        if (formatCount != 0)
+        {
+            // Put each of them in an array
+            swapchainDetails.formats = new VkSurfaceFormatKHR[formatCount];
+            fixed (VkSurfaceFormatKHR* surfaceFormatPtr = swapchainDetails.formats)
+            {
+                VulkanNative.vkGetPhysicalDeviceSurfaceFormatsKHR(givenPhysicalDevice, this.surface, &formatCount, surfaceFormatPtr);
+            }
+        }
+        
+        // Get how many presentation modes are available
+        uint presentModesCount;
+        VulkanNative.vkGetPhysicalDeviceSurfacePresentModesKHR(givenPhysicalDevice, this.surface, &presentModesCount, null);
+
+        // Check if there are not none available
+        if (presentModesCount != 0)
+        {
+            // Put each of them in an array
+            swapchainDetails.presentModes = new VkPresentModeKHR[presentModesCount];
+            fixed (VkPresentModeKHR* surfacePresentModePtr = swapchainDetails.presentModes)
+            {
+                VulkanNative.vkGetPhysicalDeviceSurfacePresentModesKHR(givenPhysicalDevice, this.surface, &formatCount, surfacePresentModePtr);
+            }
+        }
+
+        return swapchainDetails;
+    }
+    
     private void CreateSwapchain()
     {
         // Lower the sample count if it is not supported

@@ -29,7 +29,7 @@ public unsafe partial class VulkanRenderer
         {
             sType = VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO,
             pApplicationName = "Sierra Engine".ToPointer(),
-            applicationVersion = VulkanUtilities.Version(Version.major, Version.minor, Version.patch),
+            applicationVersion = VulkanUtilities.Version(Version.MAJOR, Version.MINOR, Version.PATCH),
             pEngineName = "No Engine".ToPointer(),
             engineVersion = VulkanUtilities.Version(1, 0, 0),
             apiVersion = VulkanUtilities.Version(1, 2, 0),
@@ -94,5 +94,61 @@ public unsafe partial class VulkanRenderer
         // Deallocate useless memory
         Marshal.FreeHGlobal((IntPtr) applicationInfo.pApplicationName);
         Marshal.FreeHGlobal((IntPtr) applicationInfo.pEngineName);
+    }
+    
+    private bool ValidationLayersSupported(in string[] givenValidationLayers)
+    {
+        // Get how many validation layers in total are supported
+        uint layerCount = 0;
+        VulkanNative.vkEnumerateInstanceLayerProperties(&layerCount, null);
+
+        // Create an array and store the supported layers
+        VkLayerProperties[] layerPropertiesArray = new VkLayerProperties[layerCount];
+        fixed (VkLayerProperties* currentProperties = layerPropertiesArray)
+        {
+            VulkanNative.vkEnumerateInstanceLayerProperties(&layerCount, currentProperties);
+        }
+        
+        // Check if the given layers are in the supported array
+        foreach (var requiredLayer in givenValidationLayers)
+        {
+            bool extensionSupported = Array.Exists(layerPropertiesArray, o => VulkanUtilities.GetString(o.layerName) == requiredLayer);
+            if (!extensionSupported)
+            {
+                // Write which layers are not supported
+                VulkanDebugger.ThrowWarning($"Validation layer { requiredLayer } is not supported");
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    private bool InstanceExtensionsSupported(in string[] givenExtensions)
+    {
+        // Get how many extensions are supported in total
+        uint extensionCount;
+        VulkanNative.vkEnumerateInstanceExtensionProperties(null, &extensionCount, null);
+
+        // Create an array to store the supported extensions
+        VkExtensionProperties[] extensionPropertiesArray = new VkExtensionProperties[extensionCount];
+        fixed (VkExtensionProperties* currentPropertiesPtr = extensionPropertiesArray)
+        {
+            VulkanNative.vkEnumerateInstanceExtensionProperties(null, &extensionCount, currentPropertiesPtr);
+        }
+        
+        // Check if each given extension is in the supported extensions array
+        foreach (var requiredExtension in givenExtensions)
+        {
+            bool extensionSupported = Array.Exists(extensionPropertiesArray, o => VulkanUtilities.GetString(o.extensionName) == requiredExtension);
+            if (!extensionSupported)
+            {
+                // Write which extensions are not supported
+                VulkanDebugger.ThrowWarning($"Instance extension { requiredExtension } is not supported");
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -11,16 +11,14 @@ selectedPlatform = ""
 MACOS_64 = "--osx-x64"
 WIN_64 = "--win-x64"
 LINUX_64 = "--unix-64"
-SUPPORTED_PLATFORMS = [ WIN_64, MACOS_64, LINUX_64 ]
 
 ROOT_DIRECTORY = "../"
 SHADERS_FOLDER = ROOT_DIRECTORY + "Core/Rendering/Shading/Shaders/Compiled"
 REQUIRED_DIRECTORIES = ["Core/Rendering/Textures", "Core/Rendering/Models", "Core/Rendering/Fonts"]
 
 def Main():
-    if (len(sys.argv) <= 1 or sys.argv[1] not in SUPPORTED_PLATFORMS):
-        print(f"Error: You must execute the program with one of the following arguments: { WIN_64 }, { MACOS_64 }, { LINUX_64 }!")
-        return
+    if (len(sys.argv) <= 2):
+        //////////
 
     platform = sys.argv[1].replace("--", "")
     outputDirectory = ROOT_DIRECTORY + f"bin/Release/net6.0/{platform}/publish/"
@@ -39,7 +37,7 @@ def Main():
         os.remove(outputDirectory + "glfw-sharp.dll.config")
         os.remove(outputDirectory + "SierraEngine.pdb")
 
-    except Exception as exception:
+    except Exception as exception:  
         print(exception)
         return
 

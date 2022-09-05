@@ -7,13 +7,13 @@ namespace SierraEngine.Core;
 
 public static class Version
 {
-    public static uint major = 1;
-    public static uint minor = 0;
-    public static uint patch = 0;
+    public const uint MAJOR = 1;
+    public const uint MINOR = 0;
+    public const uint PATCH = 0;
 
     public new static string ToString()
     {
-        return $"v{ major }.{ minor }.{ patch }";
+        return $"v{ MAJOR }.{ MINOR }.{ PATCH }";
     }
 }
 
