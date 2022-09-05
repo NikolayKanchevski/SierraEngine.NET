@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -15,8 +16,8 @@ public unsafe partial class VulkanRenderer
     private void CreateGraphicsPipeline()
     {
         // Create shader modules out of the read shader
-        VkShaderModule vertShaderModule = VulkanUtilities.CreateShaderModule("Shaders/shader.vert.spv");
-        VkShaderModule fragShaderModule = VulkanUtilities.CreateShaderModule("Shaders/shader.frag.spv");
+        VkShaderModule vertShaderModule = VulkanUtilities.CreateShaderModule(Files.OUTPUT_DIRECTORY + "Shaders/shader.vert.spv");
+        VkShaderModule fragShaderModule = VulkanUtilities.CreateShaderModule(Files.OUTPUT_DIRECTORY + "Shaders/shader.frag.spv");
 
         // Set vertex shader properties
         VkPipelineShaderStageCreateInfo vertShaderStageInfo = new VkPipelineShaderStageCreateInfo()

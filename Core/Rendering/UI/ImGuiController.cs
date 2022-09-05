@@ -45,7 +45,7 @@ public unsafe class ImGuiController
 
         // Use the default font
         var io = ImGui.GetIO();
-        io.Fonts.AddFontFromFileTTF("Fonts/Ruda-Bold.ttf", 12f);        
+        io.Fonts.AddFontFromFileTTF( Files.OUTPUT_DIRECTORY + "Fonts/Ruda-Bold.ttf", 12f);        
         
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         // io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;

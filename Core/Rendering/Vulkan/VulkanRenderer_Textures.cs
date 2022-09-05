@@ -1,5 +1,6 @@
 using Evergine.Bindings.Vulkan;
 using SierraEngine.Core.Rendering.Vulkan.Abstractions;
+using SierraEngine.Engine.Classes;
 using StbImageSharp;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -17,8 +18,8 @@ public partial class VulkanRenderer
 
     private void CreateNullTextures()
     {
-        CreateTexture("Textures/Null/DiffuseNull.jpg", TextureType.Diffuse);
-        CreateTexture("Textures/Null/SpecularNull.jpg", TextureType.Specular);
+        CreateTexture(Files.OUTPUT_DIRECTORY + "Textures/Null/DiffuseNull.jpg", TextureType.Diffuse);
+        CreateTexture(Files.OUTPUT_DIRECTORY + "Textures/Null/SpecularNull.jpg", TextureType.Specular);
     }
 
     public int CreateTexture(string fileName, TextureType textureType, ColorComponents colors = ColorComponents.RedGreenBlueAlpha)

@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Classes;
 using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -63,7 +64,7 @@ public static unsafe class VulkanUtilities
     public static VkShaderModule CreateShaderModule(string fileName)
     {
         // Read bytes from the given file
-        var shaderByteCode = File.ReadAllBytes(fileName);
+        var shaderByteCode = Files.GetBytes(fileName);
 
         // Set module creation info
         VkShaderModuleCreateInfo moduleCreateInfo = new VkShaderModuleCreateInfo()

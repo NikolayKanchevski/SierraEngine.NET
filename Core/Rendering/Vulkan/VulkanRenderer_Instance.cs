@@ -4,6 +4,7 @@ using Glfw;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
+#pragma warning disable CS0162
 public unsafe partial class VulkanRenderer
 {
     private VkInstance instance;
@@ -37,6 +38,7 @@ public unsafe partial class VulkanRenderer
         // Get conditional extensions
         requiredInstanceExtensions.AddRange(Glfw3.GetRequiredInstanceExtensions());
         if (VALIDATION_ENABLED) requiredInstanceExtensions.Add("VK_EXT_debug_utils");
+        
         
         // Check if all extensions are supported
         bool extensionsSupported = this.InstanceExtensionsSupported(requiredInstanceExtensions.ToArray());

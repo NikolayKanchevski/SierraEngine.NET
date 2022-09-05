@@ -39,7 +39,7 @@ public class MeshObject
         int startIdx = filePath.LastIndexOf('/');
         modelName = filePath[(startIdx + 1)..];
         
-        this.modelLocation = Directory.GetCurrentDirectory() + "/" + filePath[..startIdx];
+        this.modelLocation = filePath[..startIdx];
         
         int endIdx = modelName.LastIndexOf('.');
         modelName = modelName[..(endIdx)];

@@ -2,6 +2,7 @@ using Evergine.Bindings.Vulkan;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
+#pragma warning disable CS0162
 public static class VulkanDebugger
 {
     #if DEBUG

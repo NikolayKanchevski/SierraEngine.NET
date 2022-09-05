@@ -44,7 +44,7 @@ public class Application
         GameObject secondPointLightObject = new GameObject("Second Point Light");
         
         // Add a textured cube to the point light object so that we can see where in the world it is
-        int lampTexture = vulkanRenderer.CreateTexture("Textures/lamp.png", TextureType.Diffuse);
+        int lampTexture = vulkanRenderer.CreateTexture(Files.OUTPUT_DIRECTORY + "Textures/lamp.png", TextureType.Diffuse);
 
         // Add the mesh components to the point light objects
         Mesh firstPointLightMesh = firstPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
@@ -59,7 +59,7 @@ public class Application
         secondPointLight = secondPointLightObject.AddComponent<PointLight>();
 
         // Load a tank model in the scene
-        MeshObject.LoadFromModel("Models/Chieftain/T95_FV4201_Chieftain.fbx");
+        MeshObject.LoadFromModel(Files.OUTPUT_DIRECTORY + "Models/Chieftain/T95_FV4201_Chieftain.fbx");
     }
 
     public void Start()

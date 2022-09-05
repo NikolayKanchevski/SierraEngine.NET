@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using SierraEngine.Core.Rendering.Vulkan;
 
 namespace SierraEngine.Engine.Classes;
 
 public static class Files
 {
+    public static readonly string OUTPUT_DIRECTORY = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName)! + "/";
+    
     public static string TrimPath(in string filePath)
     {
         int index = filePath.LastIndexOf('/') + 1;

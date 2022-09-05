@@ -39,10 +39,6 @@
         <Copy SourceFiles="@(FILES)" DestinationFolder="$(OutDir)/Textures" />
     </Target>
 
-    <ItemGroup>
-        <FOLDERS Include="Core/Rendering/Models/**/*.*" />
-    </ItemGroup>
-
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
         <Copy SourceFiles="@(FOLDERS)" DestinationFiles="@(FOLDERS->'$(OutDir)/Models/%(RecursiveDir)%(Filename)%(Extension)')" />
     </Target>
