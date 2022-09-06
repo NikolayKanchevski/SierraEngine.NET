@@ -1,5 +1,3 @@
-using Glfw;
-
 namespace SierraEngine.Engine.Classes;
 
 public static class Time
@@ -9,11 +7,11 @@ public static class Time
     public static double doubleDeltaTime { get; private set; }
     public static float upTime { get; private set; }
 
-    private static double lastFrameTime = Glfw3.GetTime();
+    private static double lastFrameTime = GLFW.Glfw.Time;
 
     public static void Update()
     {
-        double currentFrameTime = Glfw3.GetTime();
+        double currentFrameTime =  GLFW.Glfw.Time;
         
         doubleDeltaTime = currentFrameTime - lastFrameTime;
         deltaTime = (float) doubleDeltaTime;

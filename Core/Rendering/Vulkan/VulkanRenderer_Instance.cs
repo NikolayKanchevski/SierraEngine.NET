@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using Glfw;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -36,7 +35,7 @@ public unsafe partial class VulkanRenderer
         };
         
         // Get conditional extensions
-        requiredInstanceExtensions.AddRange(Glfw3.GetRequiredInstanceExtensions());
+        requiredInstanceExtensions.AddRange(Glfw.Glfw3.GetRequiredInstanceExtensions());
         if (VALIDATION_ENABLED) requiredInstanceExtensions.Add("VK_EXT_debug_utils");
         
         

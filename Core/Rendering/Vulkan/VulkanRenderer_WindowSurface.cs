@@ -1,5 +1,5 @@
 ﻿using Evergine.Bindings.Vulkan;
-using Glfw;
+using GLFW;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -10,7 +10,7 @@ public partial class VulkanRenderer
     private void CreateWindowSurface()
     {
         // Let GLFW create the surface
-        Glfw3.CreateWindowSurface(this.instance.Handle, window.GetCoreWindow(), IntPtr.Zero, out ulong surfaceHandle);
-        surface = new VkSurfaceKHR(surfaceHandle);
+        GLFW.Vulkan.CreateWindowSurface(this.instance.Handle, window.GetCoreWindow(), IntPtr.Zero, out var surfaceHandle);
+        surface = new VkSurfaceKHR((ulong) surfaceHandle);
     }
 }

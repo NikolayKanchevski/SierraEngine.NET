@@ -2,7 +2,7 @@ using System.Numerics;
 using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
-using Glfw;
+using GLFW;
 using Window = SierraEngine.Core.Rendering.Window;
 
 namespace SierraEngine.Core.Application;
@@ -122,7 +122,7 @@ public class UserInterface
                 World.selectedGameObject.selected = true;
             }
            
-            bool nextExpandAll = expandAll || (clicked && Input.GetKeyHeld(Key.LeftAlt));
+            bool nextExpandAll = expandAll || (clicked && Input.GetKeyHeld(Keys.LeftAlt));
        
             foreach (GameObject child in gameObject.children)
             {
@@ -133,7 +133,7 @@ public class UserInterface
         }
         else
         {
-            if (ImGui.IsItemClicked() && Input.GetKeyHeld(Key.LeftAlt))
+            if (ImGui.IsItemClicked() && Input.GetKeyHeld(Keys.LeftAlt))
             {
                 // LOGIC TO COLLAPSE THE WHOLE TREE
             }

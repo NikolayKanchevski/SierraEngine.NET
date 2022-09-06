@@ -1,12 +1,11 @@
 using System.Numerics;
-using Glfw;
+using GLFW;
 using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
 using Camera = SierraEngine.Engine.Components.Camera;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
-using Key = Glfw.Key;
 using Window = SierraEngine.Core.Rendering.Window;
 
 namespace SierraEngine.Core.Application;
@@ -88,7 +87,7 @@ public class Application
         window.Destroy();
         
         // Terminate the windowing system
-        Glfw3.Terminate();
+        GLFW.Glfw.Terminate();
     }
     
     private void Update()
@@ -102,13 +101,6 @@ public class Application
 
     private void UpdateObjects()
     {
-        // Console.WriteLine(Glfw3.GetJoystickGUID(0).ToString());
-        // var a = Glfw3.GetJoystickAxes(0, out var count);
-        // float[] buttons = new float[count];
-        // Marshal.Copy(a, buttons, 0, count);
-        // foreach (var c in buttons) if (c != -1) Console.WriteLine(c);
-        // Glfw3.GetGamepadState(0, new GamepadStatePtr());
-        
         // Calculate some example values to be used for animations
         float upTimeSin = (float) Math.Sin(Time.upTime);
 
@@ -154,7 +146,7 @@ public class Application
     private void HandleCameraMovement()
     {
         // If escape is pressed toggle mouse visibility
-        if (Input.GetKeyPressed(Key.Escape))
+        if (Input.GetKeyPressed(Keys.Escape))
         {
             cursorShown = !cursorShown;
             Cursor.SetCursorVisibility(cursorShown);
@@ -167,7 +159,7 @@ public class Application
         camera.fov -= Input.GetVerticalMouseScroll() * CAMERA_ZOOM_SPEED;
 
         // If tab is pressed reset the FOV to 45.0f
-        if (Input.GetKeyHeld(Key.Tab)) 
+        if (Input.GetKeyHeld(Keys.Tab)) 
         {
             camera.fov = 45.0f;
         }
@@ -176,29 +168,29 @@ public class Application
         camera.fov = Mathematics.Clamp(camera.fov, 5.0f, 90.0f);
 
         // Move the camera based on held keys
-        if (Input.GetKeyHeld(Key.W))
+        if (Input.GetKeyHeld(Keys.W))
         {
             camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
         }
-        if (Input.GetKeyHeld(Key.S))
+        if (Input.GetKeyHeld(Keys.S))
         {            
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
         }
         
-        if (Input.GetKeyHeld(Key.A))
+        if (Input.GetKeyHeld(Keys.A))
         {
             camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
         }
-        if (Input.GetKeyHeld(Key.D))
+        if (Input.GetKeyHeld(Keys.D))
         {
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
         }
         
-        if (Input.GetKeyHeld(Key.Q) || Input.GetKeyHeld(Key.LeftControl))
+        if (Input.GetKeyHeld(Keys.Q) || Input.GetKeyHeld(Keys.LeftControl))
         {
             camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }
-        if (Input.GetKeyHeld(Key.E) || Input.GetKeyHeld(Key.Space))
+        if (Input.GetKeyHeld(Keys.E) || Input.GetKeyHeld(Keys.Space))
         {
             camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }

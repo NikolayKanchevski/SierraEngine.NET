@@ -1,5 +1,5 @@
 using System.Numerics;
-using Glfw;
+using GLFW;
 
 namespace SierraEngine.Engine.Classes;
 
@@ -43,7 +43,7 @@ public static class Input
         { "`", "~" },
     };
 
-    public static bool GetKeyPressed(in Key keyCode)
+    public static bool GetKeyPressed(in Keys keyCode)
     {
         int intCode = (int) keyCode;
         if (intCode >= keyboardKeys.Length) return false;
@@ -51,7 +51,7 @@ public static class Input
         return keyboardKeys[intCode] == 2; // 2 = Press
     }
     
-    public static bool GetKeyHeld(in Key keyCode) 
+    public static bool GetKeyHeld(in Keys keyCode) 
     {
         int intCode = (int) keyCode;
         if (intCode >= keyboardKeys.Length) return false;
@@ -60,7 +60,7 @@ public static class Input
         return keyState == 3 || keyState == 2; // 3 = Repeat; 2 = Press
     }
     
-    public static bool GetKeyReleased(in Key keyCode)
+    public static bool GetKeyReleased(in Keys keyCode)
     {
         int intCode = (int) keyCode;
         if (intCode >= keyboardKeys.Length) return false;
@@ -68,9 +68,9 @@ public static class Input
         return keyboardKeys[intCode] == 1; // 1 = Release
     }
 
-    public static string GetKeyName(in Key key, bool shiftPressed = false)
+    public static string GetKeyName(in Keys key, bool shiftPressed = false)
     {
-        string keyName = Glfw3.GetKeyName(key, 0);
+        string keyName = GLFW.Glfw.GetKeyName(key, 0);
 
         if (!shiftPressed)
         {
@@ -153,10 +153,10 @@ public static class Input
         }
     }
     
-    public static void KeyboardKeyCallback(IntPtr glfwWindow, Key keyCode, int scancode, InputAction action, Modifier mods)
+    public static void KeyboardKeyCallback(IntPtr window, Keys keyCode, int scanCode, InputState state, ModifierKeys mods)
     {
         int intCode = (int) keyCode;
-        int intAction = (int) action;
+        int intAction = (int) state;
         
         if (intCode >= keyboardKeys.Length || intCode < 0) return;
         
@@ -173,10 +173,10 @@ public static class Input
         }
     }
 
-    public static void MouseButtonCallback(IntPtr glfwWindow, MouseButton buttonCode, InputAction action, Modifier mods)
+    public static void MouseButtonCallback(IntPtr window, MouseButton buttonCode, InputState state, ModifierKeys modifiers)
     {
         int intCode = (int) buttonCode;
-        int intAction = (int) action;
+        int intAction = (int) state;
         
         if (intCode >= mouseButtons.Length || intCode < 0) return;
 

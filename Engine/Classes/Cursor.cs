@@ -1,5 +1,5 @@
 using System.Numerics;
-using Glfw;
+using GLFW;
 using SierraEngine.Core.Rendering.Vulkan;
 
 namespace SierraEngine.Engine.Classes;
@@ -26,7 +26,7 @@ public static class Cursor
 
     public static void SetCursorPosition(in Vector2 newPosition)
     {
-        Glfw3.SetCursorPosition(VulkanCore.glfwWindow, newPosition.X, newPosition.Y);
+        GLFW.Glfw.SetCursorPosition(VulkanCore.glfwWindow, newPosition.X, newPosition.Y);
         
         CursorPositionCallback(VulkanCore.glfwWindow, newPosition.X, newPosition.Y);
         
@@ -48,7 +48,7 @@ public static class Cursor
     public static void ShowCursor(bool centerCursor = true)
     {
         cursorShown = true;
-        Glfw3.SetInputMode(VulkanCore.glfwWindow, InputMode.Cursor, 212993);
+        GLFW.Glfw.SetInputMode(VulkanCore.glfwWindow, InputMode.Cursor, 212993);
         
         if (centerCursor) CenterCursor();
         
@@ -58,7 +58,7 @@ public static class Cursor
     public static void HideCursor(bool centerCursor = true)
     {
         cursorShown = false;
-        Glfw3.SetInputMode(VulkanCore.glfwWindow, InputMode.Cursor, 212995);
+        GLFW.Glfw.SetInputMode(VulkanCore.glfwWindow, InputMode.Cursor, 212995);
         
         if (centerCursor) CenterCursor();
         
@@ -81,7 +81,7 @@ public static class Cursor
 
     public static Vector2 GetGlfwCursorPosition()
     {
-        Glfw3.GetCursorPosition(VulkanCore.glfwWindow, out double x, out double y);
+        GLFW.Glfw.GetCursorPosition(VulkanCore.glfwWindow, out double x, out double y);
         return new Vector2((float)x, (float)y);
     }
 

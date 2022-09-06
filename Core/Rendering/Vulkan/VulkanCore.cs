@@ -4,7 +4,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public static class VulkanCore
 {
-    public static IntPtr glfwWindow;
+    public static GLFW.Window glfwWindow;
     public static Window window = null!;
     /// <summary>
     /// Only call this if you are SURE the window has a Vulkan renderer attached

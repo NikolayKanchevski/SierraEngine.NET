@@ -1,8 +1,4 @@
-using System.Numerics;
-using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using Glfw;
-using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 

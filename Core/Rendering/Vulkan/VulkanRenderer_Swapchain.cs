@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Evergine.Bindings.Vulkan;
-using Glfw;
 using Image = SierraEngine.Core.Rendering.Vulkan.Abstractions.Image;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -218,7 +217,7 @@ public unsafe partial class VulkanRenderer
     {
         while (window.minimized || !window.focused || window.width == 0)
         {
-            Glfw3.WaitEvents();
+            GLFW.Glfw.WaitEvents();
         }
         
         VulkanNative.vkDeviceWaitIdle(this.logicalDevice);

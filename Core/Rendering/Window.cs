@@ -5,7 +5,8 @@ using Evergine.Bindings.Vulkan;
 using Glfw;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
-using Cursor = Glfw.Cursor;
+using GLFW;
+using ErrorCode = GLFW.ErrorCode;
 
 namespace SierraEngine.Core.Rendering;
 
@@ -27,7 +28,7 @@ public class Window
     /// <summary>
     /// Checks whether the window is closed.
     /// </summary>
-    public bool closed => Glfw3.WindowShouldClose(glfwWindow);
+    public bool closed => GLFW.Glfw.WindowShouldClose(glfwWindow);
 
     /// <summary>
     /// Checks whether the window is minimised and is not shown.
@@ -61,24 +62,24 @@ public class Window
     public VulkanRenderer? vulkanRenderer { get; private set; }
     private readonly Vector2 position;
 
-    private IntPtr glfwWindow;
+    private GLFW.Window glfwWindow;
     private Vector4 monitorWorkArea;
-    private MonitorHandle monitor;
+    private GLFW.Monitor monitor;
     
     private readonly bool resizable;
     private readonly bool requireFocus;
     
     private GCHandle selfPointerHandle;
 
-    private readonly ErrorDelegate glfwErrorDelegate = GlfwErrorCallback;
-    private readonly WindowSizeDelegate resizeCallbackDelegate = WindowResizeCallback;
-    private readonly WindowBooleanDelegate focusCallback = WindowFocusCallback;
-    private readonly WindowBooleanDelegate minimizeCallback = WindowMinimizeCallback;
-    private readonly WindowBooleanDelegate maximizeCallback = WindowMaximizeCallback;
-    private readonly KeyDelegate keyCallbackDelegate = Input.KeyboardKeyCallback;
-    private readonly CursorPosDelegate cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
-    private readonly MouseButtonDelegate buttonCallbackDelegate = Input.MouseButtonCallback;
-    private readonly ScrollDelegate scrollCallbackDelegate = Input.MouseScrollCallback;
+    private readonly ErrorCallback glfwErrorDelegate = GlfwErrorCallback;
+    private readonly SizeCallback resizeCallbackDelegate = WindowResizeCallback;
+    private readonly FocusCallback focusCallback = WindowFocusCallback;
+    private readonly IconifyCallback minimizeCallback = WindowMinimizeCallback;
+    private readonly WindowMaximizedCallback maximizeCallback = WindowMaximizeCallback;
+    private readonly KeyCallback keyCallbackDelegate = Input.KeyboardKeyCallback;
+    private readonly MouseCallback cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
+    private readonly MouseButtonCallback buttonCallbackDelegate = Input.MouseButtonCallback;
+    private readonly MouseCallback scrollCallbackDelegate = Input.MouseScrollCallback;
     
     /* -- REFERENCES TO PRIVATE FIELDS -- */
     
@@ -97,7 +98,7 @@ public class Window
     public void SetTitle(string newTitle)
     {
         this.title = newTitle;
-        Glfw3.SetWindowTitle(glfwWindow, newTitle);
+        GLFW.Glfw.SetWindowTitle(glfwWindow, newTitle);
     }
     
     /// <summary>
@@ -106,7 +107,7 @@ public class Window
     public void Show()
     {
         this.hidden = false;
-        Glfw3.ShowWindow(glfwWindow);
+        GLFW.Glfw.ShowWindow(glfwWindow);
     }
 
     /// <summary>
@@ -115,7 +116,7 @@ public class Window
     public void Hide()
     {
         this.hidden = true;
-        Glfw3.HideWindow(glfwWindow);
+        GLFW.Glfw.HideWindow(glfwWindow);
     }
 
     /// <summary>
@@ -125,7 +126,7 @@ public class Window
     public void SetOpacity(in float opacity)
     {
         this.opacity = opacity;
-        Glfw3.SetWindowOpacity(glfwWindow, opacity);
+        GLFW.Glfw.SetWindowOpacity(glfwWindow, opacity);
     }
 
     /// <summary>
@@ -136,8 +137,9 @@ public class Window
     /// <param name="iconImageData">The icon image data converted to a byte array.</param>
     public void SetIcon(int iconWidth, int iconHeight, in byte[] iconImageData)
     {
-        Image icon = new Image((uint) iconWidth, (uint) iconHeight, iconImageData);
-        Glfw3.SetWindowIcon(glfwWindow, 1, ref icon);
+        // TODO: FIX
+        // Image icon = new Image(iconWidth, iconHeight, );
+        // GLFW.Glfw.SetWindowIcon(glfwWindow, 1, new [] { icon });
     }
     
     /// <summary>
@@ -165,7 +167,7 @@ public class Window
     /// </summary>
     public void Update()
     {
-        Glfw3.PollEvents();
+        GLFW.Glfw.PollEvents();
         
         if (requireFocus && !focused) return;
         
@@ -179,7 +181,7 @@ public class Window
     /// </summary>
     public void Destroy()
     {
-        Glfw3.DestroyWindow(glfwWindow);
+        GLFW.Glfw.DestroyWindow(glfwWindow);
         
         vulkanRenderer?.CleanUp();
         
@@ -198,7 +200,7 @@ public class Window
     /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
     public Window(string title, int width, int height, bool resizable = false, bool requireFocus = false)
     {
-        Glfw3.Init();
+        GLFW.Glfw.Init();
 
         #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -233,7 +235,7 @@ public class Window
     /// <param name="requireFocus">Whether the window requires to be focused in order to draw and handle events.</param>
     public Window(string title, bool maximized = false, bool resizable = false, bool requireFocus = false)
     {
-        Glfw3.Init();
+        GLFW.Glfw.Init();
         
         #if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -262,7 +264,7 @@ public class Window
 
         if (maximized)
         {
-            Glfw3.MaximizeWindow(glfwWindow);
+            GLFW.Glfw.MaximizeWindow(glfwWindow);
         }
         
         #if DEBUG
@@ -274,30 +276,29 @@ public class Window
 
     private void RetrieveMonitorData()
     {
-        this.monitor = Glfw3.GetPrimaryMonitor();
-        Glfw3.GetMonitorWorkarea(monitor.RawHandle, out var x, out var y, out var monitorWidth, out var monitorHeight);
+        this.monitor = GLFW.Glfw.PrimaryMonitor;
         
-        this.monitorWorkArea = new Vector4(x, y, monitorWidth, monitorHeight);
-        this.monitorName = Glfw3.GetMonitorName(monitor).ToString();
+        this.monitorWorkArea = new Vector4(monitor.WorkArea.X, monitor.WorkArea.Y, monitor.WorkArea.Width, monitor.WorkArea.Height);
+        this.monitorName = GLFW.Glfw.GetMonitorName(monitor).ToString();
     }
     
     private void InitWindow()
     {
-        Glfw3.WindowHint(WindowAttribute.Resizable, Convert.ToInt32(resizable));
-        Glfw3.WindowHint(WindowAttribute.ClientApi, 0);
-        Glfw3.WindowHint(WindowAttribute.Visible, 0);
+        GLFW.Glfw.WindowHint(Hint.Resizable, resizable);
+        GLFW.Glfw.WindowHint(Hint.ClientApi, 0);
+        GLFW.Glfw.WindowHint(Hint.Visible, 0);
 
-        glfwWindow = Glfw3.CreateWindow(width, height, title, MonitorHandle.Zero, IntPtr.Zero);
-        Glfw3.SetWindowPos(glfwWindow, (int) position.X, (int) position.Y);
+        glfwWindow = GLFW.Glfw.CreateWindow(width, height, title, GLFW.Monitor.None, GLFW.Window.None);
+        GLFW.Glfw.SetWindowPosition(glfwWindow, (int) position.X, (int) position.Y);
         
         VulkanCore.glfwWindow = glfwWindow;
         VulkanCore.window = this;
 
         selfPointerHandle = GCHandle.Alloc(this);
         IntPtr selfPointer = (IntPtr) selfPointerHandle;
-        Glfw3.SetWindowUserPointer(glfwWindow, selfPointer);
+        GLFW.Glfw.SetWindowUserPointer(glfwWindow, selfPointer);
 
-        Glfw3.GetFramebufferSize(glfwWindow, out var actualSizeX, out var actualSizeY);
+        GLFW.Glfw.GetFramebufferSize(glfwWindow, out var actualSizeX, out var actualSizeY);
         this.width = actualSizeX / 2;
         this.height = actualSizeY / 2;
 
@@ -306,9 +307,9 @@ public class Window
 
     /* -- CALLBACKS -- */
 
-    private static void GlfwErrorCallback(ErrorCode errorCode, string errorMessage)
+    private static void GlfwErrorCallback(ErrorCode errorCode, IntPtr message)
     {
-        VulkanDebugger.ThrowError($"GLFW Error: { errorMessage } ({ errorCode.ToString() })");
+        VulkanDebugger.ThrowError($"GLFW Error: { Marshal.PtrToStringUTF8(message) } ({ errorCode.ToString() })");
     }
     
     private static void WindowResizeCallback(IntPtr resizedGlfwWindow, int newWidth, int newHeight)
@@ -363,33 +364,34 @@ public class Window
 
     private void SetCallbacks()
     {
-        Glfw3.SetErrorCallback(glfwErrorDelegate);
+        GLFW.Glfw.SetErrorCallback(glfwErrorDelegate);
         
-        Glfw3.SetWindowSizeCallback(glfwWindow, resizeCallbackDelegate);
+        GLFW.Glfw.SetWindowSizeCallback(glfwWindow, resizeCallbackDelegate);
         
-        Glfw3.SetWindowFocusCallback(glfwWindow, focusCallback);
+        GLFW.Glfw.SetWindowFocusCallback(glfwWindow, focusCallback);
 
-        Glfw3.SetWindowRefreshCallback(glfwWindow, window => WindowFocusCallback(window, true));
+        GLFW.Glfw.SetWindowRefreshCallback(glfwWindow, window => WindowFocusCallback(window, true));
         
-        Glfw3.SetWindowIconifyCallback(glfwWindow, minimizeCallback);
+        GLFW.Glfw.SetWindowIconifyCallback(glfwWindow, minimizeCallback);
 
-        Glfw3.SetWindowMaximizeCallback(glfwWindow, maximizeCallback);
+        GLFW.Glfw.SetWindowMaximizeCallback(glfwWindow, maximizeCallback);
 
-        Glfw3.SetKeyCallback(glfwWindow, keyCallbackDelegate);
+        GLFW.Glfw.SetKeyCallback(glfwWindow, keyCallbackDelegate);
 
-        Glfw3.SetCursorPosCallback(glfwWindow, cursorCallbackDelegate);
+        GLFW.Glfw.SetCursorPositionCallback(glfwWindow, cursorCallbackDelegate);
 
-        Glfw3.SetMouseButtonPosCallback(glfwWindow, buttonCallbackDelegate);
+        GLFW.Glfw.SetMouseButtonCallback(glfwWindow, buttonCallbackDelegate);
 
-        Glfw3.SetScrollCallback(glfwWindow, scrollCallbackDelegate);
+        GLFW.Glfw.SetScrollCallback(glfwWindow, scrollCallbackDelegate);
     }
     
     /* -- INTERNAL HELPER METHODS -- */
 
     private static void GetGlfwWindowParentClass(IntPtr glfwWindowPtr, out Window outWindow)
     {
-        IntPtr windowObjectPtr = Glfw3.GetWindowUserPointer(glfwWindowPtr);
-        GCHandle gcHandle = (GCHandle) windowObjectPtr;
+        IntPtr windowObject = Glfw3.GetWindowUserPointer(glfwWindowPtr);
+        
+        GCHandle gcHandle = (GCHandle) windowObject;
         outWindow = (gcHandle.Target as Window)!;
     }
 }
