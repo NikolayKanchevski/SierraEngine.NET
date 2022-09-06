@@ -80,6 +80,7 @@ public class Window
     private readonly MouseCallback cursorCallbackDelegate = Engine.Classes.Cursor.CursorPositionCallback;
     private readonly MouseButtonCallback buttonCallbackDelegate = Input.MouseButtonCallback;
     private readonly MouseCallback scrollCallbackDelegate = Input.MouseScrollCallback;
+    private readonly JoystickCallback joystickCallbackDelegate = Input.JoysticCallback; 
     
     /* -- REFERENCES TO PRIVATE FIELDS -- */
     
@@ -137,9 +138,13 @@ public class Window
     /// <param name="iconImageData">The icon image data converted to a byte array.</param>
     public void SetIcon(int iconWidth, int iconHeight, in byte[] iconImageData)
     {
-        // TODO: FIX
-        // Image icon = new Image(iconWidth, iconHeight, );
-        // GLFW.Glfw.SetWindowIcon(glfwWindow, 1, new [] { icon });
+        GCHandle pinnedArray = GCHandle.Alloc(iconImageData, GCHandleType.Pinned);
+        IntPtr bytesPtr = pinnedArray.AddrOfPinnedObject();
+        
+        GLFW.Image icon = new GLFW.Image(iconWidth, iconHeight, bytesPtr);
+        GLFW.Glfw.SetWindowIcon(glfwWindow, 1, new [] { icon });
+        
+        pinnedArray.Free();
     }
     
     /// <summary>
@@ -383,6 +388,8 @@ public class Window
         GLFW.Glfw.SetMouseButtonCallback(glfwWindow, buttonCallbackDelegate);
 
         GLFW.Glfw.SetScrollCallback(glfwWindow, scrollCallbackDelegate);
+
+        GLFW.Glfw.SetJoystickCallback(joystickCallbackDelegate);
     }
     
     /* -- INTERNAL HELPER METHODS -- */

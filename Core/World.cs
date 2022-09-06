@@ -38,6 +38,11 @@ public static class World
     
     public static GameObject? selectedGameObject;
 
+    public static void Init()
+    {
+        Input.Start();
+    }
+
     public static void Update()
     {
         UpdateObjects();

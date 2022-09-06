@@ -69,6 +69,8 @@ public class Application
 
         // Set initial values for the lighting and camera
         camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
+
+        World.Init();
         
         // Loop until the window is closed
         while (!window.closed)

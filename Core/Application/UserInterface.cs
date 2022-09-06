@@ -76,6 +76,19 @@ public class UserInterface
             ImGui.Separator();
             ImGui.Text($"Total meshes being drawn: { VulkanRendererInfo.meshesDrawn }");
             ImGui.Text($"Total vertices in scene: { VulkanRendererInfo.verticesDrawn }");
+
+            if (Input.GamepadConnected())
+            {
+                ImGui.Separator();
+                ImGui.Text($"Gamepad [{ Input.GetGamepadName() }] properties:");
+                ImGui.Text($"Left gamepad stick: [{ Input.GetGamepadLeftStickAxis().ToString("n4") }]");
+                ImGui.Text($"Right gamepad stick: [{ Input.GetGamepadRightStickAxis().ToString("n4") }]");
+                ImGui.Text($"Left trigger: [{ Input.GetGamepadLeftTriggerAxis():n4}]");
+                ImGui.Text($"Right trigger: [{ Input.GetGamepadRightTriggerAxis():n4}]");
+                ImGui.RadioButton($"\"A\" pressed", Input.GetGamepadButtonPressed(GamePadButton.A));
+                ImGui.RadioButton($"\"A\" held", Input.GetGamepadButtonHeld(GamePadButton.A));
+                ImGui.RadioButton($"\"A\" released", Input.GetGamepadButtonReleased(GamePadButton.A));
+            }
         
             ImGui.End();
         }

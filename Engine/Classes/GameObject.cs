@@ -153,13 +153,13 @@ public class GameObject
     {
         return parent == null;
     }
-
+    
     /// <summary>
     /// Executed once every frame.
     /// </summary>
     public void Update()
     {
-        foreach (Component component in components.ToList())
+        foreach (Component component in components)
         {
             component.Update();
         }

@@ -6,21 +6,29 @@ import sys
 import platform
 import shutil
 
-selectedPlatform = ""
-
-MACOS_64 = "--osx-x64"
-WIN_64 = "--win-x64"
-LINUX_64 = "--unix-64"
-
 ROOT_DIRECTORY = "../"
 SHADERS_FOLDER = ROOT_DIRECTORY + "Core/Rendering/Shading/Shaders/Compiled"
 REQUIRED_DIRECTORIES = ["Core/Rendering/Textures", "Core/Rendering/Models", "Core/Rendering/Fonts"]
+SUPPORTED_PLATFORMS = [
+    "win-x64", "win-x86", "win-arm", "win-arm64", "win7-x64", "win7-x86", "win81-x64", "win81-x86", "win81-arm", "win10-x64", "win10-x86", "win10-arm", "win10-arm64"
+    "osx-x64", "osx.10.10-x64", "osx.10.11-x64", "osx.10.12-x64", "osx.10.13-x64", "osx.10.14-x64", "osx.10.15-x64", "osx.11.0-x64", "osx.11.0-arm64", "osx.12-x64", "osx.12-arm64",
+    "linux-x64", "linux-musl-x64", "linux-arm", "linux-arm64", "rhel-x64", "rhel.6-x64", "tizen", "tizen.4.0.0", "tizen.5.0.0"
+]
 
 def Main():
+    print("Error: Script is incomplete! It is currently under maintenance!")
+    return
+    
     if (len(sys.argv) <= 2):
-        //////////
+        print("Error: You must run the program with two arguments: --[PLATFORM] and --[OUTPUT_DIRECTORY]!")
+        return
 
     platform = sys.argv[1].replace("--", "")
+
+    if (platform not in SUPPORTED_PLATFORMS):
+        print(f"Error: The platform [{ platform }] is either a non-existant, or unsupported!")
+        return
+
     outputDirectory = ROOT_DIRECTORY + f"bin/Release/net6.0/{platform}/publish/"
 
     command = f"dotnet publish ../SierraEngine.csproj -r { platform } --configuration Release /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
