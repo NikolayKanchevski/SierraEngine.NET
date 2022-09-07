@@ -5,7 +5,10 @@ using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Core;
 
-public static class Version
+/// <summary>
+/// A version structure, represented as 3 sub-version uints - major, minor, and patch.
+/// </summary>
+public struct Version
 {
     public const uint MAJOR = 1;
     public const uint MINOR = 0;
@@ -17,6 +20,9 @@ public static class Version
     }
 }
 
+/// <summary>
+/// The core of the engine. Maintains the renderer, the window, and every object in the scene.
+/// </summary>
 public static class World
 {
     // TODO: Set a texture system so that there is not a limit to their amount and is performant
@@ -38,11 +44,20 @@ public static class World
     
     public static GameObject? selectedGameObject;
 
+    /// <summary>
+    /// Starts the built-in classes. This means that each of them acquires its needed per-initialization data.
+    /// Must be called once at the very beginning of the game's code.
+    /// </summary>
     public static void Init()
     {
         Input.Start();
     }
 
+    /// <summary>
+    /// Updates everything connected to the world - the window surface, the renderer, and the built-in classes,
+    /// but not the built-in classes which must be updated once the world has been updated from here and from the user.
+    /// See <see cref="UpdateClasses"/>.
+    /// </summary>
     public static void Update()
     {
         UpdateObjects();
@@ -52,6 +67,11 @@ public static class World
         UpdateWindow();
     }
 
+    /// <summary>
+    /// Updates the required built-in classes. For example, important variables such as <see cref="Time.deltaTime"/>
+    /// would not work if this method is not called once and every frame and would also break if called more than once
+    /// per frame.
+    /// </summary>
     public static void UpdateClasses()
     { 
         Time.Update();

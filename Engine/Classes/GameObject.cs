@@ -4,6 +4,9 @@ using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Engine.Classes;
 
+/// <summary>
+/// Represents a an entity inside the world. Holds components and has a position, rotation, and scale in the 3D world space.  
+/// </summary>
 public class GameObject
 {
     /// <summary>

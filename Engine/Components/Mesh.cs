@@ -7,14 +7,34 @@ using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Engine.Components;
 
-public unsafe class Mesh : Component
+/// <summary>
+/// Represents a mesh in the scene. The class is assignable to an object as it is a component. Holds vertex and index data read by the renderer.
+/// </summary>
+public class Mesh : Component
 {
+    /// <summary>
+    /// Material to use when shading the mesh.
+    /// </summary>
     public Material material;
     
+    /// <summary>
+    /// Total count of all vertices within the mesh.
+    /// </summary>
     public uint verticesCount { get; private set; }
+    
+    /// <summary>
+    /// Total count of all vertex indices within the mesh.
+    /// </summary>
     public uint indexCount { get; private set; }
     
+    /// <summary>
+    /// The offset in the diffuse textures pool in the renderer.
+    /// </summary>
     public int diffuseTextureID { get; private set; } = 0;
+    
+    /// <summary>
+    /// The offset in the specular textures pool in the renderer.
+    /// </summary>
     public int specularTextureID { get; private set; } = 0;
 
     private PushConstant pushConstantData;
@@ -22,6 +42,9 @@ public unsafe class Mesh : Component
     private Buffer vertexBuffer = null!;
     private Buffer indexBuffer = null!;
 
+    /// <summary>
+    /// Constructs a new mesh with from given vertices, indices, and a diffuse texture.
+    /// </summary>
     public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newDiffuseTextureId)
     {
         // Retrieve the public values
@@ -39,6 +62,9 @@ public unsafe class Mesh : Component
         VulkanRendererInfo.verticesDrawn += (int) verticesCount;
     }
 
+    /// <summary>
+    /// Constructs a new mesh with from given vertices, and indices.
+    /// </summary>
     public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices)
     {
         // Retrieve the public values
@@ -55,20 +81,37 @@ public unsafe class Mesh : Component
         VulkanRendererInfo.verticesDrawn += (int) verticesCount;
     }
 
-    public int SetTexture(in TextureType textureType, in int newTextureID)
+    /// <summary>
+    /// Binds a given texture to the mesh.
+    /// </summary>
+    /// <param name="textureType">What kind the texture is of.</param>
+    /// <param name="newTextureID">New texture offset in the textures pool.</param>
+    /// <returns></returns>
+    public void SetTexture(in TextureType textureType, in int newTextureID)
     {
         if (textureType == TextureType.Diffuse) this.diffuseTextureID = newTextureID;
         else if (textureType == TextureType.Specular) this.specularTextureID = newTextureID;
-
-        return newTextureID;
     }
 
+    /// <summary>
+    /// Removes the texture of given type from the mesh.
+    /// </summary>
+    /// <param name="textureType">Which texture to reset.</param>
     public void ResetTexture(in TextureType textureType)
     {
         if (textureType == TextureType.Diffuse) this.diffuseTextureID = 0;
         else if (textureType == TextureType.Specular) this.specularTextureID = 0;
     }
     
+    /// <summary>
+    /// Creates a sphere from given radius and resolution.
+    /// </summary>
+    /// <param name="radius">Radius of the sphere.</param>
+    /// <param name="sectorCount">How many sectors to generate for the sphere.</param>
+    /// <param name="stackCount">How many stacks to generate for the sphere.</param>
+    /// <param name="renderBackFace">Whether to render the back or front face of the sphere.</param>
+    /// <returns></returns>
+    [Obsolete]
     public static Mesh CreateSphere(in float radius, in int sectorCount, in int stackCount, bool renderBackFace = false)
     {
        List<Vertex> vertices = new ();
@@ -151,6 +194,10 @@ public unsafe class Mesh : Component
         return new Mesh(vertices.ToArray(), indices.ToArray());
     }
 
+    /// <summary>
+    /// Returns the data required to be passed to shaders. Should only really be used by the renderer.
+    /// </summary>
+    /// <returns></returns>
     public PushConstant GetPushConstantData()
     {
         // Update the model matrix per call

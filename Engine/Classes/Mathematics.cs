@@ -1,5 +1,8 @@
 namespace SierraEngine.Engine.Classes;
 
+/// <summary>
+/// Contains many useful mathematical methods. Extends the functionality of <see cref="Math"/>.
+/// </summary>
 public static class Mathematics
 {
     /// <summary>

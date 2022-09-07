@@ -35,11 +35,16 @@ def Main():
     copyDirectory = sys.argv[2].replace("--", "")
 
     try:
-        shutil.rmtree(copyDirectory + "Sierra Engine Game")
+        shutil.rmtree(copyDirectory + f"/Sierra Engine Game ({ platform })")
     except:
         pass
 
-    command = f"dotnet publish ../SierraEngine.csproj -r { platform } --configuration Release /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
+    try:
+        shutil.rmtree(copyDirectory + "/publish")
+    except:
+        pass
+
+    command = f"dotnet publish ../SierraEngine.csproj -r { platform } --configuration Release --self-contained /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
 
     try:
         os.system(command)
@@ -63,7 +68,7 @@ def Main():
         print(f"Could not move the export to { copyDirectory }! Make sure the directory is valid and exists!")
         return
 
-    os.rename(copyDirectory + "/publish", copyDirectory + "/Sierra Engine Game")
+    os.rename(copyDirectory + "/publish", copyDirectory + f"/Sierra Engine Game ({ platform })")
     shutil.rmtree(ROOT_DIRECTORY + f"bin/Release/net6.0/{platform}")
 
     print("\nSuccess!")

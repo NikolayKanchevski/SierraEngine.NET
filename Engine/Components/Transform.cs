@@ -1,7 +1,12 @@
 using System.Numerics;
+using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Engine.Components;
 
+/// <summary>
+/// A default component, existing in all entities (<see cref="GameObject"/>). Represents its entity's position, rotation, and scale
+/// in the 3D world space.
+/// </summary>
 public class Transform
 {
     public static Transform Default = new Transform() { position = Vector3.Zero, rotation = Vector3.Zero, scale = Vector3.One };

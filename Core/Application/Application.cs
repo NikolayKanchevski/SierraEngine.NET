@@ -108,24 +108,22 @@ public class Application
         float upTimeSin = (float) Math.Sin(Time.upTime);
 
         // Point light settings
-        {
-            firstPointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
-            firstPointLight.linear = 0.09f;
-            firstPointLight.quadratic = 0.032f;
+        firstPointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
+        firstPointLight.linear = 0.09f;
+        firstPointLight.quadratic = 0.032f;
         
-            firstPointLight.ambient = new Vector3(0.2f);
-            firstPointLight.diffuse = new Vector3(0.5f);
-            firstPointLight.specular = new Vector3(0.5f);
+        firstPointLight.ambient = new Vector3(0.2f);
+        firstPointLight.diffuse = new Vector3(0.5f);
+        firstPointLight.specular = new Vector3(0.5f);
         
-            secondPointLight.transform.position = new Vector3(-firstPointLight.position.X, -firstPointLight.position.Y, -firstPointLight.position.Z);
-            secondPointLight.linear = 0.09f;
-            secondPointLight.quadratic = 0.032f;
+        secondPointLight.transform.position = new Vector3(-firstPointLight.position.X, -firstPointLight.position.Y, -firstPointLight.position.Z);
+        secondPointLight.linear = 0.09f;
+        secondPointLight.quadratic = 0.032f;
         
-            secondPointLight.ambient = new Vector3(0.2f);
-            secondPointLight.diffuse = new Vector3(0.5f);
-            secondPointLight.specular = new Vector3(0.5f);
-            secondPointLight.intensity = firstPointLight.intensity;
-        }
+        secondPointLight.ambient = new Vector3(0.2f);
+        secondPointLight.diffuse = new Vector3(0.5f);
+        secondPointLight.specular = new Vector3(0.5f);
+        secondPointLight.intensity = firstPointLight.intensity;
         
         // Apply rotations to the turret and gun objects 
         World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
@@ -202,14 +200,18 @@ public class Application
         yaw += Cursor.GetHorizontalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
         pitch += Cursor.GetVerticalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
 
+        // Check if a single controller is connected
         if (Input.GamepadConnected())
         {
+            // Get the left stick's axis and calculate movement based on it
             camera.transform.position -= Input.GetVerticalGamepadLeftStickAxis() * CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
             camera.transform.position += Input.GetHorizontalGamepadLeftStickAxis() * CAMERA_MOVE_SPEED * Time.deltaTime * camera.leftDirection;
 
+            // Depending on what buttons are held move the camera
             if (Input.GetGamepadButtonHeld(GamePadButton.A)) camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
             if (Input.GetGamepadButtonHeld(GamePadButton.X)) camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
             
+            // Rotate the camera based on the right stick's axis
             yaw += Input.GetHorizontalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
             pitch += Input.GetVerticalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
         }

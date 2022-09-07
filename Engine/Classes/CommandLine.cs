@@ -3,6 +3,7 @@ using System.Text;
 using SierraEngine.Core.Rendering.Vulkan;
 
 namespace SierraEngine.Engine.Classes;
+
 /// <summary>
 /// Handles all the logic involving the Command Prompt (on Windows), and Terminal (macOS, Linux).
 /// </summary>

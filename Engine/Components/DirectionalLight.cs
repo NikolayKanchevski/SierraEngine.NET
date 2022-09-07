@@ -5,6 +5,9 @@ using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Engine.Components;
 
+/// <summary>
+/// A component representing a directional light in the scene. Derives from both <see cref="Light"/> and <see cref="Component"/>.
+/// </summary>
 public class DirectionalLight : Light
 {
     public Vector3 direction;

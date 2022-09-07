@@ -4,13 +4,28 @@ using SierraEngine.Core.Rendering.Vulkan;
 
 namespace SierraEngine.Engine.Classes;
 
+/// <summary>
+/// A class to interface with the cursor.
+/// </summary>
 public static class Cursor
 {
+    /// <summary>
+    /// Returns the position on the cursor.
+    /// </summary>
     public static Vector2 cursorPosition { get; private set; }
-    public static Vector2 lastCursorPosition { get; private set; }
+    
+    /// <summary>
+    /// Returns the normalized position of the cursor where both X and Y is a value between 0 and 1.
+    /// </summary>
     public static Vector2 cursorPositionNormalized { get; private set; }
+    
+    /// <summary>
+    /// Tells whether the cursor is visible on the screen.
+    /// </summary>
     public static bool cursorShown { get; private set; } = true;
 
+    private static Vector2 lastCursorPosition { get; set; }
+    
     private static Vector2 cursorOffset = Vector2.Zero;
     private static bool cursorPositionSet;
 

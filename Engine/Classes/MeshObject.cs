@@ -7,12 +7,22 @@ using TextureType = SierraEngine.Core.Rendering.Vulkan.TextureType;
 
 namespace SierraEngine.Engine.Classes;
 
+/// <summary>
+/// A wrapper around <see cref="Mesh"/> used for loading an object, a collection of meshes. Useful mostly for loading 3D models.
+/// </summary>
 public class MeshObject
 {
-    public GameObject rootGameObject { get; private set; }= null!;
-    
+    /// <summary>
+    /// Total count of vertices withing all meshes. 
+    /// </summary>
     public int vertexCount { get; private set; }
+    
+    /// <summary>
+    /// Path to the model's file.
+    /// </summary>
     public readonly string modelLocation;
+    
+    private GameObject rootGameObject = null!;
     
     private readonly Mesh[] meshes;
     private readonly string modelName;

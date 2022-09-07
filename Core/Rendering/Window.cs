@@ -10,7 +10,7 @@ using ErrorCode = GLFW.ErrorCode;
 
 namespace SierraEngine.Core.Rendering;
 
-/// <summary>A class to create windows on the screen. Wraps around a "core" GLFW window and extends its abilities.</summary>
+/// <summary>Window manager class. Wraps around a "core" GLFW window and extends its capaabilities.</summary>
 public class Window
 {
     /// <summary>
