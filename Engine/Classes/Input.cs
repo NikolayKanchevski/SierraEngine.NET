@@ -1,6 +1,8 @@
 using System.Numerics;
+using Glfw;
 using GLFW;
 using SierraEngine.Core.Rendering.Vulkan;
+using MouseButton = GLFW.MouseButton;
 
 namespace SierraEngine.Engine.Classes;
 
@@ -82,8 +84,11 @@ public static class Input
 
     public static string GetKeyName(in Keys key, bool shiftPressed = false)
     {
-        string keyName = GLFW.Glfw.GetKeyName(key, 0);
+        string keyName = Glfw3.GetKeyName((Key) key, 0);
 
+        if (key == Keys.Space) return " ";
+        if (keyName == null) return "";
+        
         if (!shiftPressed)
         {
             return keyName;
@@ -149,7 +154,7 @@ public static class Input
 
     public static bool GetGamepadButtonHeld(in GamePadButton gamepadButton, in int player = 0)
     {
-        return CheckGamepadConnection(player) && gamepads[player].buttons[(int) gamepadButton] == 3;
+        return CheckGamepadConnection(player) && (gamepads[player].buttons[(int) gamepadButton] == 3 || gamepads[player].buttons[(int) gamepadButton] == 2);
     }
 
     public static bool GetGamepadButtonReleased(in GamePadButton gamepadButton, in int player = 0)
@@ -164,32 +169,32 @@ public static class Input
 
     public static Vector2 GetGamepadLeftStickAxis(in int player = 0)
     {
-        return CheckGamepadConnection(player) ? gamepads[player].axes[0] : Vector2.Zero;
+        return CheckGamepadConnection(player) ? gamepads[player].axes[0] * -1 : Vector2.Zero;
     }
 
-    public static float GetGamepadLeftStickAxisX(in int player = 0)
+    public static float GetHorizontalGamepadLeftStickAxis(in int player = 0)
     {
-        return CheckGamepadConnection(player) ? gamepads[player].axes[0].X : 0.0f;
+        return CheckGamepadConnection(player) ? gamepads[player].axes[0].X * -1 : 0.0f;
     }
 
-    public static float GetGamepadLeftStickAxisY(in int player = 0)
+    public static float GetVerticalGamepadLeftStickAxis(in int player = 0)
     {
-        return CheckGamepadConnection(player) ? gamepads[player].axes[0].Y : 0.0f;
+        return CheckGamepadConnection(player) ? gamepads[player].axes[0].Y * -1 : 0.0f;
     }
 
     public static Vector2 GetGamepadRightStickAxis(in int player = 0)
     {
-        return CheckGamepadConnection(player) ? gamepads[player].axes[1] : Vector2.Zero;
+        return CheckGamepadConnection(player) ? gamepads[player].axes[1] * -1 : Vector2.Zero;
     }
 
-    public static float GetGamepadRightStickAxisX(in int player = 0)
+    public static float GetHorizontalGamepadRightStickAxis(in int player = 0)
     {
-        return CheckGamepadConnection(player) ? gamepads[player].axes[1].X : 0.0f;
+        return CheckGamepadConnection(player) ? gamepads[player].axes[1].X * -1 : 0.0f;
     }
 
-    public static float GetGamepadRightStickAxisY(in int player = 0)
+    public static float GetVerticalGamepadRightStickAxis(in int player = 0)
     {
-        return CheckGamepadConnection(player) ? gamepads[player].axes[1].Y : 0.0f;
+        return CheckGamepadConnection(player) ? gamepads[player].axes[1].Y * -1 : 0.0f;
     }
 
     public static float GetGamepadLeftTriggerAxis(in int player = 0)
@@ -317,7 +322,7 @@ public static class Input
     private static void RegisterGamepad(in int player)
     {
         gamepads[player].connected = true;
-        gamepads[player].minimumSensitivities = new[] { 0.18f, 0.18f };
+        gamepads[player].minimumSensitivities = new[] { 0.2f, 0.2f };
         gamepads[player].name = GLFW.Glfw.GetGamepadName(player);
         gamepads[player].buttons = new int[15];
         gamepads[player].axes = new Vector2[2];

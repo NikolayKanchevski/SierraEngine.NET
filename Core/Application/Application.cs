@@ -21,7 +21,8 @@ public class Application
     private readonly PointLight secondPointLight;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
-    private const float CAMERA_LOOK_SPEED = 0.1f;
+    private const float MOUSE_CAMERA_LOOK_SPEED = 0.1f;
+    private const float GAMEPAD_CAMERA_LOOK_SPEED = 0.5f;
     private const float CAMERA_ZOOM_SPEED = 30.0f;
     private float yaw = -90.0f, pitch;
 
@@ -181,11 +182,11 @@ public class Application
         
         if (Input.GetKeyHeld(Keys.A))
         {
-            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
+            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.leftDirection;
         }
         if (Input.GetKeyHeld(Keys.D))
         {
-            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * Vector3.Normalize(Vector3.Cross(camera.frontDirection, camera.upDirection));
+            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.rightDirection;
         }
         
         if (Input.GetKeyHeld(Keys.Q) || Input.GetKeyHeld(Keys.LeftControl))
@@ -198,8 +199,20 @@ public class Application
         }
 
         // Rotate the camera based on mouse movement
-        yaw += Cursor.GetHorizontalCursorOffset() * CAMERA_LOOK_SPEED;
-        pitch += Cursor.GetVerticalCursorOffset() * CAMERA_LOOK_SPEED;
+        yaw += Cursor.GetHorizontalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
+        pitch += Cursor.GetVerticalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
+
+        if (Input.GamepadConnected())
+        {
+            camera.transform.position -= Input.GetVerticalGamepadLeftStickAxis() * CAMERA_MOVE_SPEED * Time.deltaTime * camera.frontDirection;
+            camera.transform.position += Input.GetHorizontalGamepadLeftStickAxis() * CAMERA_MOVE_SPEED * Time.deltaTime * camera.leftDirection;
+
+            if (Input.GetGamepadButtonHeld(GamePadButton.A)) camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+            if (Input.GetGamepadButtonHeld(GamePadButton.X)) camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+            
+            yaw += Input.GetHorizontalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
+            pitch += Input.GetVerticalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
+        }
 
         // Clamp the pitch
         pitch = Mathematics.Clamp(pitch, -89.0f, 89.0f);
