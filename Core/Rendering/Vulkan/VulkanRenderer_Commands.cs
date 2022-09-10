@@ -37,19 +37,19 @@ public unsafe partial class VulkanRenderer
     {
         // Resize the command buffers array
         commandBuffers = new VkCommandBuffer[MAX_CONCURRENT_FRAMES];
-
+        
+        // Set up allocation info
+        VkCommandBufferAllocateInfo commandBufferAllocateInfo = new VkCommandBufferAllocateInfo()
+        {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            commandPool = commandPool,
+            level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            commandBufferCount = 1
+        };
+        
         // Allocate a command buffer for each frame
         for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
-            // Set up allocation info
-            VkCommandBufferAllocateInfo commandBufferAllocateInfo = new VkCommandBufferAllocateInfo()
-            {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                commandPool = commandPool,
-                level = VkCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                commandBufferCount = 1
-            };
-
             // Allocate the buffer
             fixed (VkCommandBuffer* commandBufferPtr = &commandBuffers[i])
             {

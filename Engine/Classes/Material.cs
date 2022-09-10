@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace SierraEngine.Engine.Classes;
 
 /// <summary>
@@ -5,5 +7,23 @@ namespace SierraEngine.Engine.Classes;
 /// </summary>
 public struct Material
 {
+    /// <summary>
+    /// How shiny the mesh should be.
+    /// </summary>
     public float shininess;
+    
+    /// <summary>
+    /// How opaque the main (diffuse) color of the mesh should be.
+    /// </summary>
+    public Vector3 diffuse;
+    
+    /// <summary>
+    /// How strong the specular should be.
+    /// </summary>
+    public Vector3 specular;
+    
+    /// <summary>
+    /// How lit the ambient light color should be.
+    /// </summary>
+    public Vector3 ambient;
 }

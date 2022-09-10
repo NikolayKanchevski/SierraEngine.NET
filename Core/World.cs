@@ -2,6 +2,7 @@ using System.Numerics;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
+using SierraEngine.Engine.Components.Lighting;
 
 namespace SierraEngine.Core;
 
@@ -29,19 +30,24 @@ public static class World
     public const uint MAX_TEXTURES = 128; // Changed as @kael wouldn't stop bitching about it
     public const int MAX_POINT_LIGHTS = 64; // Remember to change the limit in the fragment shader too!
     public const int MAX_DIRECTIONAL_LIGHTS = 16; // Remember to change the limit in the fragment shader too!
+    public const int MAX_SPOTLIGHT_LIGHTS = 16; // Remember to change the limit in the fragment shader too!
     
     public static List<Mesh> meshes { get; } = new List<Mesh>(); 
     public static List<GameObject> hierarchy { get; } = new List<GameObject>();
 
+    public static UniformDirectionalLight[] directionalLights { get; private set; } = new UniformDirectionalLight[MAX_DIRECTIONAL_LIGHTS];
+    private static readonly List<int> freeDirectionalLightSlots = new List<int>(MAX_DIRECTIONAL_LIGHTS);
     private static int directionalLightsCount;
-    public static UniformDirectionalLight[] directionalLights { get; } = new UniformDirectionalLight[MAX_DIRECTIONAL_LIGHTS];
     
+    public static UniformPointLight[] pointLights { get; private set; } = new UniformPointLight[MAX_POINT_LIGHTS];
+    private static readonly List<int> freePointLightSlots = new List<int>(MAX_DIRECTIONAL_LIGHTS);
     private static int pointLightsCount;
-    public static UniformPointLight[] pointLights { get; } = new UniformPointLight[MAX_POINT_LIGHTS];
+
+    public static UniformSpotLight[] spotLights { get; private set; } = new UniformSpotLight[MAX_SPOTLIGHT_LIGHTS];
+    private static readonly List<int> freeSpotLightSlots = new List<int>(MAX_DIRECTIONAL_LIGHTS);
+    private static int spotLightsCount;
 
     public static Camera camera = null!;
-
-    
     public static GameObject? selectedGameObject;
 
     /// <summary>
@@ -102,6 +108,9 @@ public static class World
         
         VulkanCore.vulkanRenderer.uniformData.pointLights = World.pointLights;
         VulkanCore.vulkanRenderer.uniformData.pointLightsCount = World.pointLightsCount;
+        
+        VulkanCore.vulkanRenderer.uniformData.spotLights = World.spotLights;
+        VulkanCore.vulkanRenderer.uniformData.spotLightsCount = World.spotLightsCount;
     }
 
     private static void UpdateWindow()
@@ -111,6 +120,14 @@ public static class World
     
     public static int RegisterDirectionalLight(DirectionalLight directionalLight)
     {
+        if (freeDirectionalLightSlots.Count > 0)
+        {
+            directionalLights[freeDirectionalLightSlots[0]] = directionalLight;
+            
+            freeDirectionalLightSlots.RemoveAt(0);
+            return freeDirectionalLightSlots[0];
+        }
+        
         if (directionalLightsCount == MAX_DIRECTIONAL_LIGHTS)
         {
             VulkanDebugger.ThrowWarning("Limit of directional lights reached. Light is automatically discarded");
@@ -123,8 +140,22 @@ public static class World
         return directionalLightsCount - 1;
     }
 
-    public static int  RegisterPointLight(PointLight pointLight)
+    public static void RemoveDirectionalLight(DirectionalLight directionalLight)
     {
+        directionalLights[directionalLight.ID] = default;
+        freeDirectionalLightSlots.Add(directionalLight.ID);
+    }
+
+    public static int RegisterPointLight(PointLight pointLight)
+    {
+        if (freePointLightSlots.Count > 0)
+        {
+            pointLights[freePointLightSlots[0]] = pointLight;
+            
+            freePointLightSlots.RemoveAt(0);
+            return freePointLightSlots[0];
+        }
+        
         if (pointLightsCount == MAX_POINT_LIGHTS)
         {
             VulkanDebugger.ThrowWarning("Limit of point lights reached. Light is automatically discarded");
@@ -133,7 +164,41 @@ public static class World
         
         pointLights[pointLightsCount] = pointLight;
         pointLightsCount++;
-
+            
         return pointLightsCount - 1;
+    }
+
+    public static void RemovePointLight(PointLight pointLight)
+    {
+        pointLights[pointLight.ID] = default;
+        freePointLightSlots.Add(pointLight.ID);
+    }
+
+    public static int RegisterSpotLight(SpotLight spotLight)
+    {
+        if (freeSpotLightSlots.Count > 0)
+        {
+            spotLights[freeSpotLightSlots[0]] = spotLight;
+            
+            freeSpotLightSlots.RemoveAt(0);
+            return freeSpotLightSlots[0];
+        }
+        
+        if (spotLightsCount == MAX_SPOTLIGHT_LIGHTS)
+        {
+            VulkanDebugger.ThrowWarning("Limit of spot lights reached. Light is automatically discarded");
+            return -1;
+        }
+
+        spotLights[spotLightsCount] = spotLight;
+        spotLightsCount++;
+
+        return spotLightsCount - 1;
+    }
+
+    public static void RemoveSpotLight(SpotLight spotLight)
+    {
+        spotLights[spotLight.ID] = default;
+        freeSpotLightSlots.Add(spotLight.ID);
     }
 }

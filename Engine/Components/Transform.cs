@@ -9,7 +9,7 @@ namespace SierraEngine.Engine.Components;
 /// </summary>
 public class Transform
 {
-    public static Transform Default = new Transform() { position = Vector3.Zero, rotation = Vector3.Zero, scale = Vector3.One };
+    public static readonly Transform Default = new Transform() { position = Vector3.Zero, rotation = Vector3.Zero, scale = Vector3.One };
     
     public Vector3 position = Vector3.Zero;
     public Vector3 rotation = Vector3.Zero;

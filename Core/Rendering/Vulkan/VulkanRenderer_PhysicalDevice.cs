@@ -76,7 +76,7 @@ public unsafe partial class VulkanRenderer
                 this.queueFamilyIndices = FindQueueFamilies(currentPhysicalDevice);
                 
                 // Detect system properties now that we are sure the system is capable of running the Vulkan program
-                SystemInformation.PopulateSystemInfo();
+                Task.WaitAll(systemInfoTask);
                 SystemInformation.SetUsedGPUModel(VulkanUtilities.GetString(deviceProperties.deviceName));
                 
                 // Show support message

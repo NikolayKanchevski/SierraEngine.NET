@@ -6,39 +6,40 @@ layout(location = 2) in vec2 fromVert_TextureCoordinates;
 
 const uint MAX_POINT_LIGHTS = 64;
 const uint MAX_DIRECTIONAL_LIGHTS = 16; 
+const uint MAX_SPOTLIGHT_LIGHTS = 16; 
 
 struct DirectionalLight {
         vec3 direction;
         float intensity;
-
+        
         vec3 color;
         float _align1_;
-
-        vec3 ambient;
-        float _align2_;
-
-        vec3 diffuse;
-        float _align3_;
-
-        vec3 specular;
-        float _align4_;
 };
 
 struct PointLight {
         vec3 position;
-        float _align1_;
-
-        vec3 color;
-        float intensity;
-
-        vec3 ambient;
-        float _align2_;
-        
-        vec3 diffuse;
         float linear;
         
-        vec3 specular;
+        vec3 color;
+        float intensity;
+        
+        vec3 _align_1;
         float quadratic;
+};
+
+struct SpotLight {
+        vec3 position;
+        float radius;
+        
+        vec3 direction;
+        float intensity;
+        
+        vec3 color;
+        float linear;
+        
+        vec2 _align1_;
+        float quadratic;
+        float spreadRadius;
 };
 
 layout(set = 0, binding = 0) uniform UniformBuffer {
@@ -49,17 +50,30 @@ layout(set = 0, binding = 0) uniform UniformBuffer {
         /* FRAGMENT DATA */
         DirectionalLight[MAX_DIRECTIONAL_LIGHTS] directionalLights;
         PointLight[MAX_POINT_LIGHTS] pointLights;
+        SpotLight[MAX_SPOTLIGHT_LIGHTS] spotLights;
 
-        int pointLightsCount;
         int directionalLightsCount;
+        int pointLightsCount;
+        int spotLightsCount;
 } ub;
+
+struct Material {
+        vec3 diffuse;
+        float shininess;
+
+        vec3 specular;
+        float _align1_;
+
+        vec3 ambient;
+        float _align2_;
+};
 
 layout(push_constant) uniform PushConstant {
         /* VERTEX DATA */
         mat4 model;
 
         /* FRAGMENT DATA */
-        float shininess;
+        Material material;
 } pushConstant;
 
 layout(set = 1, binding = 1) uniform sampler2D diffuseSampler;
@@ -70,26 +84,23 @@ layout(location = 0) out vec4 outColor;
 vec3 textureColor;
 float specularColor;
 
-vec3 normal;
 vec3 viewDirection;
 
+//vec3 normal;
+
 vec3 CalculateDirectionalLight(DirectionalLight directionalLight);
-vec3 CalculatePointLight(PointLight directionalLight);
+vec3 CalculatePointLight(PointLight pointLight);
+vec3 CalculateSpotLight(SpotLight spotLight);
 
 void main() {
         // Get the texture color
-//        vec3 textureColor = ub.directionalLight.color * texture(diffuseSampler, fromVert_TextureCoordinates).rgb;
         textureColor = texture(diffuseSampler, fromVert_TextureCoordinates).rgb;
         specularColor = texture(specularSampler, fromVert_TextureCoordinates).r;
-
-        // TODO: Add proportional scale check
-        // vec3 normal = normalize(mat3(fromVert_ModelMatrix) * fromVert_Normal);;
-
-        mat3 normalMatrix = transpose(inverse(mat3(pushConstant.model)));
         
-        normal = normalize(normalMatrix * fromVert_Normal);
+        // Set view direction
         viewDirection = normalize(-fromVert_Position);
         
+        // Define end fragment color
         vec3 calculatedColor = vec3(0, 0, 0);
         
         // Directional light data
@@ -97,25 +108,34 @@ void main() {
                 if (ub.directionalLights[i].intensity <= 0.0001) continue;
                 calculatedColor += CalculateDirectionalLight(ub.directionalLights[i]);
         }
-        
+
         // For each point light calculate its color
         for (int i = 0; i < ub.pointLightsCount; i++) {
                 if (ub.pointLights[i].intensity <= 0.0001) continue;
                 calculatedColor += CalculatePointLight(ub.pointLights[i]);
         }
         
+        // For each spot light calculate its color
+        for (int i = 0; i < ub.spotLightsCount; i++) {
+                if (ub.spotLights[i].intensity <= 0.0001) continue;
+                calculatedColor += CalculateSpotLight(ub.spotLights[i]);
+        }
+        
         outColor = vec4(calculatedColor, 1.0);
 }
 
 vec3 CalculateDirectionalLight(DirectionalLight directionalLight) {
-        const vec3 reflectionDirection = reflect(directionalLight.direction, normal);
+        // Calculate required directions
+        const vec3 reflectionDirection = reflect(directionalLight.direction, fromVert_Normal);
 
-        const float diffuseStrength = max(dot(normal, directionalLight.direction), 0.0);
-        const float specularStrength = pow(max(dot(viewDirection, reflectionDirection), 0.0), max(pushConstant.shininess * 512, 1.0));
-        
-        const vec3 ambient = directionalLight.ambient * textureColor;
-        const vec3 diffuse = directionalLight.diffuse * textureColor * diffuseStrength * directionalLight.color * directionalLight.intensity;
-        const vec3 specular = directionalLight.specular * specularColor * specularStrength * directionalLight.color * directionalLight.intensity;
+        // Calculate diffuse and base specular values
+        const float diffuseStrength = max(dot(fromVert_Normal, directionalLight.direction), 0.0);
+        const float specularStrength = pow(max(dot(viewDirection, reflectionDirection), 0.0), max(pushConstant.material.shininess * 512, 1.0));
+
+        // Calculate final light components
+        const vec3 ambient = pushConstant.material.ambient * textureColor;
+        const vec3 diffuse = pushConstant.material.diffuse * textureColor * diffuseStrength * directionalLight.color * directionalLight.intensity;
+        const vec3 specular = pushConstant.material.specular * specularColor * specularStrength * directionalLight.color * directionalLight.intensity;
         
         return (ambient + diffuse + specular);
 } 
@@ -123,23 +143,59 @@ vec3 CalculateDirectionalLight(DirectionalLight directionalLight) {
 vec3 CalculatePointLight(PointLight pointLight) {
         // Calculate required directions
         const vec3 lightDirection = normalize(pointLight.position - fromVert_Position);
-        const vec3 reflectionDirection = reflect(lightDirection, normal);
+        const vec3 reflectionDirection = reflect(lightDirection, fromVert_Normal);
 
         // Calculate diffuse and base specular values
-        const float diffuseStrength = max(dot(normal, lightDirection), 0.0);
-        const float specularStrength = pow(max(dot(viewDirection, reflectionDirection), 0.0), max(pushConstant.shininess * 512, 1.0));
+        const float diffuseStrength = max(dot(fromVert_Normal, lightDirection), 0.0);
+        const float specularStrength = pow(max(dot(viewDirection, reflectionDirection), 0.0), max(pushConstant.material.shininess * 512, 1.0));
 
-        // Calculate final light components
-        vec3 ambient = pointLight.ambient * textureColor;
-        vec3 diffuse = pointLight.diffuse * textureColor * diffuseStrength * pointLight.color * pointLight.intensity;
-        vec3 specular = pointLight.specular * specularColor * specularStrength * pointLight.color * pointLight.intensity;
+        // Calculate light components
+        vec3 ambient = pushConstant.material.ambient * textureColor;
+        vec3 diffuse = pushConstant.material.diffuse * textureColor * diffuseStrength * pointLight.color * pointLight.intensity;
+        vec3 specular = pushConstant.material.specular * specularColor * specularStrength * pointLight.color * pointLight.intensity;
         
+        // Calculate attenuation
         const float distance = length(pointLight.position - fromVert_Position);
         const float attenuation = 1.0 / (1.0f + pointLight.linear * distance + pointLight.quadratic * (distance * distance));
 
+        // Apply attenuation
         ambient  *= attenuation;
         diffuse  *= attenuation;
         specular *= attenuation;
         
+        return (ambient + diffuse + specular);
+}
+
+vec3 CalculateSpotLight(SpotLight spotLight) {
+        if (spotLight.radius < spotLight.spreadRadius) {
+                spotLight.spreadRadius = spotLight.radius;
+        }
+        
+        // Calculate required directions
+        const vec3 lightDirection = normalize(spotLight.position - fromVert_Position);
+        const vec3 reflectionDirection = reflect(-lightDirection, fromVert_Normal);
+        
+        const float theta = dot(lightDirection, normalize(-spotLight.direction));
+        const float epsilon = (spotLight.radius - spotLight.spreadRadius);
+        const float calculatedIntensity = clamp((theta - spotLight.spreadRadius) / epsilon, 0.0, 1.0);
+
+        // Calculate diffuse and base specular values
+        const float diffuseStrength = max(dot(fromVert_Normal, -lightDirection), 0.0);
+        const float specularStrength = pow(max(dot(viewDirection, reflectionDirection), 0.0), max(pushConstant.material.shininess * 512, 1.0));
+
+        // Calculate final light components
+        vec3 ambient = pushConstant.material.ambient * textureColor;
+        vec3 diffuse = pushConstant.material.diffuse * textureColor * diffuseStrength * spotLight.color * calculatedIntensity;
+        vec3 specular = pushConstant.material.specular * specularColor * specularStrength * spotLight.color * calculatedIntensity;
+
+        // Calculate attenuation
+        const float distance = length(spotLight.position - fromVert_Position);
+        const float attenuation = 1.0 / (1.0f + spotLight.linear * distance + spotLight.quadratic * (distance * distance));
+
+        // Apply attenuation
+        ambient  *= attenuation;
+        diffuse  *= attenuation;
+        specular *= attenuation;
+
         return (ambient + diffuse + specular);
 }

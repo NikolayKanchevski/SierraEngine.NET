@@ -8,29 +8,25 @@ layout(set = 0, binding = 0) uniform UniformBuffer {
     /* VERTEX DATA */
     mat4 view;
     mat4 projection;
+} uniformBuffer;
 
-    /* FRAGMENT DATA */
-    vec3 lightPosition;
+struct Material {
+    vec3 diffuse;
+    float shininess;
+
+    vec3 specular;
     float _align1_;
 
-    vec3 lightColor;
+    vec3 ambient;
     float _align2_;
-
-    vec3 lightAmbient;
-    float _align3_;
-
-    vec3 lightDiffuse;
-    float _align4_;
-
-    vec3 lightSpecular;
-} uniformBuffer; 
+};
 
 layout(push_constant) uniform PushConstant {
     /* VERTEX DATA */
     mat4 model;
     
     /* FRAGMENT DATA */
-    float shininess;
+    Material material;
 } pushConstant;
 
 layout(location = 0) out vec3 toFrag_Position;
@@ -41,8 +37,11 @@ void main() {
     // Set the position of the vertex in world space
     gl_Position =  uniformBuffer.projection * uniformBuffer.view * pushConstant.model * vec4(fromCode_Position, 1.0);
     
+    // Get the model matrix
+    mat3 normalMatrix = transpose(inverse(mat3(pushConstant.model)));
+    
     // Transfer required data from vertex to fragment shader
-    toFrag_Position = fromCode_Position;
-    toFrag_Normal = fromCode_Normal;
+    toFrag_Position = (pushConstant.model * vec4(fromCode_Position, 1.0)).xyz;
+    toFrag_Normal = normalize(normalMatrix * fromCode_Normal);
     toFrag_TextureCoordinates = fromCode_TextureCoordinates;
 }

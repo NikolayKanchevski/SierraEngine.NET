@@ -14,55 +14,36 @@ public static class CommandLine
         RedirectStandardError = true,
         CreateNoWindow = true,
         UseShellExecute = false,
-        RedirectStandardOutput = true
+        RedirectStandardOutput = true,
+        FileName = OperatingSystem.IsWindows() ? "CMD.exe" : "sh"
     };
-    
+
     /// <summary>
-    /// Executes a command in terminal and returns the output. If the command fails, an empty string is returned and a warning is produced. 
+    /// Executes a given command and returns the output from the console.
     /// </summary>
-    /// <param name="command">The command to be executed.</param>
-    /// <param name="trimBeforeColonSymbol">Whether to trim all characters before the last colon [:].</param>
-    /// <returns>Command line output.</returns>
-    public static string ExecuteAndRead(in string command, bool trimBeforeColonSymbol = false)
+    /// <param name="command">Command to execute.</param>
+    /// <returns></returns>
+    public static string ExecuteAndRead(in string command)
     {
         if (System.OperatingSystem.IsWindows())
         {
-            cmd.FileName = "CMD.exe";
             cmd.Arguments = $"/C { command }";
         }
         else if (System.OperatingSystem.IsMacOS())
         {
-            cmd.FileName = "sh";
             cmd.Arguments = $"-c \"{ command }\"";
         }
-
-        try
+        
+        var builder = new StringBuilder();
+        using (Process process = Process.Start(cmd)!)
         {
-            var builder = new StringBuilder();
-            using (Process process = Process.Start(cmd)!)
-            {
-                process.WaitForExit();
-                builder.Append(process.StandardOutput.ReadToEnd());
-            }
-
-            if (trimBeforeColonSymbol)
-            {
-                string result = builder.ToString();
-                int idx = result.IndexOf(":", StringComparison.Ordinal);
-                idx = Mathematics.Clamp(idx, 0, int.MaxValue);
-                return result[(idx + 1)..].Trim();
-            }
-
-            return builder.ToString().Trim();
-        }
-        catch (Exception exception)
-        {
-            VulkanDebugger.ThrowWarning($"Command line failed to execute { command }: [{ exception.Message }]");
+            process.WaitForExit();
+            builder.Append(process.StandardOutput.ReadToEnd());
         }
 
-        return "";
+        return builder.ToString();
     }
-    
+
     /// <summary>
     /// Executes a command in terminal and returns the output trimmed so that it starts at the starting bounds and ends just after the end bounds. If the command fails, an empty string is returned and a warning is produced. 
     /// </summary>

@@ -1,8 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
-using SierraEngine.Core.Rendering.Vulkan.Abstractions;
-using SierraEngine.Engine.Components;
 using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
@@ -14,34 +12,35 @@ public struct UniformDirectionalLight
     public float intensity;
     
     public Vector3 color;
-    private readonly float _align2_;
-    
-    public Vector3 ambient;
-    private readonly float _align3_;
-    
-    public Vector3 diffuse;
-    private readonly float _align4_;
-    
-    public Vector3 specular;
-    private readonly float _align5_;
+    private readonly float _align1_;
 }
 
 public struct UniformPointLight
 {
     public Vector3 position;
-    private readonly float _align1_;
+    public float linear;
 
     public Vector3 color;   
     public float intensity;
-
-    public Vector3 ambient;
-    private readonly float _align2_;    
-    
-    public Vector3 diffuse;
-    public float linear;
         
-    public Vector3 specular;
+    private readonly Vector3 _align_1;
     public float quadratic;
+}
+
+public struct UniformSpotLight
+{
+    public Vector3 position;
+    public float radius;
+
+    public Vector3 direction;
+    public float intensity;
+
+    public Vector3 color;
+    public float linear;    
+    
+    private readonly Vector2 _align1_;
+    public float quadratic;
+    public float spreadRadius;
 }
 #pragma warning restore CS0169
 
@@ -58,12 +57,16 @@ public struct UniformData
     
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = World.MAX_POINT_LIGHTS)]
     public UniformPointLight[] pointLights;
+    
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = World.MAX_SPOTLIGHT_LIGHTS)]
+    public UniformSpotLight[] spotLights;
 
-    public int pointLightsCount;
     public int directionalLightsCount;
+    public int pointLightsCount;
+    public int spotLightsCount;
 }
 
-public unsafe partial class VulkanRenderer
+public partial class VulkanRenderer
 {
     public UniformData uniformData;
     private readonly ulong uniformDataSize = (ulong) Marshal.SizeOf(typeof(UniformData));
@@ -76,18 +79,19 @@ public unsafe partial class VulkanRenderer
         uniformBuffers = new Buffer[MAX_CONCURRENT_FRAMES];
 
         // Create uniform arrays
-        uniformData.pointLights = new UniformPointLight[World.MAX_POINT_LIGHTS];
         uniformData.directionalLights = new UniformDirectionalLight[World.MAX_DIRECTIONAL_LIGHTS];
+        uniformData.pointLights = new UniformPointLight[World.MAX_POINT_LIGHTS];
+        uniformData.spotLights = new UniformSpotLight[World.MAX_SPOTLIGHT_LIGHTS];
 
         // For each concurrent frame
-        for (uint i = 0; i < MAX_CONCURRENT_FRAMES; i++)
+        Parallel.For(0, MAX_CONCURRENT_FRAMES, i =>
         {
             new Buffer.Builder()
-                .SetMemorySize<UniformData>()
+                .SetMemorySize(uniformDataSize)
                 .SetMemoryFlags(VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlags.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
                 .SetUsageFlags(VkBufferUsageFlags.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-            .Build(out uniformBuffers[i]);
-        }
+                .Build(out uniformBuffers[i]);
+        });
     }
 
     private void UpdateUniformBuffers(in uint imageIndex)

@@ -44,6 +44,7 @@ public partial class VulkanRenderer
         
         // Resize the uniform buffers array and write to each descriptor
         uniformDescriptorSets = new VkDescriptorSet[MAX_CONCURRENT_FRAMES];
+            
         for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
         {
             uniformBufferInfo.buffer = uniformBuffers[i];
@@ -52,28 +53,6 @@ public partial class VulkanRenderer
                 .WriteBuffer(0, uniformBufferInfo) 
             .Build(out uniformDescriptorSets[i]);
         }
-    }
-
-    private int CreateTextureDescriptorSet(in Image image, ref List<VkDescriptorSet> textureDescriptorSetsList, in TextureType textureType)
-    {
-        // Create the information on the image
-        VkDescriptorImageInfo textureSamplerImageInfo = new VkDescriptorImageInfo()
-        {
-            imageLayout = VkImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            imageView = image,
-            sampler = textureSampler
-        };
-
-        // Write the image to the descriptor set
-        new DescriptorWriter(descriptorSetLayout, descriptorPool)
-            .WriteImage(TextureTypeToBinding(textureType), textureSamplerImageInfo)
-        .Build(out var textureDescriptorSet);
-
-        // Add the newly created descriptor set to the list
-        textureDescriptorSetsList.Add(textureDescriptorSet);
-        
-        // Return the ID of the newly created descriptor set
-        return textureDescriptorSetsList.Count - 1;
     }
     
     private uint TextureTypeToBinding(in TextureType textureType)

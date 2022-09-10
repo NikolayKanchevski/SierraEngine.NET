@@ -1,5 +1,6 @@
 using System.Numerics;
 using SierraEngine.Core;
+using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Components;
 
 namespace SierraEngine.Engine.Classes;
@@ -194,6 +195,42 @@ public class GameObject
         
         components.Add(component);
         return (T)(components.Last());
+    }
+
+    /// <summary>
+    /// Removes the first component of type within the components list.
+    /// </summary>
+    /// <typeparam name="T">The type of component to search for.</typeparam>
+    public void RemoveComponent<T>() where T : Component
+    {
+        for (int i = components.Count - 1; i >= 0; i--)
+        {
+            if (typeof(T) == components[i].GetType())
+            {
+                components[i].Destroy();
+                return;
+            }
+        }
+        
+        VulkanDebugger.ThrowWarning($"Could not find a component of type [{ typeof(T) }] in [{ this.name }]");
+    }
+    
+    /// <summary>
+    /// Removes the N-th occurence of certain component type within the components list.
+    /// </summary>
+    /// <param name="n">Which occurence of the component type to remove.</param>
+    /// <typeparam name="T">The type of component to search for.</typeparam>
+    public void RemoveComponent<T>(in int n) where T : Component
+    {
+        var filteredList = components.Where(o => o.GetType() == typeof(T)).ToArray();
+        if (filteredList.Length <= 0)
+        {
+            VulkanDebugger.ThrowWarning($"Could not find a component of type [{ typeof(T) }] in [{ this.name }]");
+            return;
+        }
+
+        int componentIndex = components.IndexOf(filteredList[n]);
+        components[componentIndex].Destroy();
     }
     
     /// <summary>

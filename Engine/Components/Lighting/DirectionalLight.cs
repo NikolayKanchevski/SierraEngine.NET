@@ -1,12 +1,11 @@
 using System.Numerics;
 using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Engine.Classes;
 
-namespace SierraEngine.Engine.Components;
+namespace SierraEngine.Engine.Components.Lighting;
 
 /// <summary>
-/// A component representing a directional light in the scene. Derives from both <see cref="Light"/> and <see cref="Component"/>.
+/// A component class representing a directional light in the scene. Derives from both <see cref="Light"/> and <see cref="Component"/>.
 /// </summary>
 public class DirectionalLight : Light
 {
@@ -30,16 +29,20 @@ public class DirectionalLight : Light
         World.directionalLights[ID] = this;
     }
 
+    public override void Destroy()
+    {
+        base.Destroy();
+        
+        World.RemoveDirectionalLight(this);
+    }
+
     public static implicit operator UniformDirectionalLight(DirectionalLight givenDirectionalLight)
     {
         return givenDirectionalLight.intensity > 0f ? new UniformDirectionalLight() with
         {
             intensity = givenDirectionalLight.intensity,
             direction = givenDirectionalLight.direction,
-            color = givenDirectionalLight.color,
-            diffuse = givenDirectionalLight.diffuse,
-            ambient = givenDirectionalLight.ambient,
-            specular = givenDirectionalLight.specular
-        } : new UniformDirectionalLight();
+            color = givenDirectionalLight.color
+        } : default;
     }
 }

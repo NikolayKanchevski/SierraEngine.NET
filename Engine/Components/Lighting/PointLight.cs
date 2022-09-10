@@ -1,11 +1,10 @@
 using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
-using SierraEngine.Engine.Classes;
 
-namespace SierraEngine.Engine.Components;
+namespace SierraEngine.Engine.Components.Lighting;
 
 /// <summary>
-/// A component representing a point light in the scene. Derives from both <see cref="Light"/> and <see cref="Component"/>.
+/// A component class representing a point light in the scene. Derives from both <see cref="Light"/> and <see cref="Component"/>.
 /// </summary>
 public class PointLight : Light
 {
@@ -38,6 +37,13 @@ public class PointLight : Light
         
         World.pointLights[ID] = this;
     } 
+
+    public override void Destroy()
+    {
+        base.Destroy();
+        
+        World.RemovePointLight(this);
+    }
     
     public static implicit operator UniformPointLight(PointLight givenPointLight)
     {
@@ -47,10 +53,7 @@ public class PointLight : Light
             color = givenPointLight.color,
             intensity = givenPointLight.intensity,
             linear = givenPointLight.linear,
-            quadratic = givenPointLight.quadratic,
-            ambient = givenPointLight.ambient,
-            diffuse = givenPointLight.diffuse,
-            specular = givenPointLight.specular
-        } : new UniformPointLight();
+            quadratic = givenPointLight.quadratic
+        } : default;
     }
 }

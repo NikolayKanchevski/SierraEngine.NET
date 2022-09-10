@@ -80,6 +80,9 @@ public class MeshObject
 
             Mesh mesh = LoadAssimpMesh(currentAssimpMesh);
             mesh.material.shininess = model.Materials[currentAssimpMesh.MaterialIndex].Shininess / 512f;
+            mesh.material.ambient = model.Materials[currentAssimpMesh.MaterialIndex].ColorAmbient.ToVector3();
+            mesh.material.diffuse = model.Materials[currentAssimpMesh.MaterialIndex].ColorDiffuse.ToVector3();
+            mesh.material.specular = model.Materials[currentAssimpMesh.MaterialIndex].ColorSpecular.ToVector3();
 
             Assimp.Material currentAssimpMaterial = model.Materials[currentAssimpMesh.MaterialIndex];
             if (currentAssimpMaterial.HasTextureDiffuse)

@@ -43,26 +43,6 @@ public class Mesh : Component
     private Buffer indexBuffer = null!;
 
     /// <summary>
-    /// Constructs a new mesh with from given vertices, indices, and a diffuse texture.
-    /// </summary>
-    public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices, int newDiffuseTextureId)
-    {
-        // Retrieve the public values
-        this.verticesCount = (uint) givenVertices.Length;
-        this.indexCount = (uint) givenIndices.Length;
-        this.diffuseTextureID = newDiffuseTextureId;
-
-        // Create buffers
-        CreateVertexBuffer(in givenVertices);
-        CreateIndexBuffer(in givenIndices);
-        
-        // Add the mesh to the world
-        World.meshes.Add(this);
-        VulkanRendererInfo.meshesDrawn++;
-        VulkanRendererInfo.verticesDrawn += (int) verticesCount;
-    }
-
-    /// <summary>
     /// Constructs a new mesh with from given vertices, and indices.
     /// </summary>
     public Mesh(in Vertex[] givenVertices, in UInt32[] givenIndices)
@@ -206,7 +186,10 @@ public class Mesh : Component
         Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(transform.scale);
         
         pushConstantData.modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
-        pushConstantData.shininess = material.shininess;
+        pushConstantData.material.shininess = material.shininess;
+        pushConstantData.material.diffuse = material.diffuse;
+        pushConstantData.material.specular = material.specular;
+        pushConstantData.material.ambient = material.ambient;
         
         // Return it
         return this.pushConstantData;

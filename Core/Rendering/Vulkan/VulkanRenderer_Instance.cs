@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
 
@@ -7,6 +8,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 public unsafe partial class VulkanRenderer
 {
     private VkInstance instance;
+    private readonly Task systemInfoTask = Task.Factory.StartNew(SystemInformation.PopulateSystemInfo);
 
     private readonly List<string> requiredInstanceExtensions = new List<string>();
     

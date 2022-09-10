@@ -44,7 +44,7 @@ def Main():
     except:
         pass
 
-    command = f"dotnet publish ../SierraEngine.csproj -r { platform } --configuration Release --self-contained /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
+    command = f"dotnet publish ../SierraEngine.csproj -r { platform } --configuration Release --no-self-contained /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
 
     try:
         os.system(command)
@@ -55,12 +55,15 @@ def Main():
         os.makedirs(outputDirectory + "Shaders/")
         CompileShaders(outputDirectory)
 
-        os.remove(outputDirectory + "glfw-sharp.dll.config")
-        os.remove(outputDirectory + "SierraEngine.pdb")
-
     except Exception as exception:  
         print(exception)
         return
+
+    try:
+        os.remove(outputDirectory + "glfw-sharp.dll.config")
+        os.remove(outputDirectory + "SierraEngine.pdb")
+    except:
+        pass
 
     try:
         MoveFolder(outputDirectory, copyDirectory)

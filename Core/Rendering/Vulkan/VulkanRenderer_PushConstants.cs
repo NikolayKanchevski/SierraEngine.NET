@@ -1,8 +1,23 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Classes;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
+
+#pragma warning disable CS0169
+public struct PushMaterial
+{
+    public Vector3 diffuse;
+    public float shininess;
+    
+    public Vector3 specular;
+    private readonly float _align1_;
+    
+    public Vector3 ambient;
+    private readonly float _align2_;
+}
+#pragma warning restore CS0169
 
 public struct PushConstant
 {
@@ -10,7 +25,7 @@ public struct PushConstant
     public Matrix4x4 modelMatrix;
     
     /* FRAGMENT DATA */
-    public float shininess;
+    public PushMaterial material;
 }
 
 public partial class VulkanRenderer

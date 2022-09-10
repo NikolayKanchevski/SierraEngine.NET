@@ -4,6 +4,7 @@ using ImGuiNET;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
 using SierraEngine.Engine.Components;
+using SierraEngine.Engine.Components.Lighting;
 using Camera = SierraEngine.Engine.Components.Camera;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
 using Window = SierraEngine.Core.Rendering.Window;
@@ -17,8 +18,8 @@ public class Application
 
     private readonly Camera camera = new GameObject("Camera").AddComponent<Camera>();
     
-    private readonly PointLight firstPointLight;
-    private readonly PointLight secondPointLight;
+    private readonly PointLight pointLight;
+    private readonly SpotLight spotLight;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float MOUSE_CAMERA_LOOK_SPEED = 0.1f;
@@ -42,23 +43,44 @@ public class Application
         
         // Create a new game object for the point light
         GameObject firstPointLightObject = new GameObject("First Point Light");
-        GameObject secondPointLightObject = new GameObject("Second Point Light");
+        GameObject spotLightObject = new GameObject("Spot Light");
         
         // Add a textured cube to the point light object so that we can see where in the world it is
         int lampTexture = vulkanRenderer.CreateTexture(Files.OUTPUT_DIRECTORY + "Textures/lamp.png", TextureType.Diffuse);
 
         // Add the mesh components to the point light objects
         Mesh firstPointLightMesh = firstPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
-        Mesh secondPointLightMesh = secondPointLightObject.AddComponent<Mesh>(new Mesh(cubeVertices, cubeIndices));
 
         // Set the textures of the meshes
         firstPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
-        secondPointLightMesh.SetTexture(TextureType.Diffuse, lampTexture);
         
         // Add the point light component to the object
-        firstPointLight = firstPointLightObject.AddComponent<PointLight>();
-        secondPointLight = secondPointLightObject.AddComponent<PointLight>();
+        pointLight = firstPointLightObject.AddComponent<PointLight>();
+        spotLight = spotLightObject.AddComponent<SpotLight>();
 
+        // Set initial light properties
+        spotLight.transform.position = camera.position;
+        spotLight.radius = 10.15f;
+        spotLight.spreadRadius = 42.0f;
+        
+        GameObject meshObject = new GameObject();
+
+        // Define the vertices
+        Vertex[] vertices = new Vertex[]
+        {
+            new Vertex() with { position = new Vector3(-0.1f, -0.4f, 0.0f) },
+            new Vertex() with { position = new Vector3(-0.1f, 0.4f, 0.0f) },
+            new Vertex() with { position = new Vector3(-0.9f, 0.4f, 0.0f) },
+            new Vertex() with { position = new Vector3(-0.9f, -0.4f, 0.0f) }
+        };
+
+        // Define the indices
+        UInt32[] indices = new UInt32[] { 0, 1, 2, 2, 3, 0 };
+
+        // Create and add the mesh to the object
+        Mesh mesh = new Mesh(vertices, indices);
+        meshObject.AddComponent<Mesh>(mesh);
+        
         // Load a tank model in the scene
         MeshObject.LoadFromModel(Files.OUTPUT_DIRECTORY + "Models/Chieftain/T95_FV4201_Chieftain.fbx");
     }
@@ -106,28 +128,21 @@ public class Application
     {
         // Calculate some example values to be used for animations
         float upTimeSin = (float) Math.Sin(Time.upTime);
-
+        
         // Point light settings
-        firstPointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
-        firstPointLight.linear = 0.09f;
-        firstPointLight.quadratic = 0.032f;
+        pointLight.intensity = 1f;
+        pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
+        pointLight.linear = 0.09f;
+        pointLight.quadratic = 0.032f;
         
-        firstPointLight.ambient = new Vector3(0.2f);
-        firstPointLight.diffuse = new Vector3(0.5f);
-        firstPointLight.specular = new Vector3(0.5f);
-        
-        secondPointLight.transform.position = new Vector3(-firstPointLight.position.X, -firstPointLight.position.Y, -firstPointLight.position.Z);
-        secondPointLight.linear = 0.09f;
-        secondPointLight.quadratic = 0.032f;
-        
-        secondPointLight.ambient = new Vector3(0.2f);
-        secondPointLight.diffuse = new Vector3(0.5f);
-        secondPointLight.specular = new Vector3(0.5f);
-        secondPointLight.intensity = firstPointLight.intensity;
+        // Spot light settings
+        spotLight.direction = Vector3.Normalize(new Vector3(0, -3, 10) - new Vector3(0, 1.5f, 0));
+        spotLight.linear = 0.09f;
+        spotLight.quadratic = 0.032f;
         
         // Apply rotations to the turret and gun objects 
-        World.meshes[5].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
-        World.meshes[6].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
+        World.meshes[^2].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
+        World.meshes[^1].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
     }
 
     private void UpdateUI()
@@ -138,8 +153,10 @@ public class Application
         // Draw the application-specific UI
         if (ImGui.Begin("Lighting Sliders", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize))
         {
-            ImGui.SliderFloat("Point Intensities", ref firstPointLight.intensity, 0f, 10f);
-            ImGui.SliderFloat3("Point Color", ref firstPointLight.color, 0f, 1f);
+            ImGui.SliderFloat("Spot Light Intensity", ref spotLight.intensity, 0f, 10f);
+            ImGui.SliderFloat("Spot Light Radius", ref spotLight.radius, 0f, 180);
+            ImGui.SliderFloat("Spot Light Spread Radius", ref spotLight.spreadRadius, 0f, 360f);
+            ImGui.SliderFloat3("Spot Light Color", ref spotLight.color, 0f, 1f);
             ImGui.End();
         }
     }

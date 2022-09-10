@@ -93,38 +93,38 @@ public unsafe partial class VulkanRenderer
         
         VulkanNative.vkDestroyQueryPool(this.logicalDevice, this.drawTimeQueryPool, null);
 
-        foreach (Texture texture in diffuseTextures)
+        Parallel.ForEach(diffuseTextures, texture =>
         {
             texture.CleanUp();
-        }
+        });
         
-        foreach (Texture texture in specularTextures)
+        Parallel.ForEach(specularTextures, texture =>
         {
             texture.CleanUp();
-        }
+        });
 
         VulkanNative.vkDestroyPipeline(this.logicalDevice, this.graphicsPipeline, null);
         VulkanNative.vkDestroyPipelineLayout(this.logicalDevice, this.graphicsPipelineLayout, null);
 
-        foreach (Buffer uniformBuffer in uniformBuffers)
+        Parallel.ForEach(uniformBuffers, uniformBuffer =>
         {
             uniformBuffer.CleanUp();
-        }
+        });
         
         descriptorPool.CleanUp();
         descriptorSetLayout.CleanUp();
-        
+
         foreach (Mesh mesh in World.meshes)
         {
             mesh.Destroy();
         }
-        
-        for (int i = 0; i < MAX_CONCURRENT_FRAMES; i++)
+
+        Parallel.For(0, MAX_CONCURRENT_FRAMES, i =>
         {
             VulkanNative.vkDestroySemaphore(this.logicalDevice, this.imageAvailableSemaphores[i], null);
             VulkanNative.vkDestroySemaphore(this.logicalDevice, this.renderFinishedSemaphores[i], null);
             VulkanNative.vkDestroyFence(this.logicalDevice, this.frameBeingRenderedFences[i], null);
-        }
+        });
 
         VulkanNative.vkDestroyCommandPool(this.logicalDevice, this.commandPool, null);
         

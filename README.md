@@ -210,7 +210,7 @@ There are many other features planned. Some of them are:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<p align="center" id="LinesCounter">Total lines of code: 8613</p>
-<p align="center" id="LastUpdated">Last updated: 07/09/2022</p>
+<p align="center" id="LinesCounter">Total lines of code: 8847</p>
+<p align="center" id="LastUpdated">Last updated: 10/09/2022</p>
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

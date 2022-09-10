@@ -1,4 +1,8 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
+using SierraEngine.Core.Rendering.Vulkan;
 
 namespace SierraEngine.Engine.Classes;
 
@@ -29,11 +33,6 @@ public static class SystemInformation
     /// </summary>
     public static string cpuModelName { get; private set; } = null!;
 
-    /// <summary>
-    /// The company (Manufacturer) of the current CPU used by the program.
-    /// </summary>
-    public static string cpuManufacturer { get; private set; } = null!;
-    
     /// <summary>
     /// The model of the current in-use by the program graphics card (GPU). Always retrieved!
     /// </summary>
@@ -72,7 +71,11 @@ public static class SystemInformation
         }
         else if (OperatingSystem.IsLinux())
         {
-            throw new NotImplementedException("System information is not available on Linux yet!");
+            VulkanDebugger.ThrowWarning("System information is not available on Linux yet!");
+        }
+        else
+        {
+            VulkanDebugger.ThrowWarning("System information is not supported on this operating system.");
         }
     }
 
@@ -87,18 +90,14 @@ public static class SystemInformation
         // Format it based on its manufacturer
         if (fullCpuModel.Contains("AMD"))
         {
-            cpuManufacturer = "AMD";
-            
             int startIdx = fullCpuModel.IndexOf("Ryzen", StringComparison.Ordinal);
             int endIdx = fullCpuModel.IndexOf("-Core", StringComparison.Ordinal);
         
             fullCpuModel = fullCpuModel[..(endIdx - 2)];
             cpuModelName = fullCpuModel[startIdx..];
         }
-        // TODO: Add support for obsolete Intel chips (e.g. Pentium) 
         else if (fullCpuModel.Contains("Intel"))
         {
-            cpuManufacturer = "Intel";
 
             int startIdx = fullCpuModel.IndexOf("(TM)", StringComparison.Ordinal);
 
@@ -144,33 +143,36 @@ public static class SystemInformation
     }
 
     private static void PopulateMacOSInfo()
-    { 
-        // Get operating system and kernel names
-        operatingSystemVersion = "MacOS " + CommandLine.ExecuteAndRead("awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | awk -F 'macOS ' '{print $NF}' | awk '{print substr($0, 0, length($0)-1)}'");
+    {
+        // Run the commands required
+        string commandOutput = CommandLine.ExecuteAndRead("awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | awk -F 'macOS ' '{print $NF}' | awk '{print substr($0, 0, length($0)-1)}' && sysctl -n machdep.cpu.brand_string && sysctl -n hw.memsize && sysctl -n hw.model");
+        string[] lines = commandOutput.Split('\n');
         
-        // Retrieve the CPU model or chip name if the device uses Apple Silicon
-        cpuModelName = CommandLine.ExecuteAndRead("sysctl -a | grep brand", true);
-        cpuManufacturer = cpuModelName.Contains("Intel") ? "Intel" : "Apple";
-        
-        // Get the total RAM as an integer (in GB) and multiply it by 1024 to get exact RAM memory value 
-        ramMemorySize = Int32.Parse(Regex.Replace(CommandLine.ExecuteAndRead("system_profiler SPHardwareDataType | grep \"Memory\"", true), @"[^\d]", "")) * 1024;
-        
-        // Get device model name and its name set by the user
-        deviceModelName = CommandLine.ExecuteAndRead("sysctl -n hw.model");
-        deviceName = CommandLine.ExecuteAndRead("system_profiler SPSoftwareDataType | grep \"Computer Name\"", true);
+        // Get operating system name
+        operatingSystemVersion = $"macOS { Environment.OSVersion.Version } { lines[0] }";
 
+        // Retrieve the CPU model or chip name if the device uses Apple Silicon
+        cpuModelName = lines[1];
+
+        // Get the total RAM in bytes and convert it to MBs
+        ramMemorySize = (int) (ulong.Parse(lines[2]) / 1048576);
+
+        // Get device model name and its name set by the user
+        deviceModelName = lines[3];
+        deviceName = Environment.MachineName.Replace("-", " ");
+        
         // Get device configuration
-        deviceConfiguration = deviceModelName.Contains("MacBook") ? DeviceConfiguration.Laptop : DeviceConfiguration.Desktop;
+        deviceConfiguration = deviceModelName.Contains("Book") ? DeviceConfiguration.Laptop : DeviceConfiguration.Desktop;
         
         // Toggle the successfully retrieved data bool
         dataRetrieved = true;
     }
-
+    
     public new static string ToString()
     {
         return $"Operating System Version: { operatingSystemVersion }\n" +
                $"CPU Model: { cpuModelName }\n" +
-               $"CPU Manufacturer: { cpuManufacturer }\n" +
+               $"GPU Model: { gpuModelName }\n" +
                $"Total RAM: { ramMemorySize }\n" +
                $"Device Name: { deviceName }\n" +
                $"Device Model: { deviceModelName }\n" +
