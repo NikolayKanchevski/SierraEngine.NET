@@ -515,6 +515,8 @@ public unsafe class ImGuiController
     
     private void UpdateImGuiInput()
     {
+        if (!Cursor.cursorShown) return;
+        
         ImGuiIOPtr io = ImGui.GetIO();
         
         for (int i = 256; i <= 314; i++)

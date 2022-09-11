@@ -3,6 +3,7 @@ using Evergine.Bindings.Vulkan;
 using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
+using SierraEngine.Engine.Structures;
 using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Engine.Components;
@@ -180,8 +181,11 @@ public class Mesh : Component
     /// <returns></returns>
     public PushConstant GetPushConstantData()
     {
+        // Inverse the Y coordinate to satisfy Vulkan's requirements
+        Vector3 rendererPosition = new Vector3(transform.position.X, transform.position.Y * -1, transform.position.Z);
+
         // Update the model matrix per call
-        Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(transform.position);
+        Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(rendererPosition);
         Matrix4x4 rotationMatrix = Matrix4x4.CreateRotationX(Mathematics.ToRadians(transform.rotation.X)) * Matrix4x4.CreateRotationY(Mathematics.ToRadians(transform.rotation.Y)) * Matrix4x4.CreateRotationZ(Mathematics.ToRadians(transform.rotation.Z));
         Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(transform.scale);
         

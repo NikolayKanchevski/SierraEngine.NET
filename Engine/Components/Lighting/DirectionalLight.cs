@@ -46,3 +46,14 @@ public class DirectionalLight : Light
         } : default;
     }
 }
+
+#pragma warning disable CS0169
+public struct UniformDirectionalLight
+{
+    public Vector3 direction;
+    public float intensity;
+    
+    public Vector3 color;
+    private readonly float _align1_;
+}
+#pragma warning restore CS0169

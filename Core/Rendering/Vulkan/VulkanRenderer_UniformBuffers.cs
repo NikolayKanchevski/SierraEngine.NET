@@ -1,48 +1,10 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Evergine.Bindings.Vulkan;
+using SierraEngine.Engine.Components.Lighting;
 using Buffer = SierraEngine.Core.Rendering.Vulkan.Abstractions.Buffer;
 
 namespace SierraEngine.Core.Rendering.Vulkan;
-
-#pragma warning disable CS0169
-public struct UniformDirectionalLight
-{
-    public Vector3 direction;
-    public float intensity;
-    
-    public Vector3 color;
-    private readonly float _align1_;
-}
-
-public struct UniformPointLight
-{
-    public Vector3 position;
-    public float linear;
-
-    public Vector3 color;   
-    public float intensity;
-        
-    private readonly Vector3 _align_1;
-    public float quadratic;
-}
-
-public struct UniformSpotLight
-{
-    public Vector3 position;
-    public float radius;
-
-    public Vector3 direction;
-    public float intensity;
-
-    public Vector3 color;
-    public float linear;    
-    
-    private readonly Vector2 _align1_;
-    public float quadratic;
-    public float spreadRadius;
-}
-#pragma warning restore CS0169
 
 [StructLayout(LayoutKind.Sequential)]
 public struct UniformData

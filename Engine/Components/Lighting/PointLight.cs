@@ -1,3 +1,4 @@
+using System.Numerics;
 using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
 
@@ -57,3 +58,17 @@ public class PointLight : Light
         } : default;
     }
 }
+
+#pragma warning disable CS0169
+public struct UniformPointLight
+{
+    public Vector3 position;
+    public float linear;
+
+    public Vector3 color;   
+    public float intensity;
+        
+    private readonly Vector3 _align_1;
+    public float quadratic;
+}
+#pragma warning restore CS0169

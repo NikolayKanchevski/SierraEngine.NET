@@ -6,7 +6,7 @@ layout(location = 2) in vec2 fromVert_TextureCoordinates;
 
 const uint MAX_POINT_LIGHTS = 64;
 const uint MAX_DIRECTIONAL_LIGHTS = 16; 
-const uint MAX_SPOTLIGHT_LIGHTS = 16; 
+const uint MAX_SPOTLIGHTS = 16; 
 
 struct DirectionalLight {
         vec3 direction;
@@ -27,7 +27,7 @@ struct PointLight {
         float quadratic;
 };
 
-struct SpotLight {
+struct Spotlight {
         vec3 position;
         float radius;
         
@@ -37,7 +37,9 @@ struct SpotLight {
         vec3 color;
         float linear;
         
-        vec2 _align1_;
+        float _align1_;
+        float _align2_;
+        
         float quadratic;
         float spreadRadius;
 };
@@ -50,11 +52,11 @@ layout(set = 0, binding = 0) uniform UniformBuffer {
         /* FRAGMENT DATA */
         DirectionalLight[MAX_DIRECTIONAL_LIGHTS] directionalLights;
         PointLight[MAX_POINT_LIGHTS] pointLights;
-        SpotLight[MAX_SPOTLIGHT_LIGHTS] spotLights;
+        Spotlight[MAX_SPOTLIGHTS] spotlights;
 
         int directionalLightsCount;
         int pointLightsCount;
-        int spotLightsCount;
+        int spotlightsCount;
 } ub;
 
 struct Material {
@@ -90,7 +92,7 @@ vec3 viewDirection;
 
 vec3 CalculateDirectionalLight(DirectionalLight directionalLight);
 vec3 CalculatePointLight(PointLight pointLight);
-vec3 CalculateSpotLight(SpotLight spotLight);
+vec3 Calculatespotlight(Spotlight spotlight);
 
 void main() {
         // Get the texture color
@@ -116,9 +118,9 @@ void main() {
         }
         
         // For each spot light calculate its color
-        for (int i = 0; i < ub.spotLightsCount; i++) {
-                if (ub.spotLights[i].intensity <= 0.0001) continue;
-                calculatedColor += CalculateSpotLight(ub.spotLights[i]);
+        for (int i = 0; i < ub.spotlightsCount; i++) {
+                if (ub.spotlights[i].intensity <= 0.0001) continue;
+                calculatedColor += Calculatespotlight(ub.spotlights[i]);
         }
         
         outColor = vec4(calculatedColor, 1.0);
@@ -166,18 +168,18 @@ vec3 CalculatePointLight(PointLight pointLight) {
         return (ambient + diffuse + specular);
 }
 
-vec3 CalculateSpotLight(SpotLight spotLight) {
-        if (spotLight.radius < spotLight.spreadRadius) {
-                spotLight.spreadRadius = spotLight.radius;
+vec3 Calculatespotlight(Spotlight spotlight) {
+        if (spotlight.radius < spotlight.spreadRadius) {
+                spotlight.spreadRadius = spotlight.radius;
         }
-        
+
         // Calculate required directions
-        const vec3 lightDirection = normalize(spotLight.position - fromVert_Position);
+        const vec3 lightDirection = normalize(spotlight.position - fromVert_Position);
         const vec3 reflectionDirection = reflect(-lightDirection, fromVert_Normal);
-        
-        const float theta = dot(lightDirection, normalize(-spotLight.direction));
-        const float epsilon = (spotLight.radius - spotLight.spreadRadius);
-        const float calculatedIntensity = clamp((theta - spotLight.spreadRadius) / epsilon, 0.0, 1.0);
+
+        const float theta = dot(lightDirection, normalize(-spotlight.direction));
+        const float epsilon = (spotlight.radius - spotlight.spreadRadius);
+        const float calculatedIntensity = clamp((theta - spotlight.spreadRadius) / epsilon, 0.0, 1.0) * spotlight.intensity;
 
         // Calculate diffuse and base specular values
         const float diffuseStrength = max(dot(fromVert_Normal, -lightDirection), 0.0);
@@ -185,12 +187,12 @@ vec3 CalculateSpotLight(SpotLight spotLight) {
 
         // Calculate final light components
         vec3 ambient = pushConstant.material.ambient * textureColor;
-        vec3 diffuse = pushConstant.material.diffuse * textureColor * diffuseStrength * spotLight.color * calculatedIntensity;
-        vec3 specular = pushConstant.material.specular * specularColor * specularStrength * spotLight.color * calculatedIntensity;
+        vec3 diffuse = pushConstant.material.diffuse * textureColor * diffuseStrength * spotlight.color * calculatedIntensity;
+        vec3 specular = pushConstant.material.specular * specularColor * specularStrength * spotlight.color * calculatedIntensity;
 
         // Calculate attenuation
-        const float distance = length(spotLight.position - fromVert_Position);
-        const float attenuation = 1.0 / (1.0f + spotLight.linear * distance + spotLight.quadratic * (distance * distance));
+        const float distance = length(spotlight.position - fromVert_Position);
+        const float attenuation = 1.0 / (1.0f + spotlight.linear * distance + spotlight.quadratic * (distance * distance));
 
         // Apply attenuation
         ambient  *= attenuation;

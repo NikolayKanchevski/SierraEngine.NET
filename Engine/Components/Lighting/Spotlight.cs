@@ -2,13 +2,14 @@ using System.Numerics;
 using SierraEngine.Core;
 using SierraEngine.Core.Rendering.Vulkan;
 using SierraEngine.Engine.Classes;
+using SierraEngine.Engine.Structures;
 
 namespace SierraEngine.Engine.Components.Lighting;
 
 /// <summary>
 /// A component used to render a spot light within a scene. Derives from both <see cref="Light"/> and <see cref="Component"/>.
 /// </summary>
-public class SpotLight : Light
+public class Spotlight : Light
 {
     /// <summary>
     /// In which direction the spot light should be emitting light rays.
@@ -21,7 +22,7 @@ public class SpotLight : Light
     public float radius;
 
     /// <summary>
-    /// How far the light will spread outside of the <see cref="radius"/>, before the light color turns into the <see cref="Light.ambient"/> color. 
+    /// How far the light will spread outside of the <see cref="radius"/>, before the light color turns into the <see cref="Material.ambient"/> color. 
     /// </summary>
     public float spreadRadius;
     
@@ -37,7 +38,7 @@ public class SpotLight : Light
     /// </summary>
     public float quadratic;
 
-    public SpotLight()
+    public Spotlight()
     {
         this.ID = World.RegisterSpotLight(this);
     }
@@ -62,18 +63,37 @@ public class SpotLight : Light
         World.RemoveSpotLight(this);
     }
 
-    public static implicit operator UniformSpotLight(SpotLight givenSpotLight)
+    public static implicit operator UniformSpotLight(Spotlight givenSpotlight)
     {
-        return givenSpotLight.intensity > 0f ? new UniformSpotLight()
+        return givenSpotlight.intensity > 0f ? new UniformSpotLight()
         {
-            position = givenSpotLight.transform.position,
-            direction = givenSpotLight.direction,
-            intensity = givenSpotLight.intensity,
-            color = givenSpotLight.color,
-            radius =  (float) Math.Cos(Mathematics.ToRadians(givenSpotLight.radius)),
-            spreadRadius = (float)Math.Cos(Mathematics.ToRadians(givenSpotLight.spreadRadius)),
-            linear = givenSpotLight.linear,
-            quadratic = givenSpotLight.quadratic
+            position = givenSpotlight.transform.position,
+            direction = givenSpotlight.direction,
+            intensity = givenSpotlight.intensity,
+            color = givenSpotlight.color,
+            radius =  (float) Math.Cos(Mathematics.ToRadians(givenSpotlight.radius)),
+            spreadRadius = (float) Math.Cos(Mathematics.ToRadians(givenSpotlight.spreadRadius)),
+            linear = givenSpotlight.linear,
+            quadratic = givenSpotlight.quadratic
         } : default;
     }
 }
+
+#pragma warning disable CS0169
+public struct UniformSpotLight
+{
+    public Vector3 position;
+    public float radius;
+
+    public Vector3 direction;
+    public float intensity;
+
+    public Vector3 color;
+    public float linear;    
+    private readonly float _align1_;
+    private readonly float _align2_;
+
+    public float quadratic;
+    public float spreadRadius;
+}
+#pragma warning restore CS0169

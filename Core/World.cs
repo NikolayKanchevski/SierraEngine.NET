@@ -7,21 +7,6 @@ using SierraEngine.Engine.Components.Lighting;
 namespace SierraEngine.Core;
 
 /// <summary>
-/// A version structure, represented as 3 sub-version uints - major, minor, and patch.
-/// </summary>
-public struct Version
-{
-    public const uint MAJOR = 1;
-    public const uint MINOR = 0;
-    public const uint PATCH = 0;
-
-    public new static string ToString()
-    {
-        return $"v{ MAJOR }.{ MINOR }.{ PATCH }";
-    }
-}
-
-/// <summary>
 /// The core of the engine. Maintains the renderer, the window, and every object in the scene.
 /// </summary>
 public static class World
@@ -98,8 +83,14 @@ public static class World
     private static void UpdateRenderer()
     {
         if (!VulkanCore.window.HasRenderer()) return;
+
+        // Inverse Y coordinate to satisfy Vulkan's requirements
+        Vector3 rendererCameraPosition = new Vector3(camera.transform.position.X, camera.transform.position.Y * -1, camera.transform.position.Z);
+        Vector3 rendererCameraFrontDirection = new Vector3(camera.frontDirection.X, camera.frontDirection.Y * -1, camera.frontDirection.Z);
+        Vector3 rendererCameraUpDirection = new Vector3(camera.upDirection.X, camera.upDirection.Y, camera.upDirection.Z);
         
-        VulkanCore.vulkanRenderer.uniformData.view = Matrix4x4.CreateLookAt(camera.position, camera.position + camera.frontDirection, camera.upDirection);
+        // Assign renderer data
+        VulkanCore.vulkanRenderer.uniformData.view = Matrix4x4.CreateLookAt(rendererCameraPosition, rendererCameraPosition + rendererCameraFrontDirection, rendererCameraUpDirection);
         VulkanCore.vulkanRenderer.uniformData.projection = Matrix4x4.CreatePerspectiveFieldOfView(Mathematics.ToRadians(camera.fov), VulkanCore.swapchainAspectRatio, camera.nearClip, camera.farClip);
         VulkanCore.vulkanRenderer.uniformData.projection.M11 *= -1;
 
@@ -174,11 +165,11 @@ public static class World
         freePointLightSlots.Add(pointLight.ID);
     }
 
-    public static int RegisterSpotLight(SpotLight spotLight)
+    public static int RegisterSpotLight(Spotlight spotlight)
     {
         if (freeSpotLightSlots.Count > 0)
         {
-            spotLights[freeSpotLightSlots[0]] = spotLight;
+            spotLights[freeSpotLightSlots[0]] = spotlight;
             
             freeSpotLightSlots.RemoveAt(0);
             return freeSpotLightSlots[0];
@@ -190,15 +181,15 @@ public static class World
             return -1;
         }
 
-        spotLights[spotLightsCount] = spotLight;
+        spotLights[spotLightsCount] = spotlight;
         spotLightsCount++;
 
         return spotLightsCount - 1;
     }
 
-    public static void RemoveSpotLight(SpotLight spotLight)
+    public static void RemoveSpotLight(Spotlight spotlight)
     {
-        spotLights[spotLight.ID] = default;
-        freeSpotLightSlots.Add(spotLight.ID);
+        spotLights[spotlight.ID] = default;
+        freeSpotLightSlots.Add(spotlight.ID);
     }
 }

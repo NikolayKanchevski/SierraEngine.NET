@@ -7,6 +7,7 @@ using SierraEngine.Engine.Components;
 using SierraEngine.Engine.Components.Lighting;
 using Camera = SierraEngine.Engine.Components.Camera;
 using Cursor = SierraEngine.Engine.Classes.Cursor;
+using Version = SierraEngine.Engine.Structures.Version;
 using Window = SierraEngine.Core.Rendering.Window;
 
 namespace SierraEngine.Core.Application;
@@ -19,7 +20,7 @@ public class Application
     private readonly Camera camera = new GameObject("Camera").AddComponent<Camera>();
     
     private readonly PointLight pointLight;
-    private readonly SpotLight spotLight;
+    private readonly Spotlight spotlight;
     
     private const float CAMERA_MOVE_SPEED = 15.0f;
     private const float MOUSE_CAMERA_LOOK_SPEED = 0.1f;
@@ -56,31 +57,12 @@ public class Application
         
         // Add the point light component to the object
         pointLight = firstPointLightObject.AddComponent<PointLight>();
-        spotLight = spotLightObject.AddComponent<SpotLight>();
+        spotlight = spotLightObject.AddComponent<Spotlight>();
 
         // Set initial light properties
-        spotLight.transform.position = camera.position;
-        spotLight.radius = 10.15f;
-        spotLight.spreadRadius = 42.0f;
-        
-        GameObject meshObject = new GameObject();
-
-        // Define the vertices
-        Vertex[] vertices = new Vertex[]
-        {
-            new Vertex() with { position = new Vector3(-0.1f, -0.4f, 0.0f) },
-            new Vertex() with { position = new Vector3(-0.1f, 0.4f, 0.0f) },
-            new Vertex() with { position = new Vector3(-0.9f, 0.4f, 0.0f) },
-            new Vertex() with { position = new Vector3(-0.9f, -0.4f, 0.0f) }
-        };
-
-        // Define the indices
-        UInt32[] indices = new UInt32[] { 0, 1, 2, 2, 3, 0 };
-
-        // Create and add the mesh to the object
-        Mesh mesh = new Mesh(vertices, indices);
-        meshObject.AddComponent<Mesh>(mesh);
-        
+        spotlight.radius = 13f;
+        spotlight.spreadRadius = 23f;
+                
         // Load a tank model in the scene
         MeshObject.LoadFromModel(Files.OUTPUT_DIRECTORY + "Models/Chieftain/T95_FV4201_Chieftain.fbx");
     }
@@ -91,7 +73,7 @@ public class Application
         Cursor.SetCursorVisibility(cursorShown);
 
         // Set initial values for the lighting and camera
-        camera.transform.position = new Vector3(0.0f, -3.0f, 10.0f);
+        camera.transform.position = new Vector3(0.0f, 3.0f, 10.0f);
 
         World.Init();
         
@@ -130,15 +112,15 @@ public class Application
         float upTimeSin = (float) Math.Sin(Time.upTime);
         
         // Point light settings
-        pointLight.intensity = 1f;
+        // pointLight.intensity = 0f;
         pointLight.transform.position = new Vector3(0f, -7.5f, upTimeSin * 10f);
         pointLight.linear = 0.09f;
         pointLight.quadratic = 0.032f;
         
         // Spot light settings
-        spotLight.direction = Vector3.Normalize(new Vector3(0, -3, 10) - new Vector3(0, 1.5f, 0));
-        spotLight.linear = 0.09f;
-        spotLight.quadratic = 0.032f;
+        spotlight.direction = Vector3.Normalize(new Vector3(0, -3, 10) - new Vector3(0, 1.5f, 0));
+        spotlight.linear = 0.09f;
+        spotlight.quadratic = 0.032f;
         
         // Apply rotations to the turret and gun objects 
         World.meshes[^2].transform.rotation = new Vector3(0.0f, upTimeSin * 45f, 0.0f);
@@ -153,10 +135,10 @@ public class Application
         // Draw the application-specific UI
         if (ImGui.Begin("Lighting Sliders", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize))
         {
-            ImGui.SliderFloat("Spot Light Intensity", ref spotLight.intensity, 0f, 10f);
-            ImGui.SliderFloat("Spot Light Radius", ref spotLight.radius, 0f, 180);
-            ImGui.SliderFloat("Spot Light Spread Radius", ref spotLight.spreadRadius, 0f, 360f);
-            ImGui.SliderFloat3("Spot Light Color", ref spotLight.color, 0f, 1f);
+            ImGui.SliderFloat("Spot Light Intensity", ref spotlight.intensity, 0f, 10f);
+            ImGui.SliderFloat("Spot Light Radius", ref spotlight.radius, 0f, 180);
+            ImGui.SliderFloat("Spot Light Spread Radius", ref spotlight.spreadRadius, 0f, 180);
+            ImGui.SliderFloat3("Spot Light Color", ref spotlight.color, 0f, 1f);
             ImGui.End();
         }
     }
@@ -206,16 +188,16 @@ public class Application
         
         if (Input.GetKeyHeld(Keys.Q) || Input.GetKeyHeld(Keys.LeftControl))
         {
-            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }
         if (Input.GetKeyHeld(Keys.E) || Input.GetKeyHeld(Keys.Space))
         {
-            camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+            camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
         }
 
         // Rotate the camera based on mouse movement
         yaw += Cursor.GetHorizontalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
-        pitch += Cursor.GetVerticalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
+        pitch -= Cursor.GetVerticalCursorOffset() * MOUSE_CAMERA_LOOK_SPEED;
 
         // Check if a single controller is connected
         if (Input.GamepadConnected())
@@ -225,12 +207,12 @@ public class Application
             camera.transform.position += Input.GetHorizontalGamepadLeftStickAxis() * CAMERA_MOVE_SPEED * Time.deltaTime * camera.leftDirection;
 
             // Depending on what buttons are held move the camera
-            if (Input.GetGamepadButtonHeld(GamePadButton.A)) camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
-            if (Input.GetGamepadButtonHeld(GamePadButton.X)) camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+            if (Input.GetGamepadButtonHeld(GamePadButton.A)) camera.transform.position += CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
+            if (Input.GetGamepadButtonHeld(GamePadButton.X)) camera.transform.position -= CAMERA_MOVE_SPEED * Time.deltaTime * camera.upDirection;
             
             // Rotate the camera based on the right stick's axis
             yaw += Input.GetHorizontalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
-            pitch += Input.GetVerticalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
+            pitch -= Input.GetVerticalGamepadRightStickAxis() * GAMEPAD_CAMERA_LOOK_SPEED;
         }
 
         // Clamp the pitch

@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace SierraEngine.Engine.Classes;
+namespace SierraEngine.Engine.Structures;
 
 /// <summary>
 /// A struct for storing per-texture's material data.
