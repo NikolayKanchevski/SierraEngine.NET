@@ -11,7 +11,7 @@ though the engine has only been tested on <b>Windows 10, 11</b> and <b>macOS Mon
 
 <br>
 
-<span style="color: red"><h4><b>WARNING:</b>The project is a finished prototype. Development has been moved to this <a href="https://github.com/NikichaTV/SierraEngine">link</a> where it will be rewritten in C++ and extended! This repository will no longer be updated!</h4></span>
+<span style="color: red"><h4><b>WARNING:</b> The project is a finished prototype. Development has been moved to this <a href="https://github.com/NikichaTV/SierraEngine">link</a> where it will be rewritten in C++ and extended! This repository will no longer be updated!</h4></span>
 
 <br>
 
