@@ -5,6 +5,7 @@ from platform import platform
 import sys
 import platform
 import shutil
+from shutil import copy
 
 ROOT_DIRECTORY = "../"
 SHADERS_FOLDER = ROOT_DIRECTORY + "Core/Rendering/Shading/Shaders/Compiled"
@@ -20,22 +21,22 @@ def Main():
         print("Error: You must run the program with two arguments: --[PLATFORM] and --[OUTPUT_DIRECTORY]!")
         return
 
-    platform = sys.argv[1].replace("--", "")
+    targetPlatform = sys.argv[1].replace("--", "")
 
-    if (platform not in SUPPORTED_PLATFORMS):
-        print(f"Error: The platform [{ platform }] is either a non-existant, or unsupported!")
+    if (targetPlatform not in SUPPORTED_PLATFORMS):
+        print(f"Error: The platform [{ targetPlatform }] is either a non-existant, or unsupported!")
         return
 
     try:
-        shutil.rmtree(ROOT_DIRECTORY + f"bin/Release/net6.0/{platform}")
+        shutil.rmtree(ROOT_DIRECTORY + f"bin/Release/net6.0/{targetPlatform}")
     except:
         pass
 
-    outputDirectory = ROOT_DIRECTORY + f"bin/Release/net6.0/{platform}/publish/"
+    outputDirectory = ROOT_DIRECTORY + f"bin/Release/net6.0/{targetPlatform}/publish/"
     copyDirectory = sys.argv[2].replace("--", "")
 
     try:
-        shutil.rmtree(copyDirectory + f"/Sierra Engine Game ({ platform })")
+        shutil.rmtree(copyDirectory + f"/Sierra Engine Game ({ targetPlatform })")
     except:
         pass
 
@@ -44,7 +45,7 @@ def Main():
     except:
         pass
 
-    command = f"dotnet publish ../SierraEngine.csproj -r { platform } --configuration Release --no-self-contained /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
+    command = f"dotnet publish ../SierraEngine.csproj -r { targetPlatform } --configuration Release --no-self-contained /property:PublishSingleFile=True /property:IncludeNativeLibrariesForSelfExtract=True /property:SelfContained=False /property:ReadyToRun=True"
 
     try:
         os.system(command)
@@ -71,8 +72,26 @@ def Main():
         print(f"Could not move the export to { copyDirectory }! Make sure the directory is valid and exists!")
         return
 
-    os.rename(copyDirectory + "/publish", copyDirectory + f"/Sierra Engine Game ({ platform })")
-    shutil.rmtree(ROOT_DIRECTORY + f"bin/Release/net6.0/{platform}")
+    
+    if platform.system() == "Windows":
+        shellDebugger = open(copyDirectory + "/publish/SierraEngineDebugger.bat", "x+")
+        shellDebugger = open(copyDirectory + "/publish/SierraEngineDebugger.bat", 'w')
+        shellDebugger.write("SierraEngine.exe\npause")
+        shellDebugger.close()
+
+        if "x64" in targetPlatform:
+            copy("../Core/Dynamic Link Libraries/Windows/win-x64/native/assimp.dll", copyDirectory + "/publish/")
+        else:
+            copy("../Core/Dynamic Link Libraries/Windows/win-x86/native/assimp.dll", copyDirectory + "/publish/")
+    elif platform.system() == "darwin":
+        copy("../Core/Dynamic Link Libraries/Windows/osx-universal/native/libcimgui.dylib", copyDirectory + "/publish/")
+    else:
+        copy("../Core/Dynamic Link Libraries/Windows/linux-x64/native/libassimp.so", copyDirectory + "/publish/")
+        
+    copy("../Core/Dynamic Link Libraries/Windows/glfw.dll", copyDirectory + "/publish/")
+
+    os.rename(copyDirectory + "/publish", copyDirectory + f"/Sierra Engine Game ({ targetPlatform })")
+    shutil.rmtree(ROOT_DIRECTORY + f"bin/Release/net6.0/{targetPlatform}")
 
     print("\nSuccess!")
 

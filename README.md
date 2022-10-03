@@ -1,5 +1,5 @@
 <h1 align="center">Sierra Engine</h1>
-<h6 align="center">By: <a href="https://nikichatv.com/Website/N-Studios.html">Nikolay Kanchevski</a></h6>
+<h6 align="center">By: <a href="https://github.com/NikichaTV">Nikolay Kanchevski</a></h6>
 <br>
 
 <p>
@@ -8,6 +8,10 @@ It is based on the <b><a href="https://www.vulkan.org/">Vulkan</a></b> rendering
 <b>Windows 7-11</b>, <b>macOS</b>, <b>Linux</b>, <b>Android</b>, <b>iOS</b>, <b>tvOS</b> and other operating systems,
 though the engine has only been tested on <b>Windows 10, 11</b> and <b>macOS Monterey</b>. All of its features are listed below.
 </p>
+
+<br>
+
+<h4 style="color: red;"><b>WARNING:</b> The project a finished prototype. Development has been moved to this <a href="https://github.com/NikichaTV/SierraEngine">link</a> where it will be rewritten in C++ and extended! This repository will no longer be updated!</h4>
 
 <br>
 
@@ -23,9 +27,9 @@ You can then proceed and run the program in your IDE. Make sure you are in <b>RE
 
 <br>
 
-<i>NOTE: This whole tab will be eventually moved to https://nikicha.gitbook.io/sierra-engine/ where all the documentation will be put.</i>
+## 📄 Comprehensive Documentation
 
-<br>
+All functionalities of the engine - its built-in classes, objects, and their usages are thoroughly explained in the documentation page which you can find <a href="https://nikicha.gitbook.io/sierra-engine-dotnet/">here</a>.
 
 ## 🧭 Object Transformations
 
@@ -192,7 +196,7 @@ There are many other features planned. Some of them are:
 <p>
     Frameworks used: 
     <ul>
-        <li><a href="https://www.vulkan.org/">Vulkan</a> - For both cross-platform and pefromant-friendly rendering.</li>
+        <li><a href="https://www.vulkan.org/">Vulkan</a> - For both cross-platform and pefromant-friendly rendering. Note: the latest version of Vulkan is not used, as 1.2.198.1 is the last to support all platforms.</li>
         <li><a href="https://github.com/glfw/glfw">GLFW</a> - For creating window interface and connecting it to the <b>Vulkan</b> renderer.</li>
         <li><a href="https://github.com/assimp/assimp">Assimp</a> - For the loading of all kinds of 3D model formats (.obj, .fbx, .dae, etc.).</li>
         <li><a href="https://github.com/nothings/stb">Stb</a> - For loading image data from all kinds of image formats (.jpg, .png, etc.).</li>

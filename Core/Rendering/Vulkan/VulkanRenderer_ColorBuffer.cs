@@ -5,7 +5,7 @@ namespace SierraEngine.Core.Rendering.Vulkan;
 
 public partial class VulkanRenderer
 {
-    private VkSampleCountFlags msaaSampleCount = VkSampleCountFlags.VK_SAMPLE_COUNT_64_BIT;
+    private VkSampleCountFlags msaaSampleCount = VkSampleCountFlags.VK_SAMPLE_COUNT_4_BIT;
     private bool sampleShadingEnabled = true;
 
     private Image colorImage = null!;

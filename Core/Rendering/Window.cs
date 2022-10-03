@@ -294,14 +294,15 @@ public class Window
         GLFW.Glfw.WindowHint(Hint.Visible, 0);
 
         glfwWindow = GLFW.Glfw.CreateWindow(width, height, title, GLFW.Monitor.None, GLFW.Window.None);
-        GLFW.Glfw.SetWindowPosition(glfwWindow, (int) position.X, (int) position.Y);
-        
-        VulkanCore.glfwWindow = glfwWindow;
-        VulkanCore.window = this;
 
         selfPointerHandle = GCHandle.Alloc(this);
         IntPtr selfPointer = (IntPtr) selfPointerHandle;
         GLFW.Glfw.SetWindowUserPointer(glfwWindow, selfPointer);
+        
+        GLFW.Glfw.SetWindowPosition(glfwWindow, (int) position.X, (int) position.Y);
+        
+        VulkanCore.glfwWindow = glfwWindow;
+        VulkanCore.window = this;
 
         GLFW.Glfw.GetFramebufferSize(glfwWindow, out var actualSizeX, out var actualSizeY);
         this.width = actualSizeX / 2;
